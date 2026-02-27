@@ -25,6 +25,7 @@ const COMPONENT_TYPES = [
   "dropdown",
   "section",
   "layout",
+  "checkbox",
   "button"
 ];
 

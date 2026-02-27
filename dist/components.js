@@ -175,6 +175,33 @@ export class Dropdown extends Component {
         div.appendChild(select);
     }
 }
+export class Checkbox extends Component {
+    constructor() {
+        super("Checkbox");
+        this.checked = false;
+        this.text = "New Checkbox";
+    }
+    addEditorFeatures() {
+        const editorDiv = document.getElementById("editor");
+        if (!editorDiv)
+            return;
+        if (!(editorDiv instanceof HTMLDivElement))
+            return;
+        editor.addTextLabel(this);
+        editor.addStyleSection(this);
+        editor.addTextSection(this);
+    }
+    render(div) {
+        let checkbox = document.createElement("input");
+        checkbox.checked = this.checked;
+        checkbox.type = "checkbox";
+        checkbox.onchange = (e) => {
+            e.stopPropagation();
+            this.checked = checkbox.checked;
+        };
+        div.appendChild(checkbox);
+    }
+}
 export class Layout extends Component {
     constructor() {
         super("layout");
@@ -210,6 +237,7 @@ export const componentRegistry = {
     button: Button,
     section: Section,
     dropdown: Dropdown,
+    checkbox: Checkbox,
     layout: Layout
 };
 /**

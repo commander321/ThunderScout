@@ -55,6 +55,13 @@ export declare class Dropdown extends Component {
     addEditorFeatures(): void;
     render(div: HTMLDivElement): void;
 }
+export declare class Checkbox extends Component {
+    checked: boolean;
+    text: string;
+    constructor();
+    addEditorFeatures(): void;
+    render(div: HTMLDivElement): void;
+}
 export declare class Layout extends Component {
     direction: string;
     text: string;
@@ -72,6 +79,7 @@ export declare const componentRegistry: {
     readonly button: typeof Button;
     readonly section: typeof Section;
     readonly dropdown: typeof Dropdown;
+    readonly checkbox: typeof Checkbox;
     readonly layout: typeof Layout;
 };
 export type ComponentType = keyof typeof componentRegistry;
