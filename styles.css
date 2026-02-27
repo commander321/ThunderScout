@@ -1,0 +1,116 @@
+body {
+  margin: 0;
+  font-family: Arial;
+  display: flex;
+}
+
+#sidebar {
+  width: 320px;
+  background: #f4f4f4;
+  padding: 15px;
+  height: 100vh;
+  overflow-y: auto;
+  border-right: 2px solid #ddd;
+}
+
+#preview {
+  flex: 1;
+  padding: 20px;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.component {
+  padding: 10px;
+  background: white;
+}
+
+.editor-component {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 6px 0px;
+  background: white;
+  cursor: pointer;
+}
+
+.editor-component:hover {
+  background: #eef6ff;
+  border-color: #007bff;
+}
+
+.selected {
+  outline: 2px solid #007bff;
+}
+
+.container {
+  border: 1px dashed #999;
+}
+
+.horizontal {
+  display: flex;
+  gap: 10px;
+}
+
+.insert-bar {
+  text-align: center;
+  cursor: pointer;
+  color: #007bff;
+}
+
+.insert-bar:hover {
+  background: #eef6ff;
+}
+
+input, select {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 4px;
+}
+
+.number-input {
+  width: 15%;
+  margin-bottom: 8px;
+  padding: 4px;
+}
+
+.horizontal-editor-inputs {
+  display: flex;
+  white-space: nowrap;
+  justify-content: space-evenly;
+}
+
+.center-align {
+  margin: auto;
+}
+
+.right-align {
+  margin-left: auto;
+}
+
+.left-align {
+  margin-right: auto;
+}
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+}
+
+#modal {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 20px;
+  border: 1px solid #ccc;
+}
+
+.hidden {
+  display: none;
+}
+
+.italic {
+  font-style: "italic";
+}
