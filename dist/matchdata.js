@@ -1,17 +1,27 @@
 import { MatchEvent } from "./events.js";
 export var MatchType;
 (function (MatchType) {
-    MatchType[MatchType["Practice"] = 0] = "Practice";
-    MatchType[MatchType["Quals"] = 1] = "Quals";
-    MatchType[MatchType["Finals"] = 2] = "Finals";
-    MatchType[MatchType["Other"] = 3] = "Other";
+    MatchType["Practice"] = "Practice";
+    MatchType["Quals"] = "Quals";
+    MatchType["Finals"] = "Finals";
+    MatchType["Other"] = "Other";
 })(MatchType || (MatchType = {}));
+export var AllianceStation;
+(function (AllianceStation) {
+    AllianceStation["Red_1"] = "Red_1";
+    AllianceStation["Red_2"] = "Red_2";
+    AllianceStation["Red_3"] = "Red_3";
+    AllianceStation["Blue_1"] = "Blue_1";
+    AllianceStation["Blue_2"] = "Blue_2";
+    AllianceStation["Blue_3"] = "Blue_3";
+})(AllianceStation || (AllianceStation = {}));
 export class MatchData {
     constructor() {
         this.teamNumber = 0;
         this.matchNumber = 0;
         this.eventCode = "";
         this.matchType = MatchType.Practice;
+        this.allianceStation = AllianceStation.Red_1;
         this.matchEvents = [];
     }
     /**
@@ -52,6 +62,26 @@ export function getAllMatches() {
  */
 export function saveCurrentMatch() {
     savedMatches.push(currentMatchData);
+    let nextMatch = currentMatchData.matchNumber + 1;
     currentMatchData = new MatchData();
+    currentMatchData.matchNumber = nextMatch;
+}
+/**
+ * Exports all saved matches to a JSON file
+ */
+export function exportMatchData() {
+    let data = {
+        matches: savedMatches
+    };
+    let json = JSON.stringify(data, null, 2);
+    let blob = new Blob([json], { type: "application/json" });
+    let url = URL.createObjectURL(blob);
+    let link = document.createElement("a");
+    link.href = url;
+    link.download = "matchdata.json";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }
 //# sourceMappingURL=matchdata.js.map

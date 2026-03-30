@@ -1,10 +1,19 @@
 import {MatchEvent} from "./events.js";
 
 export enum MatchType {
-    Practice,
-    Quals,
-    Finals,
-    Other,
+    Practice = "Practice",
+    Quals = "Quals",
+    Finals = "Finals",
+    Other = "Other",
+}
+
+export enum AllianceStation {
+    Red_1 = "Red_1",
+    Red_2 = "Red_2",
+    Red_3 = "Red_3",
+    Blue_1 = "Blue_1",
+    Blue_2 = "Blue_2",
+    Blue_3 = "Blue_3",
 }
 
 export class MatchData {
@@ -13,6 +22,7 @@ export class MatchData {
     matchNumber: number;
     eventCode: string;
     matchType: MatchType;
+    allianceStation: AllianceStation;
     matchEvents: MatchEvent[];
 
     constructor() {
@@ -20,6 +30,7 @@ export class MatchData {
         this.matchNumber = 0;
         this.eventCode = "";
         this.matchType = MatchType.Practice;
+        this.allianceStation = AllianceStation.Red_1;
         this.matchEvents = [];
     }
 
@@ -68,5 +79,31 @@ export function saveCurrentMatch() {
 
     savedMatches.push(currentMatchData);
 
+    let nextMatch: number = currentMatchData.matchNumber + 1; 
+
     currentMatchData = new MatchData();
+    currentMatchData.matchNumber = nextMatch;
+}
+
+/**
+ * Exports all saved matches to a JSON file
+ */
+export function exportMatchData() {
+    let data = {
+        matches: savedMatches
+    }
+
+    let json = JSON.stringify(data, null, 2);
+    let blob = new Blob([json], { type: "application/json" });
+    let url = URL.createObjectURL(blob);
+
+    let link = document.createElement("a");
+    link.href = url;
+    link.download = "matchdata.json";
+
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }

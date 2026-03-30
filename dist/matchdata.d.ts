@@ -1,15 +1,24 @@
 import { MatchEvent } from "./events.js";
 export declare enum MatchType {
-    Practice = 0,
-    Quals = 1,
-    Finals = 2,
-    Other = 3
+    Practice = "Practice",
+    Quals = "Quals",
+    Finals = "Finals",
+    Other = "Other"
+}
+export declare enum AllianceStation {
+    Red_1 = "Red_1",
+    Red_2 = "Red_2",
+    Red_3 = "Red_3",
+    Blue_1 = "Blue_1",
+    Blue_2 = "Blue_2",
+    Blue_3 = "Blue_3"
 }
 export declare class MatchData {
     teamNumber: number;
     matchNumber: number;
     eventCode: string;
     matchType: MatchType;
+    allianceStation: AllianceStation;
     matchEvents: MatchEvent[];
     constructor();
     /**
@@ -31,4 +40,8 @@ export declare function getAllMatches(): MatchData[];
  * Saves the current match and sets it to the next one
  */
 export declare function saveCurrentMatch(): void;
+/**
+ * Exports all saved matches to a JSON file
+ */
+export declare function exportMatchData(): void;
 //# sourceMappingURL=matchdata.d.ts.map

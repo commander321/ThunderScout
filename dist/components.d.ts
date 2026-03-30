@@ -69,6 +69,31 @@ export declare class Layout extends Component {
     addEditorFeatures(): void;
     render(div: HTMLDivElement): void;
 }
+export declare class TeamNum extends Component {
+    constructor();
+    addEditorFeatures(): void;
+    render(div: HTMLDivElement): void;
+}
+export declare class MatchNum extends Component {
+    constructor();
+    addEditorFeatures(): void;
+    render(div: HTMLDivElement): void;
+}
+export declare class MatchType extends Component {
+    constructor();
+    addEditorFeatures(): void;
+    render(div: HTMLDivElement): void;
+}
+export declare class AllianceStation extends Component {
+    constructor();
+    addEditorFeatures(): void;
+    render(div: HTMLDivElement): void;
+}
+export declare class ResetButton extends Component {
+    constructor();
+    addEditorFeatures(): void;
+    render(div: HTMLDivElement): void;
+}
 /**
  * All types of components
  */
@@ -81,6 +106,11 @@ export declare const componentRegistry: {
     readonly dropdown: typeof Dropdown;
     readonly checkbox: typeof Checkbox;
     readonly layout: typeof Layout;
+    readonly teamnum: typeof TeamNum;
+    readonly matchnum: typeof MatchNum;
+    readonly matchtype: typeof MatchType;
+    readonly resetbutton: typeof ResetButton;
+    readonly alliancestation: typeof AllianceStation;
 };
 export type ComponentType = keyof typeof componentRegistry;
 /**

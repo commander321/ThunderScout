@@ -23,5 +23,6 @@ export declare function setupSaveButton(): void;
  */
 export declare function loadComponent(data: any): components.Component;
 export declare function setupLoadButton(): void;
+export declare function setupExportButton(): void;
 export declare function isRuntimeMode(): boolean;
 //# sourceMappingURL=app.d.ts.map

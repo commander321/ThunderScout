@@ -234,7 +234,17 @@ export class Dropdown extends Component {
       select.appendChild(opt);
     });
 
-    select.onclick = e => e.stopPropagation();
+    select.onclick = e => {
+      e.stopPropagation();
+
+      //Handle events, remove all of the other options and add the selected one
+      this.options.forEach(t => {
+        matchdata.getCurrentMatch().removeType(t);
+      });
+
+      matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.options[select.selectedIndex] || "null"));
+
+    }
 
     select.onchange = (e) => {
       e.stopPropagation();
@@ -314,6 +324,160 @@ export class Layout extends Component {
   }
 }
 
+export class TeamNum extends Component {
+  constructor() {
+    super("teamnum");
+  }
+
+  addEditorFeatures(): void {
+    editor.addStyleSection(this);
+    editor.addTextSection(this);
+  }
+
+  render(div: HTMLDivElement): void {
+    let team: HTMLInputElement = document.createElement("input");
+    team.type = "number";
+
+    team.onchange = (e) => {
+      matchdata.getCurrentMatch().teamNumber = parseInt(team.value);
+      console.log(matchdata.getCurrentMatch());
+    }
+
+    team.valueAsNumber = matchdata.getCurrentMatch().teamNumber;
+
+    div.appendChild(team);
+  }
+}
+
+export class MatchNum extends Component {
+  constructor() {
+    super("matchnum");
+  }
+
+  addEditorFeatures(): void {
+    editor.addStyleSection(this);
+    editor.addTextSection(this);
+  }
+
+  render(div: HTMLDivElement): void {
+    let match: HTMLInputElement = document.createElement("input");
+    match.type = "number";
+
+    match.onchange = (e) => {
+      matchdata.getCurrentMatch().matchNumber = parseInt(match.value);
+      console.log(matchdata.getCurrentMatch());
+    }
+
+    match.valueAsNumber = matchdata.getCurrentMatch().matchNumber;
+
+    div.appendChild(match);
+  }
+}
+
+export class MatchType extends Component {
+  constructor() {
+    super("matchtype");
+  }
+
+  addEditorFeatures(): void {
+    editor.addStyleSection(this);
+    editor.addTextSection(this);
+  }
+
+  render(div: HTMLDivElement): void {
+    let select: HTMLSelectElement = document.createElement("select");
+
+    let practice: HTMLOptionElement = document.createElement("option");
+    practice.text = "Practice";
+    let quals: HTMLOptionElement = document.createElement("option");
+    quals.text = "Quals";
+    let finals: HTMLOptionElement = document.createElement("option");
+    finals.text = "Finals";
+    let other: HTMLOptionElement = document.createElement("option");
+    other.text = "Other";
+
+    select.add(practice);
+    select.add(quals);
+    select.add(finals);
+    select.add(other);
+
+    select.onchange = (e) => {
+      matchdata.getCurrentMatch().matchType = matchdata.MatchType[select.value as keyof typeof matchdata.MatchType];
+    }
+
+    div.appendChild(select);
+  }
+}
+
+export class AllianceStation extends Component {
+  constructor() {
+    super("alliancestation");
+  }
+
+  addEditorFeatures(): void {
+    editor.addStyleSection(this);
+    editor.addTextSection(this);
+  }
+
+  render(div: HTMLDivElement): void {
+    let select: HTMLSelectElement = document.createElement("select");
+
+    let r1: HTMLOptionElement = document.createElement("option");
+    r1.text = "Red_1";
+    let r2: HTMLOptionElement = document.createElement("option");
+    r2.text = "Red_2";
+    let r3: HTMLOptionElement = document.createElement("option");
+    r3.text = "Red_3";
+    let b1: HTMLOptionElement = document.createElement("option");
+    b1.text = "Blue_1";
+    let b2: HTMLOptionElement = document.createElement("option");
+    b2.text = "Blue_2";
+    let b3: HTMLOptionElement = document.createElement("option");
+    b3.text = "Blue_3";
+
+    select.add(r1);
+    select.add(r2);
+    select.add(r3);
+    select.add(b1);
+    select.add(b2);
+    select.add(b3);
+
+    select.onchange = (e) => {
+      matchdata.getCurrentMatch().allianceStation = matchdata.AllianceStation[select.value as keyof typeof matchdata.AllianceStation];
+    }
+
+    div.appendChild(select);
+  }
+}
+
+export class ResetButton extends Component {
+  constructor() {
+    super("resetbutton");
+  }
+
+  addEditorFeatures(): void {
+    
+  }
+
+  render(div: HTMLDivElement): void {
+    let button: HTMLButtonElement = document.createElement("button");
+    button.textContent = "Next Match";
+
+    button.onclick = (e) => {
+      e.stopPropagation();
+      if (!app.isRuntimeMode()) return;
+      matchdata.saveCurrentMatch();
+      console.log(matchdata.getCurrentMatch());
+      app.openDesigner();
+      app.renderPreview();
+      app.closeDesigner();
+    };
+
+    div.appendChild(button);
+
+  }
+}
+
 /**
  * All types of components
  */
@@ -325,7 +489,12 @@ export const componentRegistry = {
   section: Section,
   dropdown: Dropdown,
   checkbox: Checkbox,
-  layout: Layout
+  layout: Layout,
+  teamnum: TeamNum,
+  matchnum: MatchNum,
+  matchtype: MatchType,
+  resetbutton: ResetButton,
+  alliancestation: AllianceStation,
 } as const;
 
 export type ComponentType = keyof typeof componentRegistry;

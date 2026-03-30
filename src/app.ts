@@ -4,6 +4,7 @@
 
 import * as components from "./components.js";
 import * as events from "./events.js";
+import * as matchdata from "./matchdata.js";
 
 let root = components.createComponent("root") /*{
   id: "root",
@@ -26,7 +27,12 @@ const COMPONENT_TYPES = [
   "section",
   "layout",
   "checkbox",
-  "button"
+  "button",
+  "teamnum",
+  "matchnum",
+  "matchtype",
+  "resetbutton",
+  "alliancestation"
 ];
 
 // =======================
@@ -397,6 +403,15 @@ export function loadComponent(data: any): components.Component {
   component.id = data.id;
   component.style = data.style;
   component.eventType = data.eventType;
+  
+  if (component instanceof components.Layout) {
+    component.text = data.text;
+    component.direction = data.direction;
+  } else if (component instanceof components.Label) {
+    component.text = data.text;
+  } else if (component instanceof components.Button) {
+    component.text = data.text;
+  }
 
   for (const child of data.children) {
     component.children.push(loadComponent(child));
@@ -436,6 +451,12 @@ export function setupLoadButton() {
   };
 }
 
+export function setupExportButton() {
+  let exportButton = document.getElementById("export");
+  if (!exportButton) return;
+  exportButton.onclick = matchdata.exportMatchData;
+}
+
 export function isRuntimeMode(): boolean {
   return runtime_mode;
 }
@@ -444,6 +465,7 @@ setupCloseButton();
 setupEditButton();
 setupSaveButton();
 setupLoadButton();
+setupExportButton();
 
 
 //replaced 'renderPreview();' here
