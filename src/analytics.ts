@@ -162,13 +162,15 @@ function updateChart(teamNum: number, eventTypes: string[]): void {
         let counts: number[] = [];
 
         for (const matchNum of matches) {
+            let c = 0;
             for (const match of matchdata.getAllMatches()) {
                 if (match.matchNumber != matchNum || match.teamNumber != teamNum) continue;
                 let count = match.eventcounts.get(type)
                 if (!count) continue;
-                counts.push(count);
+                c = count;
                 break;
             }
+            counts.push(c);
         }
 
         const dataset = {
@@ -234,18 +236,20 @@ function updateTable(teamNum: number, eventTypes: string[]): void {
 
         //Get counts for each match (in ascending order of by match number)
         for (const matchNum of matches) {
+            let c = 0;
             for (const match of matchdata.getAllMatches()) {
                 if (match.matchNumber != matchNum || match.teamNumber != teamNum) continue;
                 let count = match.eventcounts.get(type)
                 if (!count) continue;
-                
-                let rowMatch: HTMLTableCellElement = document.createElement("td");
-                rowMatch.innerHTML = count.toString();
-                row.appendChild(rowMatch);
+                c = count;
 
-                total += count;
                 break;
             }
+            let rowMatch: HTMLTableCellElement = document.createElement("td");
+            rowMatch.innerHTML = c.toString();
+            row.appendChild(rowMatch);
+
+            total += c;
         }
 
         //Set totals and averages
@@ -259,6 +263,28 @@ function updateTable(teamNum: number, eventTypes: string[]): void {
 
 } 
 
+//Example events (change later)!
+let types: string[] = [
+    "Auto Fuel 0",
+    "Auto Fuel 1-10",
+    "Auto Fuel 11-20",
+    "Auto Fuel 21-30",
+    "Auto Fuel 30-50",
+    "Auto Fuel 51-75",
+    "Auto Fuel 76-100",
+    "Auto Fuel 100+",
+    "Fuel 0",
+    "Fuel 1-10",
+    "Fuel 11-20",
+    "Fuel 21-30",
+    "Fuel 30-50",
+    "Fuel 51-75",
+    "Fuel 76-100",
+    "Fuel 100+"
+]
+events.setEventTypes(types);
+
 setupLoadButton();
 setupTestButton();
 setupChart();
+

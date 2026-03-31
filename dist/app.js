@@ -356,6 +356,10 @@ export function loadComponent(data) {
     else if (component instanceof components.Button) {
         component.text = data.text;
     }
+    else if (component instanceof components.Dropdown) {
+        component.text = data.text;
+        component.options = data.options;
+    }
     for (const child of data.children) {
         component.children.push(loadComponent(child));
     }

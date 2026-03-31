@@ -411,6 +411,9 @@ export function loadComponent(data: any): components.Component {
     component.text = data.text;
   } else if (component instanceof components.Button) {
     component.text = data.text;
+  } else if (component instanceof components.Dropdown) {
+    component.text = data.text;
+    component.options = data.options;
   }
 
   for (const child of data.children) {
