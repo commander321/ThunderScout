@@ -20,6 +20,7 @@ export declare class MatchData {
     matchType: MatchType;
     allianceStation: AllianceStation;
     matchEvents: MatchEvent[];
+    eventcounts: Map<string, number>;
     constructor();
     /**
      * Add an event to the match data
@@ -44,4 +45,8 @@ export declare function saveCurrentMatch(): void;
  * Exports all saved matches to a JSON file
  */
 export declare function exportMatchData(): void;
+/**
+ * Add matches to the saved match data (used for importing from a file)
+ */
+export declare function addMatches(matches: MatchData[]): void;
 //# sourceMappingURL=matchdata.d.ts.map

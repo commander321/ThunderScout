@@ -16,7 +16,9 @@ export var AllianceStation;
     AllianceStation["Blue_3"] = "Blue_3";
 })(AllianceStation || (AllianceStation = {}));
 export class MatchData {
+    // eventcountsJSON: string = "";
     constructor() {
+        this.eventcounts = new Map();
         this.teamNumber = 0;
         this.matchNumber = 0;
         this.eventCode = "";
@@ -61,6 +63,18 @@ export function getAllMatches() {
  * Saves the current match and sets it to the next one
  */
 export function saveCurrentMatch() {
+    //add event counts (for analytics) based on the event list
+    for (const event of currentMatchData.matchEvents) {
+        if (currentMatchData.eventcounts.has(event.type)) {
+            let count = currentMatchData.eventcounts.get(event.type);
+            currentMatchData.eventcounts.set(event.type, (count === undefined) ? 1 : count + 1);
+        }
+        else {
+            currentMatchData.eventcounts.set(event.type, 1);
+        }
+    }
+    // currentMatchData.eventcountsJSON = JSON.stringify(Object.fromEntries(currentMatchData.eventcounts));
+    console.log(currentMatchData.eventcounts);
     savedMatches.push(currentMatchData);
     let nextMatch = currentMatchData.matchNumber + 1;
     currentMatchData = new MatchData();
@@ -73,6 +87,9 @@ export function exportMatchData() {
     let data = {
         matches: savedMatches
     };
+    for (const match of savedMatches) {
+        console.log(match.eventcounts);
+    }
     let json = JSON.stringify(data, null, 2);
     let blob = new Blob([json], { type: "application/json" });
     let url = URL.createObjectURL(blob);
@@ -83,5 +100,11 @@ export function exportMatchData() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+}
+/**
+ * Add matches to the saved match data (used for importing from a file)
+ */
+export function addMatches(matches) {
+    savedMatches.push(...matches);
 }
 //# sourceMappingURL=matchdata.js.map

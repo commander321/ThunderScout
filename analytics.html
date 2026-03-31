@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FRC Scouting Analytics</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "chart.js/auto": "/node_modules/chart.js/auto/auto.js",
+            "@kurkle/color": "/node_modules/@kurkle/color/dist/color.esm.js"
+        }
+    }
+    </script>
+</head>
+<body>
+
+<div id="preview">
+    <input id="load" type="file" accept="application/json"></button>
+    <input id="team" type="number"></input>
+    <button id="test">Generate Graph</button>
+    <select multiple id="events"></select>
+
+
+    <div>
+        <canvas id="graph" width="600px" height="600px"></canvas>
+    </div>
+    
+
+</div>
+
+<script type="module" src="./dist/analytics.js"></script>
+
+</body>
+</html>
