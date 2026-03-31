@@ -11,20 +11,46 @@
         }
     }
     </script>
+
+    <style>
+        th, td {
+            border: 1px solid;
+            padding: 5px;
+        }
+        table {
+            border-collapse: collapse;
+            border: 1px solid;
+        }
+    </style>
 </head>
 <body>
 
 <div id="preview">
-    <input id="load" type="file" accept="application/json"></button>
-    <input id="team" type="number"></input>
-    <button id="test">Generate Graph</button>
-    <select multiple id="events"></select>
+    <h1>Analytics</h1>
+    <label>Upload Match Data:</label>
+    <input id="load" type="file" accept="application/json" multiple></button>
+    <label>Team Number:</label>
+    <div>
+        <input id="team" type="number" style="width:10%;font-size:large;"></input>
+    </div>
 
+    <label>Events:</label>
+    <div>
+        <select multiple id="events" style="width:30%;"></select>
+    </div>
+    <button id="test">Generate Analytics</button>
+
+    <hr>
 
     <div>
         <canvas id="graph" width="600px" height="600px"></canvas>
     </div>
     
+    <div style="margin-top:25px;">
+        <table id="table">
+
+        </table>
+    </div>
 
 </div>
 

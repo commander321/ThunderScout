@@ -3,6 +3,7 @@ import * as matchdata from "./matchdata.js";
 import {Chart} from 'chart.js/auto';
 
 let chart: Chart;
+let eventsDropdown: string[] = [];
 
 /**
  * The load button imports match data into the saved matches.
@@ -14,39 +15,46 @@ function setupLoadButton(): void {
   loadButton.onchange = () => {
     if (!loadButton) return;
     if (!(loadButton instanceof HTMLInputElement)) return;
-    const file = loadButton.files?.[0];
-    if (!file) return;
+    if (!loadButton.files) return;
+   // const file = loadButton.files?.[0];
+    //if (!file) return;
 
-    const reader = new FileReader();
+    for (const file of loadButton.files) {
 
-    reader.onload = () => {
-      const data = JSON.parse(reader.result as string);
-      const matches: matchdata.MatchData[] = data.matches;
+        const reader = new FileReader();
 
-      //Add event counts for analytics. Also add event types
-      for (const match of matches) {
-        match.eventcounts = new Map<string, number>();
-        for (const event of match.matchEvents) {
-            if (match.eventcounts.has(event.type)) {
-                let count = match.eventcounts.get(event.type);
-                match.eventcounts.set(event.type, (count === undefined) ? 1 : count + 1);
-            } else {
-                match.eventcounts.set(event.type, 1);
+        reader.onload = () => {
+        const data = JSON.parse(reader.result as string);
+        const matches: matchdata.MatchData[] = data.matches;
+
+        //Add event counts for analytics. Also add event types
+        for (const match of matches) {
+            match.eventcounts = new Map<string, number>();
+            for (const event of match.matchEvents) {
+                if (match.eventcounts.has(event.type)) {
+                    let count = match.eventcounts.get(event.type);
+                    match.eventcounts.set(event.type, (count === undefined) ? 1 : count + 1);
+                } else {
+                    match.eventcounts.set(event.type, 1);
+                }
+
+                if (!events.getEventTypes().includes(event.type)) {
+                    events.addEventType(event.type);
+                }
             }
-
-            if (!events.getEventTypes().includes(event.type)) events.addEventType(event.type);
         }
-      }
 
 
-      matchdata.addMatches(matches);
+        matchdata.addMatches(matches);
 
-      updateEventsDropdown();
+        updateEventsDropdown();
 
-      //Need to add loading analytics things here
-    };
+        //Need to add loading analytics things here
+        };
+        
+        reader.readAsText(file);
 
-    reader.readAsText(file);
+    }
 
   };
 }
@@ -62,10 +70,13 @@ function updateEventsDropdown(): void {
     //Add all events to the selection
 
     for (const type of events.getEventTypes()) {
+        if (eventsDropdown.includes(type)) continue;
+
         const option: HTMLOptionElement = document.createElement("option");
         option.value = type;
         option.text = type;
         eventSelect.appendChild(option);
+        eventsDropdown.push(type);
     }
 
 }
@@ -93,6 +104,7 @@ function setupTestButton(): void {
             eventTypes.push(option.value);
         }
         updateChart(parseInt(teamnum.value), eventTypes);
+        updateTable(parseInt(teamnum.value), eventTypes);
     };
 }
 
@@ -140,19 +152,23 @@ function updateChart(teamNum: number, eventTypes: string[]): void {
     for (const match of matchdata.getAllMatches()) {
         if (match.teamNumber == teamNum) matches.push(match.matchNumber);
     }
+    matches.sort();
 
     chart.data.labels = matches;
 
-    chart.data.datasets.pop();
+    chart.data.datasets = [];
 
     for (const type of eventTypes) {
         let counts: number[] = [];
 
-        for (const match of matchdata.getAllMatches()) {
-            if (match.teamNumber != teamNum) continue;
-            let count = match.eventcounts.get(type)
-            if (!count) continue;
-            counts.push(count);
+        for (const matchNum of matches) {
+            for (const match of matchdata.getAllMatches()) {
+                if (match.matchNumber != matchNum || match.teamNumber != teamNum) continue;
+                let count = match.eventcounts.get(type)
+                if (!count) continue;
+                counts.push(count);
+                break;
+            }
         }
 
         const dataset = {
@@ -163,9 +179,85 @@ function updateChart(teamNum: number, eventTypes: string[]): void {
     }
 
     chart.update();
-
-    
 }
+
+/**
+ * Updates the tabel to show event counts, totals, and averages
+ */
+function updateTable(teamNum: number, eventTypes: string[]): void {
+    let table = document.getElementById("table");
+    if (!table) return;
+    if (!(table instanceof HTMLTableElement)) return;
+
+    //reset table
+    table.innerHTML = "";
+
+    //get matches the team is in
+    let matches: number[] = []
+    for (const match of matchdata.getAllMatches()) {
+        if (match.teamNumber == teamNum) matches.push(match.matchNumber);
+    }
+    matches.sort();
+
+    //add headers to the table
+    let headerRow: HTMLTableRowElement = document.createElement("tr");
+    let headerEvent: HTMLTableCellElement = document.createElement("th");
+    let headerTotal: HTMLTableCellElement = document.createElement("th");
+    let headerAverage: HTMLTableCellElement = document.createElement("th");
+    headerEvent.innerHTML = "Event";
+    headerTotal.innerHTML = "Total";
+    headerAverage.innerHTML = "Average";
+    headerRow.appendChild(headerEvent);
+    headerRow.appendChild(headerTotal);
+    headerRow.appendChild(headerAverage);
+    for (const match of matches) {
+        let matchCell: HTMLTableCellElement = document.createElement("th");
+        matchCell.innerHTML = "Match " + match.toString();
+        headerRow.appendChild(matchCell);
+    }
+    table.appendChild(headerRow);
+
+    //Add each event type to the table
+    for (const type of eventTypes) {
+        let row: HTMLTableRowElement = document.createElement("tr");
+        let rowName: HTMLTableCellElement = document.createElement("td");
+        let rowTotal: HTMLTableCellElement = document.createElement("td");
+        let rowAverage: HTMLTableCellElement = document.createElement("td");
+        rowName.innerHTML = type;
+        rowTotal.innerHTML = "0";
+        rowAverage.innerHTML = "0";
+        row.appendChild(rowName);
+        row.appendChild(rowTotal);
+        row.appendChild(rowAverage);
+
+        let total: number = 0;
+
+        //Get counts for each match (in ascending order of by match number)
+        for (const matchNum of matches) {
+            for (const match of matchdata.getAllMatches()) {
+                if (match.matchNumber != matchNum || match.teamNumber != teamNum) continue;
+                let count = match.eventcounts.get(type)
+                if (!count) continue;
+                
+                let rowMatch: HTMLTableCellElement = document.createElement("td");
+                rowMatch.innerHTML = count.toString();
+                row.appendChild(rowMatch);
+
+                total += count;
+                break;
+            }
+        }
+
+        //Set totals and averages
+        rowTotal.innerHTML = total.toString();
+        rowAverage.innerHTML = (total/matches.length).toFixed(2);
+        
+        table.appendChild(row);
+    }
+
+
+
+} 
 
 setupLoadButton();
 setupTestButton();
