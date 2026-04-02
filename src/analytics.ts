@@ -24,8 +24,8 @@ function setupLoadButton(): void {
         const reader = new FileReader();
 
         reader.onload = () => {
-        const data = JSON.parse(reader.result as string);
-        const matches: matchdata.MatchData[] = data.matches;
+        const matches: matchdata.MatchData[] = JSON.parse(reader.result as string);
+        //const matches: matchdata.MatchData[] = data.matches;
 
         //Add event counts for analytics. Also add event types
         for (const match of matches) {

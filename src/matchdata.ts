@@ -1,4 +1,5 @@
 import {MatchEvent} from "./events.js";
+import * as bluetooth from "./bluetooth.js";
 
 export enum MatchType {
     Practice = "Practice",
@@ -76,6 +77,7 @@ export function getAllMatches(): MatchData[] {
 
 /**
  * Saves the current match and sets it to the next one
+ * Also sends the match over bluetooth
  */
 export function saveCurrentMatch() {
     //add event counts (for analytics) based on the event list
@@ -96,6 +98,9 @@ export function saveCurrentMatch() {
 
     let nextMatch: number = currentMatchData.matchNumber + 1; 
 
+    //save with bluetooth
+    bluetooth.sendCurrentMatch();
+
     currentMatchData = new MatchData();
     currentMatchData.matchNumber = nextMatch;
 }
@@ -104,15 +109,15 @@ export function saveCurrentMatch() {
  * Exports all saved matches to a JSON file
  */
 export function exportMatchData() {
-    let data = {
+   /*let data = {
         matches: savedMatches
-    }
+    }*/
 
     for (const match of savedMatches) {
         console.log(match.eventcounts);
     }
 
-    let json = JSON.stringify(data, null, 2);
+    let json = JSON.stringify(savedMatches, null, 2);
     let blob = new Blob([json], { type: "application/json" });
     let url = URL.createObjectURL(blob);
 

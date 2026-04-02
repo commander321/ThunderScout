@@ -39,6 +39,7 @@ export declare function getCurrentMatch(): MatchData;
 export declare function getAllMatches(): MatchData[];
 /**
  * Saves the current match and sets it to the next one
+ * Also sends the match over bluetooth
  */
 export declare function saveCurrentMatch(): void;
 /**
