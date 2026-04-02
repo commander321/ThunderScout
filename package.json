@@ -11,10 +11,20 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@types/bleno": "^0.4.6",
     "@types/node": "^25.3.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "bleno": "^0.5.0",
     "chart.js": "^4.5.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CharlieHeinen/EDDScoutingApp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/CharlieHeinen/EDDScoutingApp/issues"
+  },
+  "homepage": "https://github.com/CharlieHeinen/EDDScoutingApp#readme"
 }
