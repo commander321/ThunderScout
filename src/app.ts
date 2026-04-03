@@ -464,6 +464,11 @@ export function isRuntimeMode(): boolean {
   return runtime_mode;
 }
 
+//Manage service worker stuff for android
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/service-worker.js");
+}
+
 setupCloseButton();
 setupEditButton();
 setupSaveButton();
