@@ -1,5 +1,6 @@
 import {MatchEvent} from "./events.js";
 import * as bluetooth from "./bluetooth.js";
+import { Counter } from "./components.js";
 
 export enum MatchType {
     Practice = "Practice",
@@ -25,6 +26,8 @@ export class MatchData {
     matchType: MatchType;
     allianceStation: AllianceStation;
     matchEvents: MatchEvent[];
+    textData: Map<string, string> = new Map<string, string>(); //text data is data stored in textboxes
+    textDataJSON: string = "";
     eventcounts: Map<string, number> = new Map<string, number>();
    // eventcountsJSON: string = "";
 
@@ -42,6 +45,7 @@ export class MatchData {
      */
     addEvent(event: MatchEvent) {
         this.matchEvents.push(event);
+        this.updateCounters(event.type);
     }
 
     /**
@@ -49,6 +53,7 @@ export class MatchData {
      */
     removeEvent(event: MatchEvent) {
         this.matchEvents.splice(this.matchEvents.indexOf(event));
+        this.updateCounters(event.type);
     }
 
     /**
@@ -59,6 +64,55 @@ export class MatchData {
             const event = this.matchEvents[i];
             if (event === undefined) continue;
             if (event.type == type) this.matchEvents.splice(i);
+        }
+        this.updateCounters(type);
+    }
+
+    /**
+     * Set a text data value
+     */
+    setTextData(key: string, value: string) {
+        if (key.trim().length === 0) return;
+        if (value.trim().length === 0) {
+            this.textData.delete(key);
+            return;
+        }
+
+        this.textData.set(key, value);
+    }
+
+    /**
+     * Get a text value based on its key
+     */
+    getTextData(key: string): string {
+        if (key.trim().length === 0) return "";
+        if (!this.textData.has(key)) return "";
+        return this.textData.get(key)||"";
+    }
+
+    /**
+     * Returns a count of how many of a certain event there are
+     */
+    getEventCount(type: string): number {
+        let count = 0;
+
+        for (const event of this.matchEvents) {
+            if (event.type === type) count++;
+        }
+
+        return count;
+    }
+
+    /**
+     * Updates all event counter components because event counts change all the time
+     */
+    updateCounters(type?: string) {
+        for (const counter of Counter.counters) {
+            if (type) {
+                if (counter.eventType === type) counter.update();
+            } else {
+                counter.update();
+            }
         }
     }
 
@@ -91,6 +145,7 @@ export function saveCurrentMatch() {
     }
 
    // currentMatchData.eventcountsJSON = JSON.stringify(Object.fromEntries(currentMatchData.eventcounts));
+    currentMatchData.textDataJSON = JSON.stringify(Object.fromEntries(currentMatchData.textData));
 
     console.log(currentMatchData.eventcounts);
 

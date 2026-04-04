@@ -77,6 +77,16 @@ export function addEventSelection(node: components.Component) {
       app.renderPreview();
     });
 
+    let button: HTMLButtonElement = document.createElement("button");
+    button.onclick = (e) => {
+      e.stopPropagation();
+
+      //Add event list editor here!
+      //Make it similar pop up style as the add component button
+    
+    }
+
+    editorDiv.appendChild(button);
 }
 
 

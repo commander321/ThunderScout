@@ -41,7 +41,6 @@ export class Root extends Component {
   render(div: HTMLDivElement) {
 
   }
-
 }
 
 export class Label extends Component {
@@ -64,48 +63,32 @@ export class Label extends Component {
 }
 
 export class Counter extends Component {
-  text: string;
-  value: number;
+  //list of counters so that they can be updated
+  static counters: Counter[] = [];
 
   constructor() {
     super("counter");
-    this.text = "New Counter";
-    this.value = 0;
+    Counter.counters.push(this);
   }
 
   addEditorFeatures() {
-    editor.addTextLabel(this);
+    editor.addEventSelection(this);
     editor.addStyleSection(this);
     editor.addTextSection(this);
   }
 
   render(div: HTMLDivElement) {
     let label: HTMLDivElement = document.createElement("div");
-    label.textContent = this.text;
-
-    let value: HTMLDivElement = document.createElement("div");
-    value.innerHTML = "<strong>" + this.value + "</strong>";
-
-    let inc: HTMLButtonElement = document.createElement("button");
-    inc.textContent = "+";
-    inc.onclick = (e) => {
-      e.stopPropagation();
-      this.value++;
-      app.renderPreview();
-    };
-
-    let dec: HTMLButtonElement = document.createElement("button");
-    dec.textContent = "-";
-    dec.onclick = (e) => {
-      e.stopPropagation();
-      this.value--;
-      app.renderPreview();
-    };
+    label.id = this.id;
+    label.textContent = matchdata.getCurrentMatch().getEventCount(this.eventType).toString();
 
     div.appendChild(label);
-    div.appendChild(value);
-    div.appendChild(inc);
-    div.appendChild(dec);
+  }
+
+  update() {
+    let label = document.getElementById(this.id);
+    if (!label) return;
+    label.textContent = matchdata.getCurrentMatch().getEventCount(this.eventType).toString();
   }
 }
 
@@ -139,9 +122,7 @@ export class Button extends Component {
       e.stopPropagation();
       if (app.isRuntimeMode()) {
         matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.eventType));
-        console.log(matchdata.getCurrentMatch().matchEvents);
-      } else {
-        console.log("not runtime");
+        console.log(matchdata.getCurrentMatch().matchEvents); //for testing, might remove later (or not, doesn't really matter)
       }
       app.renderPreview();
     };
@@ -189,13 +170,13 @@ export class Section extends Component {
 }
 
 export class Dropdown extends Component {
-  text: string;
+  //text: string;
   options: string[];
   //selection: string;
 
   constructor() {
     super("dropdown");
-    this.text = "New Dropdown";
+    //this.text = "New Dropdown";
     this.options = ["Option 1","Option 2"];
     //this.selection = this.options[0];
   }
@@ -205,7 +186,7 @@ export class Dropdown extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    editor.addTextLabel(this);
+    //editor.addTextLabel(this);
     editor.addInput(editorDiv, 
         "Options (comma separated)",
         this.options.join(","),
@@ -221,8 +202,8 @@ export class Dropdown extends Component {
   render(div: HTMLDivElement) {
     //if (!node.selected) node.selected = node.options[0];
 
-    let label: HTMLDivElement = document.createElement("div");
-    label.textContent = this.text;
+    //let label: HTMLDivElement = document.createElement("div");
+    //label.textContent = this.text;
 
     let select: HTMLSelectElement = document.createElement("select");
 
@@ -238,11 +219,13 @@ export class Dropdown extends Component {
       e.stopPropagation();
 
       //Handle events, remove all of the other options and add the selected one
-      this.options.forEach(t => {
-        matchdata.getCurrentMatch().removeType(t);
-      });
+      if (app.isRuntimeMode()) {
+        this.options.forEach(t => {
+          matchdata.getCurrentMatch().removeType(t);
+        });
 
-      matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.options[select.selectedIndex] || "null"));
+        matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.options[select.selectedIndex] || "null"));
+      }
 
     }
 
@@ -251,19 +234,19 @@ export class Dropdown extends Component {
       //node.selected = e.target.value;
     };
 
-    div.appendChild(label);
+    //div.appendChild(label);
     div.appendChild(select);
   }
 }
 
 export class Checkbox extends Component {
-  checked: boolean;
-  text: string;
+ // checked: boolean;
+  //text: string;
 
   constructor() {
     super ("Checkbox");
-    this.checked = false;
-    this.text = "New Checkbox";
+   // this.checked = false;
+   // this.text = "New Checkbox";
   }
 
   addEditorFeatures() {
@@ -271,19 +254,28 @@ export class Checkbox extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    editor.addTextLabel(this);
+    editor.addEventSelection(this);
     editor.addStyleSection(this);
-    editor.addTextSection(this);
   }
 
   render(div: HTMLDivElement) {
     let checkbox: HTMLInputElement = document.createElement("input");
-    checkbox.checked = this.checked;
+    checkbox.checked = matchdata.getCurrentMatch().getEventCount(this.eventType) > 0;
     checkbox.type = "checkbox";
 
     checkbox.onchange = (e) => {
       e.stopPropagation();
-      this.checked = checkbox.checked;
+     // this.checked = checkbox.checked;
+
+      if (!app.isRuntimeMode()) return;
+
+      //Handle changing the event
+      if (checkbox.checked) {
+        matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.eventType));
+      } else {
+        matchdata.getCurrentMatch().removeType(this.eventType);
+      }
+
     }
 
     div.appendChild(checkbox);
@@ -313,7 +305,7 @@ export class Layout extends Component {
 
   render(div: HTMLDivElement) {
     let title: HTMLDivElement = document.createElement("div");
-    title.innerHTML = "<strong>" + this.text + "</strong>";
+    title.innerHTML = this.text;
     div.appendChild(title);
 
     div.classList.add("container");
@@ -346,6 +338,53 @@ export class TeamNum extends Component {
     team.valueAsNumber = matchdata.getCurrentMatch().teamNumber;
 
     div.appendChild(team);
+  }
+}
+
+export class TextBox extends Component {
+
+  //content: string;
+  key: string;
+
+  constructor() {
+    super("textbox");
+   // this.content = "";
+    this.key = "";
+  }
+
+  addEditorFeatures(): void {
+    const editorDiv = document.getElementById("editor");
+    if (!editorDiv) return;
+    if (!(editorDiv instanceof HTMLDivElement)) return;
+
+    editor.addInput(editorDiv, "Textbox ID (event name)", this.key, (val: any) => {
+          this.key = val;
+          app.renderPreview();
+        }, "text");
+      
+    editor.addStyleSection(this);
+  }
+
+  render(div: HTMLDivElement): void {
+      let textbox = document.createElement("input");
+      textbox.type = "text";
+
+      textbox.value = matchdata.getCurrentMatch().getTextData(this.key);
+
+      textbox.onchange = (e) => {
+        e.stopPropagation();
+
+        //this.content = textbox.value;
+
+        if (!app.isRuntimeMode()) return;
+
+        console.log(matchdata.getCurrentMatch().textData);//for testing this
+
+        //handle setting the text data value
+        matchdata.getCurrentMatch().setTextData(this.key, textbox.value);
+      }
+
+      div.appendChild(textbox);
   }
 }
 
@@ -489,6 +528,7 @@ export const componentRegistry = {
   section: Section,
   dropdown: Dropdown,
   checkbox: Checkbox,
+  textbox: TextBox,
   layout: Layout,
   teamnum: TeamNum,
   matchnum: MatchNum,

@@ -6,13 +6,7 @@ import * as components from "./components.js";
 import * as events from "./events.js";
 import * as matchdata from "./matchdata.js";
 
-let root = components.createComponent("root") /*{
-  id: "root",
-  type: "layout",
-  direction: "vertical",
-  children: []
-};
-*/
+let root = components.createComponent("root") 
 let selectedId: any = null;
 let insertContext: any = null;
 let draggedId: any = null;
@@ -27,6 +21,7 @@ const COMPONENT_TYPES = [
   "section",
   "layout",
   "checkbox",
+  "textbox",
   "button",
   "teamnum",
   "matchnum",
@@ -412,8 +407,10 @@ export function loadComponent(data: any): components.Component {
   } else if (component instanceof components.Button) {
     component.text = data.text;
   } else if (component instanceof components.Dropdown) {
-    component.text = data.text;
+    //component.text = data.text;
     component.options = data.options;
+  } else if (component instanceof components.TextBox) {
+    component.key = data.key;
   }
 
   for (const child of data.children) {

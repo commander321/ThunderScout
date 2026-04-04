@@ -1,11 +1,13 @@
 export class MatchEvent {
 
     type: string;
+    group: string;
     timestamp: number
 
-    constructor(type: string) {
+    constructor(type: string, group?: string) {
         this.type = type;
         this.timestamp = Date.now();
+        this.group = group || "";
     }
 
 }

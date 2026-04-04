@@ -26,11 +26,11 @@ export declare class Label extends Component {
     render(div: HTMLDivElement): void;
 }
 export declare class Counter extends Component {
-    text: string;
-    value: number;
+    static counters: Counter[];
     constructor();
     addEditorFeatures(): void;
     render(div: HTMLDivElement): void;
+    update(): void;
 }
 export declare class Button extends Component {
     text: string;
@@ -49,15 +49,12 @@ export declare class Section extends Component {
     render(div: HTMLDivElement): void;
 }
 export declare class Dropdown extends Component {
-    text: string;
     options: string[];
     constructor();
     addEditorFeatures(): void;
     render(div: HTMLDivElement): void;
 }
 export declare class Checkbox extends Component {
-    checked: boolean;
-    text: string;
     constructor();
     addEditorFeatures(): void;
     render(div: HTMLDivElement): void;
@@ -70,6 +67,12 @@ export declare class Layout extends Component {
     render(div: HTMLDivElement): void;
 }
 export declare class TeamNum extends Component {
+    constructor();
+    addEditorFeatures(): void;
+    render(div: HTMLDivElement): void;
+}
+export declare class TextBox extends Component {
+    key: string;
     constructor();
     addEditorFeatures(): void;
     render(div: HTMLDivElement): void;
@@ -105,6 +108,7 @@ export declare const componentRegistry: {
     readonly section: typeof Section;
     readonly dropdown: typeof Dropdown;
     readonly checkbox: typeof Checkbox;
+    readonly textbox: typeof TextBox;
     readonly layout: typeof Layout;
     readonly teamnum: typeof TeamNum;
     readonly matchnum: typeof MatchNum;

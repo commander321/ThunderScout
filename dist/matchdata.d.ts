@@ -20,6 +20,8 @@ export declare class MatchData {
     matchType: MatchType;
     allianceStation: AllianceStation;
     matchEvents: MatchEvent[];
+    textData: Map<string, string>;
+    textDataJSON: string;
     eventcounts: Map<string, number>;
     constructor();
     /**
@@ -34,6 +36,22 @@ export declare class MatchData {
      * Removes all events of a specifc type from the match
      */
     removeType(type: string): void;
+    /**
+     * Set a text data value
+     */
+    setTextData(key: string, value: string): void;
+    /**
+     * Get a text value based on its key
+     */
+    getTextData(key: string): string;
+    /**
+     * Returns a count of how many of a certain event there are
+     */
+    getEventCount(type: string): number;
+    /**
+     * Updates all event counter components because event counts change all the time
+     */
+    updateCounters(type?: string): void;
 }
 export declare function getCurrentMatch(): MatchData;
 export declare function getAllMatches(): MatchData[];

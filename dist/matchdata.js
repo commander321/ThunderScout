@@ -1,5 +1,6 @@
 import { MatchEvent } from "./events.js";
 import * as bluetooth from "./bluetooth.js";
+import { Counter } from "./components.js";
 export var MatchType;
 (function (MatchType) {
     MatchType["Practice"] = "Practice";
@@ -19,6 +20,8 @@ export var AllianceStation;
 export class MatchData {
     // eventcountsJSON: string = "";
     constructor() {
+        this.textData = new Map(); //text data is data stored in textboxes
+        this.textDataJSON = "";
         this.eventcounts = new Map();
         this.teamNumber = 0;
         this.matchNumber = 0;
@@ -32,12 +35,14 @@ export class MatchData {
      */
     addEvent(event) {
         this.matchEvents.push(event);
+        this.updateCounters(event.type);
     }
     /**
      * Remove an event from the match
      */
     removeEvent(event) {
         this.matchEvents.splice(this.matchEvents.indexOf(event));
+        this.updateCounters(event.type);
     }
     /**
      * Removes all events of a specifc type from the match
@@ -49,6 +54,54 @@ export class MatchData {
                 continue;
             if (event.type == type)
                 this.matchEvents.splice(i);
+        }
+        this.updateCounters(type);
+    }
+    /**
+     * Set a text data value
+     */
+    setTextData(key, value) {
+        if (key.trim().length === 0)
+            return;
+        if (value.trim().length === 0) {
+            this.textData.delete(key);
+            return;
+        }
+        this.textData.set(key, value);
+    }
+    /**
+     * Get a text value based on its key
+     */
+    getTextData(key) {
+        if (key.trim().length === 0)
+            return "";
+        if (!this.textData.has(key))
+            return "";
+        return this.textData.get(key) || "";
+    }
+    /**
+     * Returns a count of how many of a certain event there are
+     */
+    getEventCount(type) {
+        let count = 0;
+        for (const event of this.matchEvents) {
+            if (event.type === type)
+                count++;
+        }
+        return count;
+    }
+    /**
+     * Updates all event counter components because event counts change all the time
+     */
+    updateCounters(type) {
+        for (const counter of Counter.counters) {
+            if (type) {
+                if (counter.eventType === type)
+                    counter.update();
+            }
+            else {
+                counter.update();
+            }
         }
     }
 }
@@ -76,6 +129,7 @@ export function saveCurrentMatch() {
         }
     }
     // currentMatchData.eventcountsJSON = JSON.stringify(Object.fromEntries(currentMatchData.eventcounts));
+    currentMatchData.textDataJSON = JSON.stringify(Object.fromEntries(currentMatchData.textData));
     console.log(currentMatchData.eventcounts);
     savedMatches.push(currentMatchData);
     let nextMatch = currentMatchData.matchNumber + 1;
