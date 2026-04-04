@@ -122,6 +122,7 @@ export class Button extends Component {
       e.stopPropagation();
       if (app.isRuntimeMode()) {
         matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.eventType));
+        updateCounters(this.eventType);
         console.log(matchdata.getCurrentMatch().matchEvents); //for testing, might remove later (or not, doesn't really matter)
       }
       app.renderPreview();
@@ -225,6 +226,7 @@ export class Dropdown extends Component {
         });
 
         matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.options[select.selectedIndex] || "null"));
+        updateCounters();
       }
 
     }
@@ -275,6 +277,8 @@ export class Checkbox extends Component {
       } else {
         matchdata.getCurrentMatch().removeType(this.eventType);
       }
+
+      updateCounters(this.eventType);
 
     }
 
@@ -514,6 +518,19 @@ export class ResetButton extends Component {
 
     div.appendChild(button);
 
+  }
+}
+
+/**
+* Updates all event counter components because event counts change all the time
+*/
+function updateCounters(type?: string) {
+  for (const counter of Counter.counters) {
+    if (type) {
+      if (counter.eventType === type) counter.update();
+    } else {
+      counter.update();
+    }
   }
 }
 

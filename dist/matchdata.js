@@ -1,6 +1,5 @@
 import { MatchEvent } from "./events.js";
 import * as bluetooth from "./bluetooth.js";
-import { Counter } from "./components.js";
 export var MatchType;
 (function (MatchType) {
     MatchType["Practice"] = "Practice";
@@ -35,14 +34,12 @@ export class MatchData {
      */
     addEvent(event) {
         this.matchEvents.push(event);
-        this.updateCounters(event.type);
     }
     /**
      * Remove an event from the match
      */
     removeEvent(event) {
         this.matchEvents.splice(this.matchEvents.indexOf(event));
-        this.updateCounters(event.type);
     }
     /**
      * Removes all events of a specifc type from the match
@@ -55,7 +52,6 @@ export class MatchData {
             if (event.type == type)
                 this.matchEvents.splice(i);
         }
-        this.updateCounters(type);
     }
     /**
      * Set a text data value
@@ -89,20 +85,6 @@ export class MatchData {
                 count++;
         }
         return count;
-    }
-    /**
-     * Updates all event counter components because event counts change all the time
-     */
-    updateCounters(type) {
-        for (const counter of Counter.counters) {
-            if (type) {
-                if (counter.eventType === type)
-                    counter.update();
-            }
-            else {
-                counter.update();
-            }
-        }
     }
 }
 let currentMatchData = new MatchData();

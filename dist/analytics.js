@@ -96,6 +96,7 @@ function setupTestButton() {
         }
         updateChart(parseInt(teamnum.value), eventTypes);
         updateTable(parseInt(teamnum.value), eventTypes);
+        updateByMatchTable1511(parseInt(teamnum.value));
     };
 }
 function setupChart() {
@@ -143,7 +144,7 @@ function updateChart(teamNum, eventTypes) {
         if (match.teamNumber == teamNum)
             matches.push(match.matchNumber);
     }
-    matches.sort();
+    matches.sort((a, b) => a - b);
     chart.data.labels = matches;
     chart.data.datasets = [];
     for (const type of eventTypes) {
@@ -186,7 +187,7 @@ function updateTable(teamNum, eventTypes) {
         if (match.teamNumber == teamNum)
             matches.push(match.matchNumber);
     }
-    matches.sort();
+    matches.sort((a, b) => a - b);
     //add headers to the table
     let headerRow = document.createElement("tr");
     let headerEvent = document.createElement("th");
@@ -238,6 +239,48 @@ function updateTable(teamNum, eventTypes) {
         rowTotal.innerHTML = total.toString();
         rowAverage.innerHTML = (total / matches.length).toFixed(2);
         table.appendChild(row);
+    }
+}
+/**
+ * Generic by match table
+ */
+function updateByMatchTable(teamNum) {
+}
+/**
+ * By match table specific to what 1511 wants this year. I haven't finished an analytics builder yet so this is what I'm gonna do.
+ */
+function updateByMatchTable1511(teamNum) {
+    let table = document.getElementById("table1511");
+    if (!table)
+        return;
+    if (!(table instanceof HTMLTableElement))
+        return;
+    //reset table
+    table.innerHTML = "";
+    //get matches the team is in
+    let matches = [];
+    for (const match of matchdata.getAllMatches()) {
+        if (match.teamNumber == teamNum)
+            matches.push(match.matchNumber);
+    }
+    matches.sort((a, b) => a - b);
+    let headerRow = document.createElement("tr");
+    let headerMatch = document.createElement("th");
+    headerMatch.innerHTML = "Match";
+    headerRow.appendChild(headerMatch);
+    table.appendChild(headerRow);
+    for (const matchNum of matches) {
+        for (const match of matchdata.getAllMatches()) {
+            if (match.matchNumber != matchNum || match.teamNumber != teamNum)
+                continue;
+            //add each match here!
+            let row = document.createElement("tr");
+            let rowMatch = document.createElement("td");
+            rowMatch.innerHTML = matchNum.toString();
+            row.appendChild(rowMatch);
+            table.appendChild(row);
+            break;
+        }
     }
 }
 //Example events (change later)!

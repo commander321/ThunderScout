@@ -1,6 +1,5 @@
 import {MatchEvent} from "./events.js";
 import * as bluetooth from "./bluetooth.js";
-import { Counter } from "./components.js";
 
 export enum MatchType {
     Practice = "Practice",
@@ -45,7 +44,6 @@ export class MatchData {
      */
     addEvent(event: MatchEvent) {
         this.matchEvents.push(event);
-        this.updateCounters(event.type);
     }
 
     /**
@@ -53,7 +51,6 @@ export class MatchData {
      */
     removeEvent(event: MatchEvent) {
         this.matchEvents.splice(this.matchEvents.indexOf(event));
-        this.updateCounters(event.type);
     }
 
     /**
@@ -65,7 +62,6 @@ export class MatchData {
             if (event === undefined) continue;
             if (event.type == type) this.matchEvents.splice(i);
         }
-        this.updateCounters(type);
     }
 
     /**
@@ -101,19 +97,6 @@ export class MatchData {
         }
 
         return count;
-    }
-
-    /**
-     * Updates all event counter components because event counts change all the time
-     */
-    updateCounters(type?: string) {
-        for (const counter of Counter.counters) {
-            if (type) {
-                if (counter.eventType === type) counter.update();
-            } else {
-                counter.update();
-            }
-        }
     }
 
 }

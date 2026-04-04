@@ -48,10 +48,6 @@ export declare class MatchData {
      * Returns a count of how many of a certain event there are
      */
     getEventCount(type: string): number;
-    /**
-     * Updates all event counter components because event counts change all the time
-     */
-    updateCounters(type?: string): void;
 }
 export declare function getCurrentMatch(): MatchData;
 export declare function getAllMatches(): MatchData[];

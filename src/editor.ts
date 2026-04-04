@@ -78,12 +78,12 @@ export function addEventSelection(node: components.Component) {
     });
 
     let button: HTMLButtonElement = document.createElement("button");
+    button.textContent = "Edit Events";
     button.onclick = (e) => {
       e.stopPropagation();
 
-      //Add event list editor here!
-      //Make it similar pop up style as the add component button
-    
+      //Open the events list modal
+      openEventsModal();
     }
 
     editorDiv.appendChild(button);
@@ -232,3 +232,63 @@ export function addTextSection(node: components.Component) {
         app.renderPreview();
     }, "checkbox");
 }
+
+
+function openEventsModal() {
+  let overlay = document.getElementById("overlay-events");
+  if (!overlay) return;
+  overlay.classList.remove("hidden");
+
+  let modal = document.getElementById("modal-events");
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  modal.innerHTML = "<h3>Event Types:</h3>";
+
+  let typesDiv = document.createElement("div");
+  typesDiv.style.overflowY = "auto";
+  typesDiv.style.height = "65%";
+
+  for (const type of events.getEventTypes()) {
+    let text = document.createElement("div")
+    text.textContent = type;
+    typesDiv.appendChild(text);
+  }
+
+  modal.appendChild(typesDiv);
+
+  let addInput: HTMLInputElement = document.createElement("input");
+  addInput.type = "text";
+  addInput.style.marginTop = "20px";
+
+  //The add button adds a new event type if it doesn't exist
+  let addButton: HTMLButtonElement = document.createElement("button");
+  addButton.textContent = "+"
+  addButton.onclick = (e) => {
+    e.stopPropagation();
+    if (addInput.value.trim().length === 0) return;
+    if (events.getEventTypes().includes(addInput.value)) return;
+
+    let text = document.createElement("div")
+    text.textContent = addInput.value;
+    typesDiv.appendChild(text);
+
+    events.addEventType(addInput.value);
+    addInput.value = "";
+  }
+
+  modal.appendChild(addInput);
+  modal.appendChild(addButton);
+}
+
+
+function closeEventsModal() {
+  let overlay = document.getElementById("overlay-events");
+  if (overlay) overlay.classList.add("hidden");
+
+  let modal = document.getElementById("modal-events");
+  if (modal) modal.classList.add("hidden");
+  
+}
+
+let overlay = document.getElementById("overlay-events")
+if (overlay) overlay.onclick = closeEventsModal;

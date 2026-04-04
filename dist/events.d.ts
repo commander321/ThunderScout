@@ -1,7 +1,8 @@
 export declare class MatchEvent {
     type: string;
+    group: string;
     timestamp: number;
-    constructor(type: string);
+    constructor(type: string, group?: string);
 }
 export declare function getEventTypes(): string[];
 export declare function addEventType(type: string): void;

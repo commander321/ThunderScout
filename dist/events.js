@@ -1,7 +1,8 @@
 export class MatchEvent {
-    constructor(type) {
+    constructor(type, group) {
         this.type = type;
         this.timestamp = Date.now();
+        this.group = group || "";
     }
 }
 let eventTypes = ["None", "Test1", "Test2"];
