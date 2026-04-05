@@ -27,11 +27,11 @@ function setupLoadButton(): void {
         const matches: matchdata.MatchData[] = JSON.parse(reader.result as string);
         
         //List of matches to add, will ignore any duplicates and use the latest match when needed
-        const matchesToAdd: matchdata.MatchData[] = [];
+       // const matchesToAdd: matchdata.MatchData[] = [];
 
         for (const match of matches) {
             //Check for duplicates and remove them
-            matchdata.removeDuplicates(match.matchNumber, match.teamNumber, match.matchType, match.eventCode);
+            matchdata.removeDuplicates(match.matchNumber, match.teamNumber, match.allianceStation, match.matchType, match.eventCode);
 
             //Add event counts for analytics. Also add event types
             match.eventcounts = new Map<string, number>();
@@ -49,15 +49,16 @@ function setupLoadButton(): void {
             }
 
             //Set text data map based on the JSON string
-            match.textData = new Map<string, string>(Object.entries(JSON.parse(match.textDataJSON)))
-            match.textDataJSON = "";
+            if (match.textDataJSON.trim().length != 0) {
+                match.textData = new Map<string, string>(Object.entries(JSON.parse(match.textDataJSON)))
+                match.textDataJSON = "";
+            } else {
+                match.textData = new Map<string, string>();
+            }
 
             //Add to the list of matches to be added (since it doesn't include duplicates)
-            matchesToAdd.push(match);
+            matchdata.addMatch(match);
         }
-
-
-        matchdata.addMatches(matchesToAdd);
 
         updateEventsDropdown();
 

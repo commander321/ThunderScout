@@ -136,12 +136,18 @@ export function saveCurrentMatch() {
     savedMatches.push(currentMatchData);
 
     let nextMatch: number = currentMatchData.matchNumber + 1; 
+    let matchType: MatchType = currentMatchData.matchType;
+    let allianceStation: AllianceStation = currentMatchData.allianceStation;
+    let eventCode: string = currentMatchData.eventCode;
 
     //save with bluetooth
     bluetooth.sendCurrentMatch();
 
     currentMatchData = new MatchData();
     currentMatchData.matchNumber = nextMatch;
+    currentMatchData.matchType = matchType;
+    currentMatchData.allianceStation = allianceStation;
+    currentMatchData.eventCode = eventCode;
 }
 
 /**
@@ -179,12 +185,21 @@ export function addMatches(matches: MatchData[]) {
 }
 
 /**
+ * Add a match to the saved match data (used for importing from a file)
+ */
+export function addMatch(match: MatchData) {
+    savedMatches.push(match);
+}
+
+/**
  * Removes all duplicate matches that are currently saved
  */
-export function removeDuplicates(matchNum: number, teamNum: number, matchType: MatchType, eventCode: string) {
+export function removeDuplicates(matchNum: number, teamNum: number, allianceStation: AllianceStation, matchType: MatchType, eventCode: string) {
     for (let i=0; i < savedMatches.length; i++) {
         let m = savedMatches[i];
         if (!m) continue;
-        if (m.teamNumber == teamNum && m.matchNumber == matchNum && m.matchType == matchType && m.eventCode == eventCode) savedMatches.splice(i, 1);
+        if (m.teamNumber == teamNum && m.matchNumber == matchNum && m.matchType == matchType && m.eventCode == eventCode && m.allianceStation == allianceStation) {
+            savedMatches.splice(i, 1);
+        }
     }
 }

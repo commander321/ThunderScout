@@ -448,6 +448,8 @@ export class MatchType extends Component {
       matchdata.getCurrentMatch().matchType = matchdata.MatchType[select.value as keyof typeof matchdata.MatchType];
     }
 
+    select.value = matchdata.getCurrentMatch().matchType;
+
     div.appendChild(select);
   }
 }
@@ -488,6 +490,8 @@ export class AllianceStation extends Component {
     select.onchange = (e) => {
       matchdata.getCurrentMatch().allianceStation = matchdata.AllianceStation[select.value as keyof typeof matchdata.AllianceStation];
     }
+
+    select.value = matchdata.getCurrentMatch().allianceStation;
 
     div.appendChild(select);
   }
