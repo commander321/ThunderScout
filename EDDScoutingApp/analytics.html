@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FRC Scouting Analytics</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "chart.js/auto": "/node_modules/chart.js/auto/auto.js",
+            "@kurkle/color": "/node_modules/@kurkle/color/dist/color.esm.js"
+        }
+    }
+    </script>
+
+    <style>
+        th, td {
+            border: 1px solid;
+            padding: 5px;
+        }
+        table {
+            border-collapse: collapse;
+            border: 1px solid;
+        }
+    </style>
+</head>
+<body>
+
+<div id="preview">
+    <h1>Analytics</h1>
+    <label>Upload Match Data:</label>
+    <input id="load" type="file" accept="application/json" multiple></button>
+    <label>Team Number:</label>
+    <div>
+        <input id="team" type="number" style="width:10%;font-size:large;"></input>
+    </div>
+
+    <label>Events:</label>
+    <div style="height:20%;">
+        <select multiple id="events" style="width:30%;height:100%;"></select>
+    </div>
+    <button id="test">Generate Analytics</button>
+
+    <hr>
+
+    <div>
+        <canvas id="graph" width="600px" height="600px"></canvas>
+    </div>
+    
+    <div style="margin-top:25px;">
+        <table id="table">
+
+        </table>
+    </div>
+
+    <div style="margin-top:50px;">
+        <table id="table1511">
+            
+        </table>
+    </div>
+
+</div>
+
+<!--
+<script type="module" src="./dist/analytics.js"></script>
+-->
+<script type="module" src="/src/analytics.ts"></script>
+
+</body>
+</html>

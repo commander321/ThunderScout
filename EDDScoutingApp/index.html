@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>FRC Scouting Builder</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- <link rel="manifest" href="/manifest.json"> !-->
+  <meta name="theme-color" content="#0f766e">
+</head>
+<body>
+
+<div id="sidebar">
+  <button id="close">Close</button>
+  <button id="save">Save</button>
+  <input id="load" type="file" accept="application/json"></button>
+  <h2>Component Editor</h2>
+  <div id="editor"></div>
+</div>
+
+<div id="preview">
+  <button id="edit">Edit</button>
+  <button id="export">Export Data</button>
+  <h1>Preview</h1>
+  <div id="app"></div>
+</div>
+
+<div id="overlay" class="hidden"></div>
+<div id="modal" class="hidden"></div>
+
+<div id="overlay-events" class="hidden"></div>
+<div id="modal-events" class="hidden"></div>
+
+<button id ="bluetooth">Bluetooth</button>
+
+<script type="module" src="/src/app.ts"></script>
+<!--<script src="./src/bluetooth/bluetooth.js"></script>
+<script type="module" src="./dist/app.js"></script>
+!-->
+
+</body>
+</html>
