@@ -78,6 +78,15 @@ export function sendCurrentMatch() {
 }
 
 /**
+ * Sends a match over bluetooth
+ */
+export function sendMatch(match: matchdata.MatchData) {
+  const json: string = JSON.stringify(match, null, 2);
+
+  bluetoothSend(json);
+}
+
+/**
  * Sets up the bluetooth test button (which just sends current match data)
  */
 function setupBluetoothButton() {

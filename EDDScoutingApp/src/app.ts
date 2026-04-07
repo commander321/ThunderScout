@@ -5,6 +5,7 @@
 import * as components from "./components.js";
 import * as events from "./events.js";
 import * as matchdata from "./matchdata.js";
+import * as bluetooth from "./bluetooth.js";
 
 let root = components.createComponent("root") 
 let selectedId: any = null;
@@ -461,6 +462,105 @@ export function isRuntimeMode(): boolean {
   return runtime_mode;
 }
 
+function openMatchesModal() {
+  let overlay = document.getElementById("overlay-matches");
+  if (!overlay) return;
+  overlay.classList.remove("hidden");
+
+  let modal = document.getElementById("modal-matches");
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  modal.innerHTML = "<h3>Saved Matches</h3>";
+
+  let div = document.createElement("div");
+  div.style.overflowY = "auto";
+  div.style.height = "80%";
+
+  let table = document.createElement("table");
+  let header = document.createElement("tr");
+  let matchNum = document.createElement("th");
+  let teamNum = document.createElement("th");
+  let event = document.createElement("th");
+  let type = document.createElement("th");
+  let station = document.createElement("th");
+  let resend = document.createElement("th");
+
+  matchNum.innerHTML = "Match";
+  teamNum.innerHTML = "Team";
+  event.innerHTML = "Event";
+  type.innerHTML = "Type";
+  station.innerHTML = "Alliance";
+  resend.innerHTML = "Resend Data";
+
+  header.appendChild(matchNum);
+  header.appendChild(teamNum);
+  header.appendChild(event);
+  header.appendChild(type);
+  header.appendChild(station)
+  header.appendChild(resend);
+
+  table.appendChild(header);
+
+  table.style.padding="5px";
+
+
+  //add all matches
+  for (const match of matchdata.getAllMatches()) {
+    let row = document.createElement("tr");
+
+    addCell(row, match.matchNumber.toString());
+    addCell(row, match.teamNumber.toString());
+    addCell(row, match.eventCode);
+    addCell(row, match.matchType);
+    addCell(row, match.allianceStation);
+
+    let btCell = document.createElement("td");
+    let btButton = document.createElement("button");
+
+    btButton.onclick = (e) => {
+      e.stopPropagation();
+      bluetooth.sendMatch(match);
+    }
+    btButton.innerHTML = "Resend Data"
+
+    btCell.appendChild(btButton);
+    row.appendChild(btCell);
+
+    table.appendChild(row);
+  }
+
+  div.appendChild(table);
+
+  modal.appendChild(div);
+
+}
+
+//function to make adding a cell to a row easier
+function addCell(row: HTMLTableRowElement, value: string): void {
+    let cell = document.createElement("td");
+    cell.innerHTML = value;
+    row.appendChild(cell);
+}
+
+function closeMatchesModal() {
+  let overlay = document.getElementById("overlay-matches");
+  if (overlay) overlay.classList.add("hidden");
+
+  let modal = document.getElementById("modal-matches");
+  if (modal) modal.classList.add("hidden");
+}
+
+function setupMatchesButton() {
+  let matchesButton = document.getElementById("matches");
+  if (!matchesButton) return;
+  matchesButton.onclick = openMatchesModal;
+  
+  //setup closing modal on click
+  let overlay = document.getElementById("overlay-matches")
+  if (overlay) overlay.onclick = closeMatchesModal;
+
+}
+
 //Manage service worker stuff for android
 /*
 if ("serviceWorker" in navigator) {
@@ -472,6 +572,7 @@ setupEditButton();
 setupSaveButton();
 setupLoadButton();
 setupExportButton();
+setupMatchesButton();
 
 
 //replaced 'renderPreview();' here
