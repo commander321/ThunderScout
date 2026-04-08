@@ -3,6 +3,7 @@ import * as matchdata from "./matchdata.js";
 import {Chart} from 'chart.js/auto';
 
 let chart: Chart;
+let pieChart: Chart;
 let eventsDropdown: string[] = [];
 
 /**
@@ -117,6 +118,7 @@ function setupTestButton(): void {
             eventTypes.push(option.value);
         }
         updateChart(parseInt(teamnum.value), eventTypes);
+        updatePieChart(parseInt(teamnum.value), eventTypes);
         updateTable(parseInt(teamnum.value), eventTypes);
         updateByMatchTable1511(parseInt(teamnum.value));
     };
@@ -154,6 +156,73 @@ function setupChart(): void {
             }
         }
     });
+}
+
+function setupPieChart(): void {
+    let chart = document.getElementById("piechart");
+    if (!chart) return;
+    if (!(chart instanceof HTMLCanvasElement)) return;
+
+    pieChart = new Chart(chart, {
+        type: "pie",
+        data: {
+            labels: [
+                "Event",
+                "None"
+            ],
+            datasets: [{
+                data: [3, 5]
+            }]
+        },
+        options: {
+            responsive: false,
+            maintainAspectRatio: false,
+        }
+    })
+
+}
+
+function updatePieChart(teamNum: number, eventTypes: string[]): void {
+    if (!pieChart) return;
+
+    let matches: number[] = [];
+    for (const match of matchdata.getAllMatches()) {
+        if (match.teamNumber == teamNum) matches.push(match.matchNumber);
+    }
+    matches.sort((a, b) => a - b);
+
+    pieChart.data.labels = eventTypes;
+
+    pieChart.data.datasets = [];
+
+    let data: number[] = [];
+
+    for (const type of eventTypes) {
+        let count: number = 0;
+
+        for (const matchNum of matches) {
+            let c: number = 0;
+            for (const match of matchdata.getAllMatches()) {
+                if (match.matchNumber != matchNum || match.teamNumber != teamNum) continue;
+                let count = match.eventcounts.get(type)
+                if (!count) continue;
+                c = count;
+                break;
+            }
+            count += c;
+        }
+
+        data.push(count);
+    }
+
+    const dataset = {
+        data: data
+    }
+
+    pieChart.data.datasets.push(dataset);
+
+    pieChart.update();
+
 }
 
 /**
@@ -352,4 +421,5 @@ events.setEventTypes(types);
 setupLoadButton();
 setupTestButton();
 setupChart();
+setupPieChart();
 

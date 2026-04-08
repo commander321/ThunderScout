@@ -29,9 +29,11 @@
     <h1>Analytics</h1>
     <label>Upload Match Data:</label>
     <input id="load" type="file" accept="application/json" multiple></button>
-    <label>Team Number:</label>
+    <label>Team Number(s):</label>
     <div>
         <input id="team" type="number" style="width:10%;font-size:large;"></input>
+        <input id="team2" type="number" style="width:10%;font-size:large;"></input>
+        <input id="team3" type="number" style="width:10%;font-size:large;"></input>
     </div>
 
     <label>Events:</label>
@@ -44,6 +46,10 @@
 
     <div>
         <canvas id="graph" width="600px" height="600px"></canvas>
+    </div>
+
+    <div>
+        <canvas id="piechart" width="600px" height="600px"></canvas>
     </div>
     
     <div style="margin-top:25px;">

@@ -246,7 +246,7 @@ function openEventsModal() {
 
   let typesDiv = document.createElement("div");
   typesDiv.style.overflowY = "auto";
-  typesDiv.style.height = "65%";
+  typesDiv.style.height = "30%";
 
   for (const type of events.getEventTypes()) {
     let text = document.createElement("div")
@@ -278,6 +278,46 @@ function openEventsModal() {
 
   modal.appendChild(addInput);
   modal.appendChild(addButton);
+
+  //Event Groups (same thing just for event groups)
+  let groupsDiv = document.createElement("div");
+  groupsDiv.style.overflowY = "auto";
+  groupsDiv.style.height = "30%";
+
+  let title = document.createElement("h3");
+  title.innerHTML = "Event Groups:";
+  groupsDiv.appendChild(title);
+
+  for (const group of events.getEventGroups()) {
+     let text = document.createElement("div")
+    text.textContent = group;
+    groupsDiv.appendChild(text);
+  }
+
+  modal.appendChild(groupsDiv);
+
+  let addGroupInput: HTMLInputElement = document.createElement("input");
+  addGroupInput.type = "text";
+  addGroupInput.style.marginTop = "20px";
+
+  let addGroupButton: HTMLButtonElement = document.createElement("button");
+  addGroupButton.textContent = "+"
+  addGroupButton.onclick = (e) => {
+    e.stopPropagation();
+    if (addGroupInput.value.trim().length === 0) return;
+    if (events.getEventGroups().includes(addGroupInput.value)) return;
+
+    let text = document.createElement("div")
+    text.textContent = addGroupInput.value;
+    groupsDiv.appendChild(text);
+
+    events.addEventGroup(addGroupInput.value);
+    addGroupInput.value = "";
+  }
+
+  modal.appendChild(addGroupInput);
+  modal.appendChild(addGroupButton);
+
 }
 
 

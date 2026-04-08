@@ -13,6 +13,7 @@ export class MatchEvent {
 }
 
 let eventTypes: string[] = ["None", "Test1", "Test2"];
+let eventGroups: string[] =["None", "TestGroup1", "TestGroup2"];
 
 export function getEventTypes(): string[] {
     return eventTypes;
@@ -22,6 +23,18 @@ export function addEventType(type: string): void {
     eventTypes.push(type);
 }
 
-export function setEventTypes(events: string[]) {
+export function setEventTypes(events: string[]): void {
     eventTypes = events;
+}
+
+export function getEventGroups(): string[] {
+    return eventGroups;
+}
+
+export function addEventGroup(group: string): void {
+    eventGroups.push(group);
+}
+
+export function setEventGroups(groups: string[]): void {
+    eventGroups = groups;
 }
