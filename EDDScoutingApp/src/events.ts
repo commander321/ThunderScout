@@ -4,7 +4,7 @@ export class MatchEvent {
     group: string;
     timestamp: number
 
-    constructor(type: string, group?: string) {
+    constructor(type: string, group: string) {
         this.type = type;
         this.timestamp = Date.now();
         this.group = group || "";

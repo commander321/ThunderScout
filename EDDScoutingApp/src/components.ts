@@ -9,6 +9,7 @@ export abstract class Component {
   style: Record<string, any>;
   children: Component[];
   eventType: string;
+  eventGroup: string;
 
   constructor(type: string) {
     this.id = crypto.randomUUID();
@@ -16,6 +17,7 @@ export abstract class Component {
     this.style = {};
     this.children = [];
     this.eventType = "None";
+    this.eventGroup = "None";
   }
 
   /**
@@ -121,7 +123,7 @@ export class Button extends Component {
     button.onclick = (e) => {
       e.stopPropagation();
       if (app.isRuntimeMode()) {
-        matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.eventType));
+        matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.eventType, this.eventGroup));
         updateCounters(this.eventType);
         console.log(matchdata.getCurrentMatch().matchEvents); //for testing, might remove later (or not, doesn't really matter)
       }
@@ -196,6 +198,7 @@ export class Dropdown extends Component {
           app.renderPreview();
         }
     );
+    editor.addGroupSection(this);
     editor.addStyleSection(this);
     editor.addTextSection(this);
   }
@@ -225,7 +228,7 @@ export class Dropdown extends Component {
           matchdata.getCurrentMatch().removeType(t);
         });
 
-        matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.options[select.selectedIndex] || "null"));
+        matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.options[select.selectedIndex] || "null", this.eventGroup));
         updateCounters();
       }
 
@@ -273,7 +276,7 @@ export class Checkbox extends Component {
 
       //Handle changing the event
       if (checkbox.checked) {
-        matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.eventType));
+        matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.eventType, this.eventGroup));
       } else {
         matchdata.getCurrentMatch().removeType(this.eventType);
       }

@@ -77,6 +77,36 @@ export function addEventSelection(node: components.Component) {
       app.renderPreview();
     });
 
+    addSelect("Group", node.eventGroup, events.getEventGroups(), (val: any) => {
+      node.eventGroup = val;
+      app.renderPreview();
+    });
+
+    let button: HTMLButtonElement = document.createElement("button");
+    button.textContent = "Edit Events";
+    button.onclick = (e) => {
+      e.stopPropagation();
+
+      //Open the events list modal
+      openEventsModal();
+    }
+
+    editorDiv.appendChild(button);
+}
+
+/**
+ * Adds just the event group selection (and the edit events button)
+ */
+export function addGroupSection(node: components.Component) {
+    const editorDiv = document.getElementById("editor");
+    if (!editorDiv) return;
+    if (!(editorDiv instanceof HTMLDivElement)) return;
+
+    addSelect("Group", node.eventGroup, events.getEventGroups(), (val: any) => {
+      node.eventGroup = val;
+      app.renderPreview();
+    });
+
     let button: HTMLButtonElement = document.createElement("button");
     button.textContent = "Edit Events";
     button.onclick = (e) => {

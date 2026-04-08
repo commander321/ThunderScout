@@ -349,6 +349,7 @@ export function save() {
 
   let data = {
     events: events.getEventTypes(),
+    groups: events.getEventGroups(),
     app: root
   }
 
@@ -399,6 +400,7 @@ export function loadComponent(data: any): components.Component {
   component.id = data.id;
   component.style = data.style;
   component.eventType = data.eventType;
+  component.eventGroup = data.eventGroup;
   
   if (component instanceof components.Layout) {
     component.text = data.text;
@@ -440,6 +442,7 @@ export function setupLoadButton() {
 
       console.log(data);
       events.setEventTypes(data.events);
+      events.setEventGroups(data.groups);
 
       //Loads the root component, which loads all other ones
       root = loadComponent(data.app);
