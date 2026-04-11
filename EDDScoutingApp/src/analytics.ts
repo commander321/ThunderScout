@@ -1,5 +1,6 @@
 import * as events from "./events.js";
 import * as matchdata from "./matchdata.js";
+import * as bluetooth from "./bluetooth.js";
 import {Chart} from 'chart.js/auto';
 
 let chart: Chart;
@@ -122,6 +123,22 @@ function setupTestButton(): void {
         updateTable(parseInt(teamnum.value), eventTypes);
         updateByMatchTable1511(parseInt(teamnum.value));
     };
+}
+
+/**
+ * Setup the button to send all saved matches via bluetooth
+ */
+function setupBluetoothButton() {
+    const button = document.getElementById("bluetooth");
+    if (!button) return;
+    if (!(button instanceof HTMLButtonElement)) return;
+
+    button.onclick = (e) => {
+        e.stopPropagation();
+
+        //send data
+        bluetooth.sendMatches(matchdata.getAllMatches());
+    }
 }
 
 function setupChart(): void {
@@ -354,7 +371,7 @@ function updateByMatchTable(teamNum: number) {
  * By match table specific to what 1511 wants this year. I haven't finished an analytics builder yet so this is what I'm gonna do.
  */
 function updateByMatchTable1511(teamNum: number) {
-    let table = document.getElementById("table1511");
+    const table = document.getElementById("table1511");
     if (!table) return;
     if (!(table instanceof HTMLTableElement)) return;
 
@@ -368,32 +385,103 @@ function updateByMatchTable1511(teamNum: number) {
     }
     matches.sort((a, b) => a - b);
 
-    let headerRow: HTMLTableRowElement = document.createElement("tr");
-    let headerMatch: HTMLTableCellElement = document.createElement("th");
+    const headerRow1: HTMLTableRowElement = document.createElement("tr");
+    addHeaderCell(headerRow1, "Match Setup", 3);
+    addHeaderCell(headerRow1, "Autonomous", 4);
+    addHeaderCell(headerRow1, "Teleop - Win/Tie Auto", 6);
+    addHeaderCell(headerRow1, "Teleop - Lose Auto", 6);
+    addHeaderCell(headerRow1, "Match Summary", 5);
+    table.appendChild(headerRow1);
 
-    headerMatch.innerHTML = "Match";
-    headerRow.appendChild(headerMatch);
-
-    table.appendChild(headerRow);
+    const headerRow2: HTMLTableRowElement = document.createElement("tr");
+    addHeaderCell(headerRow2, "Match #");
+    addHeaderCell(headerRow2, "Scouter Name");
+    addHeaderCell(headerRow2, "Starting Location");
+    addHeaderCell(headerRow2, "Actions");
+    addHeaderCell(headerRow2, "Intake");
+    addHeaderCell(headerRow2, "Climb?");
+    addHeaderCell(headerRow2, "W/L Auto");
+    addHeaderCell(headerRow2, "Inac-Hub 1");
+    addHeaderCell(headerRow2, "Active-Hub 1");
+    addHeaderCell(headerRow2, "Inac-Hub 2");
+    addHeaderCell(headerRow2, "Active-Hub 2");
+    addHeaderCell(headerRow2, "Endgame");
+    addHeaderCell(headerRow2, "Climb?");
+    addHeaderCell(headerRow2, "Active-Hub 1");
+    addHeaderCell(headerRow2, "Inac-Hub 1");
+    addHeaderCell(headerRow2, "Active-Hub 2");
+    addHeaderCell(headerRow2, "Inac-Hub 2");
+    addHeaderCell(headerRow2, "Endgame");
+    addHeaderCell(headerRow2, "Climb?");
+    addHeaderCell(headerRow2, "Shoot Grid");
+    addHeaderCell(headerRow2, "Path");
+    addHeaderCell(headerRow2, "Beached?");
+    addHeaderCell(headerRow2, "Robot Die?");
+    addHeaderCell(headerRow2, "<- Why?");
+    table.appendChild(headerRow2);
 
     for (const matchNum of matches) {
         for (const match of matchdata.getAllMatches()) {
             if (match.matchNumber != matchNum || match.teamNumber != teamNum) continue;
 
             //add each match here!
-            let row = document.createElement("tr");
+            const row = document.createElement("tr");
             addCell(row, matchNum.toString());
             addCell(row, match.textData.get("Scouter Name") || "");
+            console.log(match.textData);
             table.appendChild(row);
 
             break;
         }
     }
+
+
+    //handle exporting the data to CSV
+    const exportButton = document.getElementById("table-export");
+    if (!exportButton) return;
+    if (!(exportButton instanceof HTMLButtonElement)) return;
+
+    exportButton.onclick = (e) => {
+        e.stopPropagation();
+
+        const rows: HTMLTableRowElement[] = Array.from(table.querySelectorAll("tr"));
+        // 1. Map rows to CSV strings
+        const csvContent = rows.map(row => {
+            const cells = Array.from(row.querySelectorAll('th, td'));
+            return cells.map(cell => {
+                // Escape double quotes and wrap in quotes to handle commas
+                let data = cell.innerHTML.replace(/"/g, '""');
+                return `"${data}"`;
+            }).join(',');
+        }).join('\n');
+
+        // 2. Create a Blob and Download Link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        
+        // 3. Trigger browser download
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'table');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+
+    }
 }
 
 function addCell(row: HTMLTableRowElement, value: string): void {
-    let cell = document.createElement("td");
+    const cell = document.createElement("td");
     cell.innerHTML = value;
+    row.appendChild(cell);
+}
+
+function addHeaderCell(row: HTMLTableRowElement, value: string, colSpan?: number): void {
+    const cell = document.createElement("th");
+    cell.innerHTML = value;
+    if (colSpan) cell.colSpan = colSpan;
     row.appendChild(cell);
 }
 
@@ -420,6 +508,7 @@ events.setEventTypes(types);
 
 setupLoadButton();
 setupTestButton();
+setupBluetoothButton();
 setupChart();
 setupPieChart();
 

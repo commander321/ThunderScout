@@ -28,7 +28,10 @@
 <div id="preview">
     <h1>Analytics</h1>
     <label>Upload Match Data:</label>
-    <input id="load" type="file" accept="application/json" multiple></button>
+    <input id="load" type="file" accept="application/json" multiple></input>
+    <div>
+        <button id="bluetooth">Send Data (Bluetooth)</button>
+    </div>
     <label>Team Number(s):</label>
     <div>
         <input id="team" type="number" style="width:10%;font-size:large;"></input>
@@ -44,6 +47,13 @@
 
     <hr>
 
+    <div style="margin-top:50px;">
+        <table id="table1511">
+            
+        </table>
+        <button id="table-export">Export to CSV</button>
+    </div>
+
     <div>
         <canvas id="graph" width="600px" height="600px"></canvas>
     </div>
@@ -55,12 +65,6 @@
     <div style="margin-top:25px;">
         <table id="table">
 
-        </table>
-    </div>
-
-    <div style="margin-top:50px;">
-        <table id="table1511">
-            
         </table>
     </div>
 

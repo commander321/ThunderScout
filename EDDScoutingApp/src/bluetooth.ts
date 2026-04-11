@@ -87,6 +87,15 @@ export function sendMatch(match: matchdata.MatchData) {
 }
 
 /**
+ * Send multiple matches over bluetooth
+ */
+export function sendMatches(matches: matchdata.MatchData[]) {
+  const json: string = JSON.stringify(matches, null, 2); //THIS PROBABLY DOESNT WORK RIGHT!!!
+
+  bluetoothSend(json);
+}
+
+/**
  * Sets up the bluetooth test button (which just sends current match data)
  */
 function setupBluetoothButton() {
