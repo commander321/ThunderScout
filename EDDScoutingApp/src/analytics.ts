@@ -3,7 +3,7 @@ import * as matchdata from "./matchdata.js";
 import * as bluetooth from "./bluetooth.js";
 import {Chart} from 'chart.js/auto';
 
-let chart: Chart;
+//let chart: Chart;
 let pieChart: Chart;
 let eventsDropdown: string[] = [];
 
@@ -103,9 +103,17 @@ function setupTestButton(): void {
     let closeDesignerButton = document.getElementById("test");
     if (!closeDesignerButton) return;
 
-    let teamnum = document.getElementById("team");
-    if (!teamnum) return;
-    if (!(teamnum instanceof HTMLInputElement)) return;
+    let teamnum1 = document.getElementById("team1");
+    if (!teamnum1) return;
+    if (!(teamnum1 instanceof HTMLInputElement)) return;
+
+    let teamnum2 = document.getElementById("team2");
+    if (!teamnum2) return;
+    if (!(teamnum2 instanceof HTMLInputElement)) return;
+
+    let teamnum3 = document.getElementById("team3");
+    if (!teamnum3) return;
+    if (!(teamnum3 instanceof HTMLInputElement)) return;
 
     let eventSelect = document.getElementById("events");
     if (!eventSelect) return;
@@ -118,10 +126,27 @@ function setupTestButton(): void {
         for (const option of eventSelect.selectedOptions) {
             eventTypes.push(option.value);
         }
-        updateChart(parseInt(teamnum.value), eventTypes);
-        updatePieChart(parseInt(teamnum.value), eventTypes);
-        updateTable(parseInt(teamnum.value), eventTypes);
-        updateByMatchTable1511(parseInt(teamnum.value));
+        updateChart(parseInt(teamnum1.value), eventTypes, "graph1");
+        updatePieChart(parseInt(teamnum1.value), eventTypes);
+        updateTable(parseInt(teamnum1.value), eventTypes);
+        updateByMatchTable1511(parseInt(teamnum1.value), "table1511-1");
+        if (teamnum2.value.length != 0) {
+            updateByMatchTable1511(parseInt(teamnum2.value), "table1511-2");
+            updateChart(parseInt(teamnum2.value), eventTypes, "graph2");
+        } else {
+            document.getElementById("table1511-2")?.classList.add("hidden");
+            document.getElementById("graph2")?.classList.add("hidden");
+            Chart.getChart("graph2")?.destroy();
+        }
+
+        if (teamnum3.value.length != 0) {
+            updateByMatchTable1511(parseInt(teamnum3.value), "table1511-3");
+            updateChart(parseInt(teamnum3.value), eventTypes, "graph3");
+        } else {
+            document.getElementById("table1511-3")?.classList.add("hidden");
+            document.getElementById("graph3")?.classList.add("hidden");
+            Chart.getChart("graph3")?.destroy();
+        }
     };
 }
 
@@ -141,12 +166,15 @@ function setupBluetoothButton() {
     }
 }
 
-function setupChart(): void {
-    let graph = document.getElementById("graph");
-    if (!graph) return;
-    if (!(graph instanceof HTMLCanvasElement)) return;
+function setupChart(id: string): Chart | null {
+    let graph = document.getElementById(id);
+    if (!graph) return null;
+    if (!(graph instanceof HTMLCanvasElement)) return null;
 
-    chart = new Chart(graph, {
+    graph.classList.remove("hidden");
+    graph.style.display = "inline";
+
+    let chart = new Chart(graph, {
         type: "line",
         data: {
             labels: [],
@@ -173,6 +201,8 @@ function setupChart(): void {
             }
         }
     });
+
+    return chart;
 }
 
 function setupPieChart(): void {
@@ -245,8 +275,13 @@ function updatePieChart(teamNum: number, eventTypes: string[]): void {
 /**
  * Updates the chart to show current requirements
  */
-function updateChart(teamNum: number, eventTypes: string[]): void {
-    if (!chart) return;
+function updateChart(teamNum: number, eventTypes: string[], chartID: string): void {
+    let chart = Chart.getChart(chartID);
+    if (!chart) {
+        let newChart = setupChart(chartID);
+        if (!newChart) return;
+        chart = newChart;
+    }
 
     let matches: number[] = []
     for (const match of matchdata.getAllMatches()) {
@@ -370,13 +405,14 @@ function updateByMatchTable(teamNum: number) {
 /**
  * By match table specific to what 1511 wants this year. I haven't finished an analytics builder yet so this is what I'm gonna do.
  */
-function updateByMatchTable1511(teamNum: number) {
-    const table = document.getElementById("table1511");
+function updateByMatchTable1511(teamNum: number, tableId: string) {
+    const table = document.getElementById(tableId);
     if (!table) return;
     if (!(table instanceof HTMLTableElement)) return;
 
     //reset table
     table.innerHTML = "";
+    table.classList.remove("hidden");
 
     //get matches the team is in
     let matches: number[] = []
@@ -509,6 +545,4 @@ events.setEventTypes(types);
 setupLoadButton();
 setupTestButton();
 setupBluetoothButton();
-setupChart();
 setupPieChart();
-
