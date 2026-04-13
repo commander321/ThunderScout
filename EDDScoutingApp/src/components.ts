@@ -55,12 +55,15 @@ export class Label extends Component {
 
   addEditorFeatures() {
     editor.addTextLabel(this);
-    editor.addStyleSection(this);
+    editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
   }
 
   render(div: HTMLDivElement) {
     div.textContent = this.text;
+
+    applyLayoutStlyes(div, this.style);
+    applyTextStyles(div, this.style);
   }
 }
 
@@ -75,7 +78,7 @@ export class Counter extends Component {
 
   addEditorFeatures() {
     editor.addEventSelection(this);
-    editor.addStyleSection(this);
+    editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
   }
 
@@ -85,6 +88,9 @@ export class Counter extends Component {
     label.textContent = matchdata.getCurrentMatch().getEventCount(this.eventType).toString();
 
     div.appendChild(label);
+
+    applyLayoutStlyes(div, this.style);
+    applyTextStyles(label, this.style);
   }
 
   update() {
@@ -112,7 +118,7 @@ export class Button extends Component {
     editor.addTextLabel(this);
     editor.addEventSelection(this);
     //Button styles aren't working now... hmm
-    editor.addStyleSection(this);
+    editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
   }
 
@@ -131,6 +137,9 @@ export class Button extends Component {
     };
 
     div.appendChild(button);
+
+    applyLayoutStlyes(div, this.style);
+    applyTextStyles(button, this.style);
   }
 }
 
@@ -169,6 +178,8 @@ export class Section extends Component {
     hr.onclick = e => e.stopPropagation();
 
     div.appendChild(hr);
+
+    applyLayoutStlyes(div, this.style);
   }
 }
 
@@ -199,7 +210,7 @@ export class Dropdown extends Component {
         }
     );
     editor.addGroupSection(this);
-    editor.addStyleSection(this);
+    editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
   }
 
@@ -241,6 +252,9 @@ export class Dropdown extends Component {
 
     //div.appendChild(label);
     div.appendChild(select);
+
+    applyLayoutStlyes(div, this.style);
+    applyTextStyles(select, this.style);
   }
 }
 
@@ -260,7 +274,7 @@ export class Checkbox extends Component {
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
     editor.addEventSelection(this);
-    editor.addStyleSection(this);
+    editor.addLayoutStyleSection(this);
   }
 
   render(div: HTMLDivElement) {
@@ -287,6 +301,7 @@ export class Checkbox extends Component {
 
     div.appendChild(checkbox);
 
+    applyLayoutStlyes(div, this.style);
   }
 }
 
@@ -306,7 +321,7 @@ export class Layout extends Component {
         this.direction = val;
         app.renderPreview();
     });
-    editor.addStyleSection(this);
+    editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
   }
 
@@ -320,6 +335,9 @@ export class Layout extends Component {
     if (this.type === "layout" && this.direction === "horizontal") {
       div.classList.add("horizontal");
     }
+
+    applyLayoutStlyes(div, this.style);
+    applyTextStyles(title, this.style);
   }
 }
 
@@ -329,7 +347,7 @@ export class TeamNum extends Component {
   }
 
   addEditorFeatures(): void {
-    editor.addStyleSection(this);
+    editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
   }
 
@@ -345,6 +363,9 @@ export class TeamNum extends Component {
     team.valueAsNumber = matchdata.getCurrentMatch().teamNumber;
 
     div.appendChild(team);
+
+    applyLayoutStlyes(div, this.style);
+    applyTextStyles(team, this.style);
   }
 }
 
@@ -369,7 +390,8 @@ export class TextBox extends Component {
           app.renderPreview();
         }, "text");
       
-    editor.addStyleSection(this);
+    editor.addLayoutStyleSection(this);
+    editor.addTextSection(this);
   }
 
   render(div: HTMLDivElement): void {
@@ -392,6 +414,9 @@ export class TextBox extends Component {
       }
 
       div.appendChild(textbox);
+
+      applyLayoutStlyes(div, this.style);
+      applyTextStyles(textbox, this.style);
   }
 }
 
@@ -401,7 +426,7 @@ export class MatchNum extends Component {
   }
 
   addEditorFeatures(): void {
-    editor.addStyleSection(this);
+    editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
   }
 
@@ -417,6 +442,9 @@ export class MatchNum extends Component {
     match.valueAsNumber = matchdata.getCurrentMatch().matchNumber;
 
     div.appendChild(match);
+
+    applyLayoutStlyes(div, this.style);
+    applyTextStyles(match, this.style);
   }
 }
 
@@ -426,7 +454,7 @@ export class MatchType extends Component {
   }
 
   addEditorFeatures(): void {
-    editor.addStyleSection(this);
+    editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
   }
 
@@ -454,6 +482,9 @@ export class MatchType extends Component {
     select.value = matchdata.getCurrentMatch().matchType;
 
     div.appendChild(select);
+
+    applyLayoutStlyes(div, this.style);
+    applyTextStyles(select, this.style);
   }
 }
 
@@ -463,7 +494,7 @@ export class AllianceStation extends Component {
   }
 
   addEditorFeatures(): void {
-    editor.addStyleSection(this);
+    editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
   }
 
@@ -497,21 +528,31 @@ export class AllianceStation extends Component {
     select.value = matchdata.getCurrentMatch().allianceStation;
 
     div.appendChild(select);
+
+    applyLayoutStlyes(div, this.style);
+    applyTextStyles(select, this.style);
   }
 }
 
 export class ResetButton extends Component {
+
+  text: string;
+
   constructor() {
     super("resetbutton");
+
+    this.text = "Next Match";
   }
 
   addEditorFeatures(): void {
-    
+    editor.addTextLabel(this);
+    editor.addLayoutStyleSection(this);
+    editor.addTextSection(this);
   }
 
   render(div: HTMLDivElement): void {
     let button: HTMLButtonElement = document.createElement("button");
-    button.textContent = "Next Match";
+    button.textContent = this.text;
 
     button.onclick = (e) => {
       e.stopPropagation();
@@ -525,8 +566,13 @@ export class ResetButton extends Component {
 
     div.appendChild(button);
 
+    applyLayoutStlyes(div, this.style);
+    applyTextStyles(button, this.style);
   }
 }
+
+
+
 
 /**
 * Updates all event counter components because event counts change all the time
@@ -539,6 +585,52 @@ function updateCounters(type?: string) {
       counter.update();
     }
   }
+}
+
+/**
+ * Applies styles to a component based on it's styles list. 
+ * This is where it makes the actual CSS of the components
+ */
+function applyLayoutStlyes(node: HTMLElement, style: Record<string, any>) {
+  if (!style) return;
+
+  node.style.background = style.background || "";
+  node.style.width = (style.width || 100) + "%";
+
+  node.style.paddingLeft = (style.paddingLeft == "0" ? 0 : (style.paddingLeft || 5)) + "px";
+  node.style.paddingRight = (style.paddingRight == "0" ? 0 : (style.paddingRight || 5)) + "px";
+  node.style.paddingTop = (style.paddingTop == "0" ? 0 : (style.paddingTop || 5)) + "px";
+  node.style.paddingBottom = (style.paddingBottom == "0" ? 0 : (style.paddingBottom || 5)) + "px";
+
+  node.style.marginTop = (style.marginTop == "0" ? 0 : (style.marginTop || 6)) + "px";
+  node.style.marginBottom = (style.marginBottom == "0" ? 0 : (style.marginBottom || 6)) + "px";
+
+  if (style.allignment === "right") {
+    node.style.marginRight = (style.marginRight == "0" ? 0 : (style.marginRight || 0)) + "px";
+    node.classList.remove("center-align");
+    node.classList.remove("left-align");
+    node.classList.add("right-align");
+  } else if (style.allignment === "center") {
+    node.classList.remove("right-align");
+    node.classList.remove("left-align");
+    node.classList.add("center-align");
+  } else {
+    node.classList.remove("right-align");
+    node.classList.remove("center-align");
+    node.classList.add("left-align");
+    node.style.marginLeft = (style.marginLeft == "0" ? 0 : (style.marginLeft || 0)) + "px";
+  }  
+}
+
+/**
+ * Apply CSS styles for text
+ */
+function applyTextStyles(node: HTMLElement, style: Record<string, any>) {
+  node.style.fontSize = (style.textSize || 14) + "px";
+  node.style.fontWeight = style.bold ? "bold" : "normal";
+  node.style.fontStyle = style.fontStyle || ""
+  node.style.textDecoration = style.textDecoration || ""
+  node.style.color = style.color || "#000000";
 }
 
 /**

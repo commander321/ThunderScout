@@ -121,9 +121,9 @@ export function addGroupSection(node: components.Component) {
 
 
 /**
- * Add a new section for styles
+ * Add a new section for styling the layout
  */
-export function addStyleSection(node: components.Component) {
+export function addLayoutStyleSection(node: components.Component) {
     const editorDiv = document.getElementById("editor");
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
@@ -131,7 +131,7 @@ export function addStyleSection(node: components.Component) {
     //Add a line between component info and style
     editorDiv.appendChild(document.createElement("hr"));
     let label = document.createElement("div");
-    label.textContent = "Style:";
+    label.textContent = "Layout Style:";
     editorDiv.appendChild(label);
     editorDiv.appendChild(document.createElement("br"));
 
@@ -242,10 +242,10 @@ export function addTextSection(node: components.Component) {
         app.renderPreview();
     }, "number");
 
-    /*addInput("Text Color", node.color || "#FFFFFF", val => {
-        node.color = val;
+    addInput(editorDiv, "Text Color", node.style.color || "#000000", (val: any) => {
+        node.style.color = val;
         app.renderPreview();
-      }, "color");*/
+      }, "color");
 
     addInput(editorDiv, "Bold", node.style.bold || false, (val: any) => {
         node.style.bold = val.checked;

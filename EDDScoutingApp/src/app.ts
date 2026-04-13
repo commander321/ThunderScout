@@ -112,7 +112,7 @@ function renderNode(node: components.Component, container: HTMLDivElement) {
     handleDrop(node.id);
   };
 
-  applyStyles(div, node);
+  //applyStyles(div, node);
   node.render(div);
   //renderComponentContent(div, node);
 
@@ -172,6 +172,7 @@ function handleDrop(targetId: string) {
  * Applies styles to a component based on it's styles list. 
  * This is where it makes the actual CSS of the components
  */
+/*
 function applyStyles(div: HTMLDivElement, node: components.Component) {
   if (!node.style) return;
 
@@ -205,8 +206,11 @@ function applyStyles(div: HTMLDivElement, node: components.Component) {
     div.classList.add("left-align");
     div.style.marginLeft = (node.style.marginLeft == "0" ? 0 : (node.style.marginLeft || 0)) + "px";
   }
+
+  div.style.color = node.style.color || "#000000";
+
   //div.style.color = node.color || "#000000"
-}
+}*/
 
 // =======================
 // EDITOR
@@ -304,12 +308,13 @@ export function closeDesigner() {
   runtime_mode = true;
 
   let sidebar = document.getElementById("sidebar");
-  if (!sidebar) return;
-  sidebar.classList.add("hidden");
+  sidebar?.classList.add("hidden");
+
+  let previewTitle = document.getElementById("preview-title");
+  previewTitle?.classList.add("hidden");
 
   let edit = document.getElementById("edit");
-  if (!edit) return;
-  edit.classList.remove("hidden");
+  edit?.classList.remove("hidden");
 
   document.querySelectorAll(".insert-bar").forEach(element => {
     element.classList.add("hidden");
@@ -332,12 +337,13 @@ export function openDesigner() {
   runtime_mode = false;
 
   let sidebar = document.getElementById("sidebar");
-  if (!sidebar) return;
-  sidebar.classList.remove("hidden");
+  sidebar?.classList.remove("hidden");
+
+  let previewTitle = document.getElementById("preview-title");
+  previewTitle?.classList.remove("hidden");
 
   let edit = document.getElementById("edit");
-  if (!edit) return;
-  edit.classList.add("hidden");
+  edit?.classList.add("hidden");
 
   renderPreview();
 }
