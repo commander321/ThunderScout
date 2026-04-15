@@ -263,7 +263,7 @@ export class Checkbox extends Component {
   //text: string;
 
   constructor() {
-    super ("Checkbox");
+    super ("checkbox");
    // this.checked = false;
    // this.text = "New Checkbox";
   }
@@ -272,6 +272,12 @@ export class Checkbox extends Component {
     const editorDiv = document.getElementById("editor");
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
+
+    //checkbox features
+    editor.addInput(editorDiv, "Scale", this.style.scale || 1, (val: any) => {
+      this.style.scale = val;
+      app.renderPreview();
+    }, "number");
 
     editor.addEventSelection(this);
     editor.addLayoutStyleSection(this);
@@ -284,7 +290,7 @@ export class Checkbox extends Component {
 
     checkbox.onchange = (e) => {
       e.stopPropagation();
-     // this.checked = checkbox.checked;
+      //this.checked = checkbox.checked;
 
       if (!app.isRuntimeMode()) return;
 
@@ -302,6 +308,7 @@ export class Checkbox extends Component {
     div.appendChild(checkbox);
 
     applyLayoutStlyes(div, this.style);
+    checkbox.style.scale = this.style.scale || 1;
   }
 }
 

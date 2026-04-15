@@ -570,6 +570,54 @@ function setupMatchesButton() {
 
 }
 
+function openSettingsModal() {
+  let overlay = document.getElementById("overlay-settings");
+  if (!overlay) return;
+  overlay.classList.remove("hidden");
+
+  let modal = document.getElementById("modal-settings");
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  modal.innerHTML = "<h3>Settings</h3>";
+
+  /*
+    Things to add:
+    - Event code
+    - Clear all matches
+    - Disable editing
+    - Import schedule
+  */
+
+  let eventCode = document.createElement("input");
+  eventCode.type = "text";
+  eventCode.value = matchdata.getCurrentMatch().eventCode;
+  eventCode.onchange = (e) => {
+    e.stopPropagation();
+
+    matchdata.getCurrentMatch().eventCode = eventCode.value;
+  }
+
+  modal.appendChild(eventCode);
+}
+
+function closeSettingsModal() {
+  let overlay = document.getElementById("overlay-settings");
+  if (overlay) overlay.classList.add("hidden");
+
+  let modal = document.getElementById("modal-settings");
+  if (modal) modal.classList.add("hidden");
+}
+
+function setupSettingsButton() {
+  let settingsButton = document.getElementById("settings");
+  if (!settingsButton) return;
+  settingsButton.onclick = openSettingsModal;
+
+  //setup closing modal on click
+  let overlay = document.getElementById("overlay-settings")
+  if (overlay) overlay.onclick = closeSettingsModal;
+}
+
 //Manage service worker stuff for android
 /*
 if ("serviceWorker" in navigator) {
@@ -582,6 +630,7 @@ setupSaveButton();
 setupLoadButton();
 setupExportButton();
 setupMatchesButton();
+setupSettingsButton();
 
 
 //replaced 'renderPreview();' here

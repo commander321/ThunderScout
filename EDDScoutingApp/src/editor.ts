@@ -281,6 +281,18 @@ function openEventsModal() {
   for (const type of events.getEventTypes()) {
     let text = document.createElement("div")
     text.textContent = type;
+
+    //remove type button
+    let remove = document.createElement("button");
+    remove.textContent = "X";
+    remove.style.marginLeft = "25px";
+    remove.onclick = (e) => {
+      e.stopPropagation();
+      events.removeEventType(type);
+      openEventsModal();
+    }
+    text.appendChild(remove);
+
     typesDiv.appendChild(text);
   }
 
@@ -298,12 +310,14 @@ function openEventsModal() {
     if (addInput.value.trim().length === 0) return;
     if (events.getEventTypes().includes(addInput.value)) return;
 
-    let text = document.createElement("div")
+    /*let text = document.createElement("div")
     text.textContent = addInput.value;
-    typesDiv.appendChild(text);
+    typesDiv.appendChild(text);*/
 
     events.addEventType(addInput.value);
     addInput.value = "";
+
+    openEventsModal();
   }
 
   modal.appendChild(addInput);
@@ -321,6 +335,18 @@ function openEventsModal() {
   for (const group of events.getEventGroups()) {
      let text = document.createElement("div")
     text.textContent = group;
+
+    //remove group button
+    let remove = document.createElement("button");
+    remove.textContent = "X";
+    remove.style.marginLeft = "25px";
+    remove.onclick = (e) => {
+      e.stopPropagation();
+      events.removeEventGroup(group);
+      openEventsModal();
+    }
+    text.appendChild(remove);
+
     groupsDiv.appendChild(text);
   }
 
@@ -337,12 +363,10 @@ function openEventsModal() {
     if (addGroupInput.value.trim().length === 0) return;
     if (events.getEventGroups().includes(addGroupInput.value)) return;
 
-    let text = document.createElement("div")
-    text.textContent = addGroupInput.value;
-    groupsDiv.appendChild(text);
-
     events.addEventGroup(addGroupInput.value);
     addGroupInput.value = "";
+
+    openEventsModal();
   }
 
   modal.appendChild(addGroupInput);

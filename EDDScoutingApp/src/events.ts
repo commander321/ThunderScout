@@ -23,6 +23,11 @@ export function addEventType(type: string): void {
     eventTypes.push(type);
 }
 
+export function removeEventType(type: string): void {
+    if (!eventTypes.includes(type)) return;
+    eventTypes.splice(eventTypes.findIndex(value => value === type), 1);
+}
+
 export function setEventTypes(events: string[]): void {
     eventTypes = events;
 }
@@ -37,4 +42,9 @@ export function addEventGroup(group: string): void {
 
 export function setEventGroups(groups: string[]): void {
     eventGroups = groups;
+}
+
+export function removeEventGroup(group: string): void {
+    if (!eventGroups.includes(group)) return;
+    eventGroups.splice(eventGroups.findIndex(value => value === group), 1);
 }
