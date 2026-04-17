@@ -588,6 +588,9 @@ function openSettingsModal() {
     - Import schedule
   */
 
+  let eventCodeDiv = document.createElement("div");
+  eventCodeDiv.textContent = "Event Code: ";
+
   let eventCode = document.createElement("input");
   eventCode.type = "text";
   eventCode.value = matchdata.getCurrentMatch().eventCode;
@@ -596,8 +599,17 @@ function openSettingsModal() {
 
     matchdata.getCurrentMatch().eventCode = eventCode.value;
   }
+  eventCodeDiv.appendChild(eventCode);
 
-  modal.appendChild(eventCode);
+  let toggleEditorDiv = document.createElement("div");
+  toggleEditorDiv.textContent = "Edit Mode:";
+
+  let toggleEditor = document.createElement("input");
+  //make this a switch to enable/disable the editor
+  toggleEditorDiv.appendChild(toggleEditor);
+
+  modal.appendChild(eventCodeDiv);
+  modal.appendChild(toggleEditorDiv);
 }
 
 function closeSettingsModal() {

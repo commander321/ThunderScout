@@ -27,6 +27,9 @@ function setupLoadButton(): void {
 
         reader.onload = () => {
         const matches: matchdata.MatchData[] = JSON.parse(reader.result as string);
+
+        //Does this work? Idk it might not. Maps groups to the right shifts, active or inactive
+        matches.map((match) => {parseShiftGroups1511(match)});
         
         //List of matches to add, will ignore any duplicates and use the latest match when needed
        // const matchesToAdd: matchdata.MatchData[] = [];
@@ -508,6 +511,21 @@ function updateByMatchTable1511(teamNum: number, tableId: string) {
     }
 }
 
+/**
+ * Turns all "Shift #" event gorups into the proper ones based on active/inactive shifts
+ */
+function parseShiftGroups1511(data: matchdata.MatchData): matchdata.MatchData {
+    const wonAuto: Boolean = data.getEventCount("Win") > 0;
+    for (const event of data.matchEvents) {
+        if (event.group === "Shift 1") event.group = wonAuto ? "Inactive 1" : "Active 1";
+        if (event.group === "Shift 2") event.group = wonAuto ? "Active 1" : "Inactive 1";
+        if (event.group === "Shift 3") event.group = wonAuto ? "Inactive 2" : "Active 2";
+        if (event.group === "Shift 4") event.group = wonAuto ? "Active 2" : "Inactive 2";
+    }
+
+    return data;
+}
+
 function addCell(row: HTMLTableRowElement, value: string): void {
     const cell = document.createElement("td");
     cell.innerHTML = value;
@@ -522,6 +540,7 @@ function addHeaderCell(row: HTMLTableRowElement, value: string, colSpan?: number
 }
 
 //Example events (change later)!
+/*
 let types: string[] = [
     "Auto Fuel 0",
     "Auto Fuel 1-10",
@@ -540,7 +559,7 @@ let types: string[] = [
     "Fuel 76-100",
     "Fuel 100+"
 ]
-events.setEventTypes(types);
+events.setEventTypes(types);*/
 
 setupLoadButton();
 setupTestButton();
