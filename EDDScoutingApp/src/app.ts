@@ -13,6 +13,7 @@ let insertContext: any = null;
 let draggedId: any = null;
 
 let runtime_mode = false;
+let editor_enabled = true;
 
 const COMPONENT_TYPES = [
   "root",
@@ -72,7 +73,6 @@ export function renderPreview() {
 }
 
 function renderNode(node: components.Component, container: HTMLDivElement) {
-
   // ROOT HANDLING
   if (node.type === "root") {
     renderChildren(node, container);
@@ -305,7 +305,10 @@ document.addEventListener("keydown", e => {
  * Closes the designer and activates runtime mode
  */
 export function closeDesigner() {
+  //save the app
   runtime_mode = true;
+
+  saveLocalState();
 
   let sidebar = document.getElementById("sidebar");
   sidebar?.classList.add("hidden");
@@ -315,6 +318,15 @@ export function closeDesigner() {
 
   let edit = document.getElementById("edit");
   edit?.classList.remove("hidden");
+  if (editor_enabled) {
+    edit?.classList.remove("hidden")
+  } else {
+    edit?.classList.add("hidden");
+  } 
+
+  document.getElementById("export")?.classList.remove("hidden");
+  document.getElementById("matches")?.classList.remove("hidden");
+  document.getElementById("settings")?.classList.remove("hidden");
 
   document.querySelectorAll(".insert-bar").forEach(element => {
     element.classList.add("hidden");
@@ -334,7 +346,15 @@ export function closeDesigner() {
  * Opens the designer from runtime mode
  */
 export function openDesigner() {
+  //force runtime mode if the editor is disabled
+  if (!editor_enabled) {
+    closeDesigner();
+    return;
+  }
+
   runtime_mode = false;
+
+  saveLocalState();
 
   let sidebar = document.getElementById("sidebar");
   sidebar?.classList.remove("hidden");
@@ -345,14 +365,21 @@ export function openDesigner() {
   let edit = document.getElementById("edit");
   edit?.classList.add("hidden");
 
+  document.getElementById("export")?.classList.add("hidden");
+  document.getElementById("matches")?.classList.add("hidden");
+  document.getElementById("settings")?.classList.add("hidden");
+
   renderPreview();
 }
 
 /**
  * Save the current configuration and download it as a JSON file
  */
-export function save() {
+export function saveToJSON() {
+  //save the local state of the app first
+  saveLocalState();
 
+  //get the data that needs to be saved to JSON
   let data = {
     events: events.getEventTypes(),
     groups: events.getEventGroups(),
@@ -392,7 +419,7 @@ export function setupEditButton() {
 export function setupSaveButton() {
   let saveButton = document.getElementById("save");
   if (!saveButton) return;
-  saveButton.onclick = save;
+  saveButton.onclick = saveToJSON;
 }
 
 /**
@@ -454,10 +481,12 @@ export function setupLoadButton() {
       root = loadComponent(data.app);
 
       renderPreview();
+
+      //save the newly loaded state
+      saveLocalState();
     };
 
     reader.readAsText(file);
-
   };
 }
 
@@ -598,14 +627,35 @@ function openSettingsModal() {
     e.stopPropagation();
 
     matchdata.getCurrentMatch().eventCode = eventCode.value;
+
+    //save to the local storage
+    localStorage.setItem("event_code", JSON.stringify(matchdata.getCurrentMatch().eventCode));
   }
   eventCodeDiv.appendChild(eventCode);
 
   let toggleEditorDiv = document.createElement("div");
   toggleEditorDiv.textContent = "Edit Mode:";
+  toggleEditorDiv.style.display = "inline-block";
 
+  //Switch to disable edit mode
   let toggleEditor = document.createElement("input");
-  //make this a switch to enable/disable the editor
+  toggleEditor.type = "checkbox";
+  toggleEditor.style.scale = "1.5";
+  toggleEditor.checked = editor_enabled;
+  toggleEditor.onclick = (e) => {
+    e.stopPropagation();
+
+    editor_enabled = toggleEditor.checked;
+
+    if (editor_enabled) {
+      document.getElementById("edit")?.classList.remove("hidden")
+    } else {
+      document.getElementById("edit")?.classList.add("hidden");
+    }
+
+    //save the editor enabled option to local storage
+    localStorage.setItem("editor_enabled", JSON.stringify(editor_enabled));
+  }
   toggleEditorDiv.appendChild(toggleEditor);
 
   modal.appendChild(eventCodeDiv);
@@ -636,6 +686,43 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/service-worker.js");
 }*/
 
+/**
+ * Save the state of the app to the local storage
+ */
+function saveLocalState() {
+  localStorage.setItem("runtime_mode", JSON.stringify(runtime_mode));
+  localStorage.setItem("editor_enabled", JSON.stringify(editor_enabled));
+  localStorage.setItem("event_code", JSON.stringify(matchdata.getCurrentMatch().eventCode));
+  localStorage.setItem("events", JSON.stringify(events.getEventTypes()));
+  localStorage.setItem("groups", JSON.stringify(events.getEventGroups()));
+  localStorage.setItem("app", JSON.stringify(root));
+}
+
+/**
+ * Load the app state
+ */
+function loadLocalState() {
+  const saved_runtime_mode = localStorage.getItem("runtime_mode");
+  if (saved_runtime_mode) {
+    runtime_mode = JSON.parse(saved_runtime_mode);
+  }
+  
+  const saved_editor_enabled = localStorage.getItem("editor_enabled");
+  if (saved_editor_enabled) editor_enabled = JSON.parse(saved_editor_enabled);
+
+  const saved_event_code = localStorage.getItem("event_code");
+  if (saved_event_code) matchdata.getCurrentMatch().eventCode = JSON.parse(saved_event_code);
+
+  const saved_events = localStorage.getItem("events");
+  if (saved_events) events.setEventTypes(JSON.parse(saved_events));
+
+  const saved_groups = localStorage.getItem("groups");
+  if (saved_groups) events.setEventGroups(JSON.parse(saved_groups));
+
+  const saved_app = localStorage.getItem("app");
+  if (saved_app) root = loadComponent(JSON.parse(saved_app));
+}
+
 setupCloseButton();
 setupEditButton();
 setupSaveButton();
@@ -644,6 +731,15 @@ setupExportButton();
 setupMatchesButton();
 setupSettingsButton();
 
+//Get the saved state and load either the editor or runtime mode
+loadLocalState();
 
-//replaced 'renderPreview();' here
-openDesigner();
+if (runtime_mode) {
+  //idk if this is the best way to force load the render preview function but it works
+  runtime_mode = false;
+  renderPreview();
+  runtime_mode = true;
+  closeDesigner();
+} else {
+  openDesigner();
+}

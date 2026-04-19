@@ -56,11 +56,14 @@ export class MatchData {
     /**
      * Removes all events of a specifc type from the match
      */
-    removeType(type: string) {
+    removeType(type: string, group?: string) {
         for (let i = 0 ;i<this.matchEvents.length;i++) {
             const event = this.matchEvents[i];
             if (event === undefined) continue;
-            if (event.type == type) this.matchEvents.splice(i);
+            if (event.type != type) continue;
+            if (group && event.group != group) continue;
+            
+            this.matchEvents.splice(i);
         }
     }
 
@@ -97,6 +100,20 @@ export class MatchData {
         }
 
         return count;
+    }
+
+
+    /**
+     * Returns all events in a match of a certain group
+     */
+    getEventsByGroup(group: string): string[] {
+        let events: string[] = [];
+
+        for (const event of this.matchEvents) {
+            if (event.group == group) events.push(event.type);
+        }
+
+        return events;
     }
 
 }

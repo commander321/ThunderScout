@@ -236,7 +236,7 @@ export class Dropdown extends Component {
       //Handle events, remove all of the other options and add the selected one
       if (app.isRuntimeMode()) {
         this.options.forEach(t => {
-          matchdata.getCurrentMatch().removeType(t);
+          matchdata.getCurrentMatch().removeType(t, this.eventGroup);
         });
 
         matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.options[select.selectedIndex] || "null", this.eventGroup));
@@ -298,7 +298,7 @@ export class Checkbox extends Component {
       if (checkbox.checked) {
         matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.eventType, this.eventGroup));
       } else {
-        matchdata.getCurrentMatch().removeType(this.eventType);
+        matchdata.getCurrentMatch().removeType(this.eventType, this.eventGroup);
       }
 
       updateCounters(this.eventType);

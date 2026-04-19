@@ -26,50 +26,81 @@
 <body>
 
 <div id="preview">
-    <h1>Analytics</h1>
-    <label>Upload Match Data:</label>
-    <input id="load" type="file" accept="application/json" multiple></input>
-    <div>
-        <button id="bluetooth">Send Data (Bluetooth)</button>
-    </div>
-    <label>Team Number(s):</label>
-    <div>
-        <input id="team1" type="number" style="width:10%;font-size:large;"></input>
-        <input id="team2" type="number" style="width:10%;font-size:large;"></input>
-        <input id="team3" type="number" style="width:10%;font-size:large;"></input>
-    </div>
+    <div style="display:flex">
 
-    <label>Events:</label>
-    <div style="height:20%;">
-        <select multiple id="events" style="width:30%;height:100%;"></select>
+        <div style="display:inline-block">
+            <h1>Analytics</h1>
+            <label>Upload Match Data:</label>
+            <input id="load" type="file" accept="application/json" multiple></input>
+            <div>
+                <button id="bluetooth">Send Data (Bluetooth)</button>
+            </div>
+            <label>Team Number(s):</label>
+            <div>
+                <input id="team1" type="number" style="width:10%;font-size:large;"></input>
+                <input id="team2" type="number" style="width:10%;font-size:large;"></input>
+                <input id="team3" type="number" style="width:10%;font-size:large;"></input>
+            </div>
+
+            <label>Events: (optional - select to generate graphs)</label>
+            <div style="height:20%;">
+                <select multiple id="events" style="width:30%;height:100%;"></select>
+            </div>
+            <button id="test">Generate Analytics</button>
+        </div>
+
+        <div style="display: inline-block;">
+            <h3>Schedule Status:</h3>
+            <div style="overflow-y: auto;height:300px">
+                <table id="schedule-table">
+                    <tr>
+                        <th>Match #</th>
+                        <th>Red 1</th>
+                        <th>Red 2</th>
+                        <th>Red 3</th>
+                        <th>Blue 1</th>
+                        <th>Blue 2</th>
+                        <th>Blue 3</th>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    
     </div>
-    <button id="test">Generate Analytics</button>
 
     <hr>
 
     <div style="margin-top:50px;">
-        <table id="table1511-1">
-            
-        </table>
 
-        <table id="table1511-2" class="hidden" style="margin-top:25px">
-            
-        </table>
+        <div style="overflow-x: auto;">
+            <table id="table1511-1">
+                
+            </table>
+        </div>
 
-        <table id="table1511-3" class="hidden" style="margin-top:25px">
+        <div style="overflow-x: auto;">
+            <table id="table1511-2" class="hidden" style="margin-top:25px">
+                
+            </table>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table id="table1511-3" class="hidden" style="margin-top:25px">
             
-        </table>
+            </table>
+        </div>
+        
         <button id="table-export">Export to CSV</button>
     </div>
 
-    <div>
-        <canvas id="graph1" width="500px" height="500px"></canvas>
-        <canvas id="graph2" width="500px" height="500px" class="hidden"></canvas>
-        <canvas id="graph3" width="500px" height="500px" class="hidden"></canvas>
+    <div style="margin-top:10%">
+        <canvas id="graph1" width="400px" height="400px"></canvas>
+        <canvas id="graph2" width="400px" height="400px" class="hidden"></canvas>
+        <canvas id="graph3" width="400px" height="400px" class="hidden"></canvas>
     </div>
 
     <div>
-        <canvas id="piechart" width="600px" height="600px"></canvas>
+        <canvas id="piechart" width="300px" height="300px"></canvas>
     </div>
     
     <div style="margin-top:25px;">

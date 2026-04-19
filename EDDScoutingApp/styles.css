@@ -133,13 +133,13 @@ input, select {
 
 #modal-matches {
   position: fixed;
-  top: 20%;
+  top: 10%;
   left: 50%;
   transform: translateX(-50%);
   background: white;
   padding: 20px;
   border: 1px solid #ccc;
-  width: 30%;
+  width: 50%;
   height: 70%;
 }
 
@@ -159,6 +159,37 @@ input, select {
   border: 1px solid #ccc;
   width: 30%;
   height: 60%;
+}
+
+#overlay-schedule {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+}
+
+#modal-schedule {
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 20px;
+  border: 1px solid #ccc;
+  width: 60%;
+  height: 70%;
+}
+
+#bluetooth-status {
+  position: fixed;
+  top: 85%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: lightgray;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  width: 50%;
+  height: 5%;
 }
 
 .hidden {

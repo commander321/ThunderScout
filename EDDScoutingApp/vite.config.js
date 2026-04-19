@@ -13,7 +13,7 @@ export default defineConfig({
                 orientation: 'landscape',
                 icons: [
                     {
-                        src: '/icons/icon-192.png',
+                        src: '/logo1511.png',
                         sizes: '192x192',
                         type: 'image/png'
                     }

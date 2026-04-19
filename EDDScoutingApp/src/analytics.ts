@@ -18,7 +18,7 @@ function setupLoadButton(): void {
     if (!loadButton) return;
     if (!(loadButton instanceof HTMLInputElement)) return;
     if (!loadButton.files) return;
-   // const file = loadButton.files?.[0];
+    // const file = loadButton.files?.[0];
     //if (!file) return;
 
     for (const file of loadButton.files) {
@@ -27,12 +27,6 @@ function setupLoadButton(): void {
 
         reader.onload = () => {
         const matches: matchdata.MatchData[] = JSON.parse(reader.result as string);
-
-        //Does this work? Idk it might not. Maps groups to the right shifts, active or inactive
-        matches.map((match) => {parseShiftGroups1511(match)});
-        
-        //List of matches to add, will ignore any duplicates and use the latest match when needed
-       // const matchesToAdd: matchdata.MatchData[] = [];
 
         for (const match of matches) {
             //Check for duplicates and remove them
@@ -61,8 +55,23 @@ function setupLoadButton(): void {
                 match.textData = new Map<string, string>();
             }
 
+            //Create new matchdata object (this makes it a true MatchData object)
+            let newMatch = new matchdata.MatchData();
+            newMatch.matchNumber = match.matchNumber;
+            newMatch.teamNumber = match.teamNumber;
+            newMatch.allianceStation = match.allianceStation;
+            newMatch.matchType = match.matchType;
+            newMatch.eventCode = match.eventCode;
+            newMatch.matchEvents = match.matchEvents;
+            newMatch.textData = match.textData;
+            newMatch.textDataJSON = match.textDataJSON;
+            newMatch.eventcounts = match.eventcounts;
+
+            //For 1511, turns Shift's into the active or inactive shifts
+            newMatch = parseShiftGroups1511(newMatch);
+
             //Add to the list of matches to be added (since it doesn't include duplicates)
-            matchdata.addMatch(match);
+            matchdata.addMatch(newMatch);
         }
 
         updateEventsDropdown();
@@ -133,6 +142,7 @@ function setupTestButton(): void {
         updatePieChart(parseInt(teamnum1.value), eventTypes);
         updateTable(parseInt(teamnum1.value), eventTypes);
         updateByMatchTable1511(parseInt(teamnum1.value), "table1511-1");
+        updateScheduleTable();
         if (teamnum2.value.length != 0) {
             updateByMatchTable1511(parseInt(teamnum2.value), "table1511-2");
             updateChart(parseInt(teamnum2.value), eventTypes, "graph2");
@@ -465,9 +475,46 @@ function updateByMatchTable1511(teamNum: number, tableId: string) {
 
             //add each match here!
             const row = document.createElement("tr");
+
+            //PRE MATCH
             addCell(row, matchNum.toString());
             addCell(row, match.textData.get("Scouter Name") || "");
-            console.log(match.textData);
+            addCell(row, match.getEventsByGroup("StartLoc").toString());
+            
+            //AUTO
+            addCell(row, match.getEventsByGroup("Auto").toString());
+            addCell(row, match.getEventsByGroup("AutoIntake").toString());
+            addCell(row, "");
+            addCell(row, match.getEventsByGroup("Win Auto").toString());
+
+            //TELEOP
+            if (match.getEventCount("Win")) {
+                //WIN AUTO
+                addCell(row, match.getEventsByGroup("Inactive 1").toString());
+                addCell(row, match.getEventsByGroup("Active 1").toString());
+                addCell(row, match.getEventsByGroup("Inactive 2").toString());
+                addCell(row, match.getEventsByGroup("Active 2").toString());
+                addCell(row, match.getEventsByGroup("Endgame").toString());
+                addCell(row, "");
+                for (let i=0;i<6;i++) addCell(row, "");
+            } else {
+                //LOSE AUTO
+                for (let i=0;i<6;i++) addCell(row, "");
+                addCell(row, match.getEventsByGroup("Active 1").toString());
+                addCell(row, match.getEventsByGroup("Inactive 1").toString());
+                addCell(row, match.getEventsByGroup("Active 2").toString());
+                addCell(row, match.getEventsByGroup("Inactive 2").toString());
+                addCell(row, match.getEventsByGroup("Endgame").toString());
+                addCell(row, "");
+            }
+
+            //MATCH SUMMARY
+            addCell(row, match.getTextData("Shoot Grid"))
+            addCell(row, match.getEventsByGroup("Path").toString());
+            addCell(row, match.getEventsByGroup("Beached").toString());
+            addCell(row, (match.getEventCount("Robot Died") > 0) ? "Yes" : "No");
+            addCell(row, match.getTextData("WhyDied"));
+
             table.appendChild(row);
 
             break;
@@ -537,6 +584,65 @@ function addHeaderCell(row: HTMLTableRowElement, value: string, colSpan?: number
     cell.innerHTML = value;
     if (colSpan) cell.colSpan = colSpan;
     row.appendChild(cell);
+}
+
+function updateScheduleTable() {
+    const scheduleTable = document.getElementById("schedule-table");
+    if (!scheduleTable) return;
+
+    scheduleTable.innerHTML = "";
+
+    let header = document.createElement("tr");
+    addHeaderCell(header, "Match #");
+    addHeaderCell(header, "Red 1");
+    addHeaderCell(header, "Red 2");
+    addHeaderCell(header, "Red 3");
+    addHeaderCell(header, "Blue 1");
+    addHeaderCell(header, "Blue 2");
+    addHeaderCell(header, "Blue 3");
+    scheduleTable.appendChild(header);
+
+    //always show at least 5 matches
+    let highestMatch = 5;
+    let rows = [];
+
+    for (const match of matchdata.getAllMatches()) {
+        if (match.matchNumber > highestMatch) highestMatch = match.matchNumber;
+    }
+
+    highestMatch += 2;
+
+    //add a row for each match played so far
+    for (let i=1;i<highestMatch;i++) {
+        let row = document.createElement("tr");
+        addCell(row, i.toString());
+        addCell(row, "");
+        addCell(row, "");
+        addCell(row, "");
+        addCell(row, "");
+        addCell(row, "");
+        addCell(row, "");
+        rows.push(row);
+    }
+
+    //add each match to the table where it should go
+    for (const match of matchdata.getAllMatches()) {
+        if (match.matchNumber <= 0) continue;
+        let row = rows[match.matchNumber-1];
+        if (!row) continue;
+
+        let cell = row.children[match.allianceStation.startsWith("Red") ? parseInt(match.allianceStation.charAt(4)) : 3+parseInt(match.allianceStation.charAt(5))];
+        if (!cell) continue;
+        if (!(cell instanceof HTMLTableCellElement)) continue;
+
+        cell.innerHTML = match.teamNumber.toString();
+        cell.style.backgroundColor = "#00FF00";
+    }
+
+    //add all rows to the schedule
+    for (const row of rows) {
+        scheduleTable.appendChild(row);
+    }
 }
 
 //Example events (change later)!
