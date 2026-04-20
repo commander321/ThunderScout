@@ -220,6 +220,18 @@ function setupChart(id: string): Chart | null {
                         text: "Match"
                     }
                 }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: "Team ####",
+                    color: "#000000",
+                    align: "center",
+                    font: {
+                        size: 22,
+                        family: "Arial"
+                    }
+                }
             }
         }
     });
@@ -312,9 +324,12 @@ function updateChart(teamNum: number, eventTypes: string[], chartID: string): vo
     matches.sort((a, b) => a - b);
 
     chart.data.labels = matches;
-
     chart.data.datasets = [];
 
+    if (chart.options.plugins && chart.options.plugins.title) {
+        chart.options.plugins.title.text = teamNum.toString();
+    }
+    
     for (const type of eventTypes) {
         let counts: number[] = [];
 
@@ -432,6 +447,11 @@ function updateByMatchTable1511(teamNum: number, tableId: string) {
     if (!table) return;
     if (!(table instanceof HTMLTableElement)) return;
 
+    //colors of the cells in different sections
+    const winStyle = "background-color:#B6D7A8;";
+    const autoStyle = "background-color:#EA9999;";
+    const loseStyle = "background-color:#FFE599;";
+
     //reset table
     table.innerHTML = "";
     table.classList.remove("hidden");
@@ -451,9 +471,9 @@ function updateByMatchTable1511(teamNum: number, tableId: string) {
 
     const headerRow1: HTMLTableRowElement = document.createElement("tr");
     addHeaderCell(headerRow1, "Match Setup", 3);
-    addHeaderCell(headerRow1, "Autonomous", 4);
-    addHeaderCell(headerRow1, "Teleop - Win/Tie Auto", 6);
-    addHeaderCell(headerRow1, "Teleop - Lose Auto", 6);
+    addHeaderCell(headerRow1, "Autonomous", 4, autoStyle);
+    addHeaderCell(headerRow1, "Teleop - Win/Tie Auto", 6, winStyle);
+    addHeaderCell(headerRow1, "Teleop - Lose Auto", 6, loseStyle);
     addHeaderCell(headerRow1, "Match Summary", 5);
     table.appendChild(headerRow1);
 
@@ -461,22 +481,22 @@ function updateByMatchTable1511(teamNum: number, tableId: string) {
     addHeaderCell(headerRow2, "Match #");
     addHeaderCell(headerRow2, "Scouter Name");
     addHeaderCell(headerRow2, "Starting Location");
-    addHeaderCell(headerRow2, "Actions");
-    addHeaderCell(headerRow2, "Intake");
-    addHeaderCell(headerRow2, "Climb?");
-    addHeaderCell(headerRow2, "W/L Auto");
-    addHeaderCell(headerRow2, "Inac-Hub 1");
-    addHeaderCell(headerRow2, "Active-Hub 1");
-    addHeaderCell(headerRow2, "Inac-Hub 2");
-    addHeaderCell(headerRow2, "Active-Hub 2");
-    addHeaderCell(headerRow2, "Endgame");
-    addHeaderCell(headerRow2, "Climb?");
-    addHeaderCell(headerRow2, "Active-Hub 1");
-    addHeaderCell(headerRow2, "Inac-Hub 1");
-    addHeaderCell(headerRow2, "Active-Hub 2");
-    addHeaderCell(headerRow2, "Inac-Hub 2");
-    addHeaderCell(headerRow2, "Endgame");
-    addHeaderCell(headerRow2, "Climb?");
+    addHeaderCell(headerRow2, "Actions", 1, autoStyle);
+    addHeaderCell(headerRow2, "Intake", 1, autoStyle);
+    addHeaderCell(headerRow2, "Climb?", 1, autoStyle);
+    addHeaderCell(headerRow2, "W/L Auto", 1, autoStyle);
+    addHeaderCell(headerRow2, "Inac-Hub 1", 1, winStyle);
+    addHeaderCell(headerRow2, "Active-Hub 1", 1, winStyle);
+    addHeaderCell(headerRow2, "Inac-Hub 2", 1, winStyle);
+    addHeaderCell(headerRow2, "Active-Hub 2", 1, winStyle);
+    addHeaderCell(headerRow2, "Endgame", 1, winStyle);
+    addHeaderCell(headerRow2, "Climb?", 1, winStyle);
+    addHeaderCell(headerRow2, "Active-Hub 1", 1, loseStyle);
+    addHeaderCell(headerRow2, "Inac-Hub 1", 1, loseStyle);
+    addHeaderCell(headerRow2, "Active-Hub 2", 1, loseStyle);
+    addHeaderCell(headerRow2, "Inac-Hub 2", 1, loseStyle);
+    addHeaderCell(headerRow2, "Endgame", 1, loseStyle);
+    addHeaderCell(headerRow2, "Climb?", 1, loseStyle);
     addHeaderCell(headerRow2, "Shoot Grid");
     addHeaderCell(headerRow2, "Path");
     addHeaderCell(headerRow2, "Beached?");
@@ -496,31 +516,31 @@ function updateByMatchTable1511(teamNum: number, tableId: string) {
             addCell(row, match.textData.get("Scouter Name") || "");
             addCell(row, match.getEventsByGroup("StartLoc").toString());
             
-            //AUTO
-            addCell(row, match.getEventsByGroup("Auto").toString());
-            addCell(row, match.getEventsByGroup("AutoIntake").toString());
-            addCell(row, "");
-            addCell(row, match.getEventsByGroup("Win Auto").toString());
+            //AUTO #EA9999
+            addCell(row, match.getEventsByGroup("Auto").toString(), autoStyle);
+            addCell(row, match.getEventsByGroup("AutoIntake").toString(), autoStyle);
+            addCell(row, "", autoStyle);
+            addCell(row, match.getEventsByGroup("Win Auto").toString(), autoStyle);
 
-            //TELEOP
+            //TELEOP 
             if (match.getEventCount("Win")) {
-                //WIN AUTO
-                addCell(row, match.getEventsByGroup("Inactive 1").toString());
-                addCell(row, match.getEventsByGroup("Active 1").toString());
-                addCell(row, match.getEventsByGroup("Inactive 2").toString());
-                addCell(row, match.getEventsByGroup("Active 2").toString());
-                addCell(row, match.getEventsByGroup("Endgame").toString());
-                addCell(row, "");
-                for (let i=0;i<6;i++) addCell(row, "");
+                //WIN AUTO #B6D7A8
+                addCell(row, match.getEventsByGroup("Inactive 1").toString(), winStyle);
+                addCell(row, match.getEventsByGroup("Active 1").toString(), winStyle);
+                addCell(row, match.getEventsByGroup("Inactive 2").toString(), winStyle);
+                addCell(row, match.getEventsByGroup("Active 2").toString(), winStyle);
+                addCell(row, match.getEventsByGroup("Endgame").toString(), winStyle);
+                addCell(row, "", winStyle);
+                for (let i=0;i<6;i++) addCell(row, "", loseStyle);
             } else {
-                //LOSE AUTO
-                for (let i=0;i<6;i++) addCell(row, "");
-                addCell(row, match.getEventsByGroup("Active 1").toString());
-                addCell(row, match.getEventsByGroup("Inactive 1").toString());
-                addCell(row, match.getEventsByGroup("Active 2").toString());
-                addCell(row, match.getEventsByGroup("Inactive 2").toString());
-                addCell(row, match.getEventsByGroup("Endgame").toString());
-                addCell(row, "");
+                //LOSE AUTO #FFE599
+                for (let i=0;i<6;i++) addCell(row, "", winStyle);
+                addCell(row, match.getEventsByGroup("Active 1").toString(), loseStyle);
+                addCell(row, match.getEventsByGroup("Inactive 1").toString(), loseStyle);
+                addCell(row, match.getEventsByGroup("Active 2").toString(), loseStyle);
+                addCell(row, match.getEventsByGroup("Inactive 2").toString(), loseStyle);
+                addCell(row, match.getEventsByGroup("Endgame").toString(), loseStyle);
+                addCell(row, "", loseStyle);
             }
 
             //MATCH SUMMARY
@@ -538,10 +558,12 @@ function updateByMatchTable1511(teamNum: number, tableId: string) {
 
 
     //handle exporting the data to CSV
-    const exportButton = document.getElementById("table-export");
-    if (!exportButton) return;
-    if (!(exportButton instanceof HTMLButtonElement)) return;
+    let exportButton = document.createElement("button");
+    exportButton.innerHTML = "Export to CSV";
 
+    /*const exportButton = document.getElementById("table-export");
+    if (!exportButton) return;
+    if (!(exportButton instanceof HTMLButtonElement)) return;*/
     exportButton.onclick = (e) => {
         e.stopPropagation();
 
@@ -568,9 +590,11 @@ function updateByMatchTable1511(teamNum: number, tableId: string) {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-
-
     }
+
+    console.log(exportButton.onclick.toString());
+
+    table.appendChild(exportButton);
 }
 
 /**
@@ -588,16 +612,18 @@ function parseShiftGroups1511(data: matchdata.MatchData): matchdata.MatchData {
     return data;
 }
 
-function addCell(row: HTMLTableRowElement, value: string): void {
+function addCell(row: HTMLTableRowElement, value: string, style?: string): void {
     const cell = document.createElement("td");
     cell.innerHTML = value;
+    if (style) cell.style = style;
     row.appendChild(cell);
 }
 
-function addHeaderCell(row: HTMLTableRowElement, value: string, colSpan?: number): void {
+function addHeaderCell(row: HTMLTableRowElement, value: string, colSpan?: number, style?: string): void {
     const cell = document.createElement("th");
     cell.innerHTML = value;
     if (colSpan) cell.colSpan = colSpan;
+    if (style) cell.style = style;
     row.appendChild(cell);
 }
 
@@ -685,6 +711,8 @@ function exportToHTML() {
     content += document.getElementById("table1511-div-1")?.outerHTML;
     content += document.getElementById("table1511-div-2")?.outerHTML;
     content += document.getElementById("table1511-div-3")?.outerHTML;
+
+    content += "<div style=\"height:70px;\"></div>";
 
     //Get graphs
     if (Chart.getChart("graph1")) content += "<img src=" + Chart.getChart("graph1")?.toBase64Image() + "></img>";
