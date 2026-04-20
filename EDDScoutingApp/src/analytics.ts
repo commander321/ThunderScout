@@ -147,18 +147,26 @@ function setupTestButton(): void {
             updateByMatchTable1511(parseInt(teamnum2.value), "table1511-2");
             updateChart(parseInt(teamnum2.value), eventTypes, "graph2");
         } else {
-            document.getElementById("table1511-2")?.classList.add("hidden");
-            document.getElementById("graph2")?.classList.add("hidden");
             Chart.getChart("graph2")?.destroy();
+            document.getElementById("graph2")?.classList.add("hidden");
+
+            let table2 = document.getElementById("table1511-2");
+            if (!table2) return;
+            table2.classList.add("hidden");
+            table2.innerHTML = "";
         }
 
         if (teamnum3.value.length != 0) {
             updateByMatchTable1511(parseInt(teamnum3.value), "table1511-3");
             updateChart(parseInt(teamnum3.value), eventTypes, "graph3");
         } else {
-            document.getElementById("table1511-3")?.classList.add("hidden");
-            document.getElementById("graph3")?.classList.add("hidden");
             Chart.getChart("graph3")?.destroy();
+            document.getElementById("graph3")?.classList.add("hidden");
+
+            let table3 = document.getElementById("table1511-3");
+            if (!table3) return;
+            table3.classList.add("hidden");
+            table3.innerHTML = "";
         }
     };
 }
@@ -198,6 +206,7 @@ function setupChart(id: string): Chart | null {
         options: {
             responsive: false,
             maintainAspectRatio: false,
+            animation: false,
             scales: {
                 y: {
                     title: {
@@ -426,6 +435,12 @@ function updateByMatchTable1511(teamNum: number, tableId: string) {
     //reset table
     table.innerHTML = "";
     table.classList.remove("hidden");
+    
+    let teamLabel = document.createElement("h3");
+    teamLabel.innerHTML = teamNum.toString() + ":";
+    teamLabel.style.marginBottom = "0px";
+    teamLabel.style.marginTop = "40px";
+    table.appendChild(teamLabel);
 
     //get matches the team is in
     let matches: number[] = []
@@ -645,6 +660,61 @@ function updateScheduleTable() {
     }
 }
 
+/**
+ * Exports the analytics page to HTML
+ */
+function exportToHTML() {
+    let content = "";
+
+    const team1 = document.getElementById("team1");
+    const team2 = document.getElementById("team2");
+    const team3 = document.getElementById("team3");
+    if (!team1) return;
+    if (!team2) return;
+    if (!team3) return;
+    if (!(team1 instanceof HTMLInputElement)) return;
+    if (!(team2 instanceof HTMLInputElement)) return;
+    if (!(team3 instanceof HTMLInputElement)) return;
+
+    //head and style
+    content += "<html> <head>";
+    content += document.getElementById("style")?.outerHTML;
+    content += "</head><body>";
+
+    //Add the 1511 tables
+    content += document.getElementById("table1511-div-1")?.outerHTML;
+    content += document.getElementById("table1511-div-2")?.outerHTML;
+    content += document.getElementById("table1511-div-3")?.outerHTML;
+
+    //Get graphs
+    if (Chart.getChart("graph1")) content += "<img src=" + Chart.getChart("graph1")?.toBase64Image() + "></img>";
+    if (Chart.getChart("graph2")) content += "<img src=" + Chart.getChart("graph2")?.toBase64Image() + "></img>";
+    if (Chart.getChart("graph3")) content += "<img src=" + Chart.getChart("graph3")?.toBase64Image() + "></img>";
+
+    content += "</body></html>"
+
+    //download file
+    const blob = new Blob([content], { type: 'text/html' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = "analytics-" + team1.value + "-" + team2.value + "-" + team3.value + ".html";
+    
+    document.body.appendChild(link);
+    link.click();
+    
+    // Cleanup
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+}
+
+function setupExportButton() {
+    const exportButton = document.getElementById("export");
+    if (!exportButton) return;
+    if (!(exportButton instanceof HTMLButtonElement)) return;
+
+    exportButton.onclick = exportToHTML;
+}
+
 //Example events (change later)!
 /*
 let types: string[] = [
@@ -671,3 +741,4 @@ setupLoadButton();
 setupTestButton();
 setupBluetoothButton();
 setupPieChart();
+setupExportButton();

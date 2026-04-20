@@ -490,7 +490,7 @@ export function setupLoadButton() {
   };
 }
 
-export function setupExportButton() {
+function setupExportButton() {
   let exportButton = document.getElementById("export");
   if (!exportButton) return;
   exportButton.onclick = matchdata.exportMatchData;

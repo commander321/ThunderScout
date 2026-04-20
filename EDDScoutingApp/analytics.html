@@ -12,14 +12,13 @@
     }
     </script>
 
-    <style>
+    <style id="style">
         th, td {
             border: 1px solid;
             padding: 5px;
         }
         table {
             border-collapse: collapse;
-            border: 1px solid;
         }
     </style>
 </head>
@@ -70,27 +69,30 @@
 
     <hr>
 
-    <div style="margin-top:50px;">
+    <button id="export">Export Analytics</button>
 
-        <div style="overflow-x: auto;">
+    <div style="margin-top:25px;">
+
+        <div style="overflow-x: auto;" id="table1511-div-1">
             <table id="table1511-1">
                 
             </table>
         </div>
 
-        <div style="overflow-x: auto;">
-            <table id="table1511-2" class="hidden" style="margin-top:25px">
+        <div style="overflow-x: auto;" id="table1511-div-2">
+            <table id="table1511-2" class="hidden">
                 
             </table>
         </div>
 
-        <div style="overflow-x: auto;">
-            <table id="table1511-3" class="hidden" style="margin-top:25px">
+        <div style="overflow-x: auto;" id="table1511-div-3">
+            <table id="table1511-3" class="hidden">
             
             </table>
         </div>
-        
-        <button id="table-export">Export to CSV</button>
+
+
+        <!-- <button id="table-export">Export to CSV</button> -->
     </div>
 
     <div style="margin-top:10%">
