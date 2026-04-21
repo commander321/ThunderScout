@@ -519,8 +519,8 @@ function updateByMatchTable1511(teamNum: number, tableId: string) {
             //AUTO #EA9999
             addCell(row, match.getEventsByGroup("Auto").toString(), autoStyle);
             addCell(row, match.getEventsByGroup("AutoIntake").toString(), autoStyle);
-            addCell(row, "", autoStyle);
-            addCell(row, match.getEventsByGroup("Win Auto").toString(), autoStyle);
+            addCell(row, match.getEventsByGroup("AutoHang").toString(), autoStyle);
+            addCell(row, match.getEventsByGroup("WinAuto").toString(), autoStyle);
 
             //TELEOP 
             if (match.getEventCount("Win")) {
@@ -530,7 +530,7 @@ function updateByMatchTable1511(teamNum: number, tableId: string) {
                 addCell(row, match.getEventsByGroup("Inactive 2").toString(), winStyle);
                 addCell(row, match.getEventsByGroup("Active 2").toString(), winStyle);
                 addCell(row, match.getEventsByGroup("Endgame").toString(), winStyle);
-                addCell(row, "", winStyle);
+                addCell(row, match.getEventsByGroup("TeleopHang").toString(), winStyle);
                 for (let i=0;i<6;i++) addCell(row, "", loseStyle);
             } else {
                 //LOSE AUTO #FFE599
@@ -540,7 +540,7 @@ function updateByMatchTable1511(teamNum: number, tableId: string) {
                 addCell(row, match.getEventsByGroup("Active 2").toString(), loseStyle);
                 addCell(row, match.getEventsByGroup("Inactive 2").toString(), loseStyle);
                 addCell(row, match.getEventsByGroup("Endgame").toString(), loseStyle);
-                addCell(row, "", loseStyle);
+                addCell(row, match.getEventsByGroup("TeleopHang").toString(), loseStyle);
             }
 
             //MATCH SUMMARY

@@ -119,7 +119,6 @@ export function addGroupSection(node: components.Component) {
     editorDiv.appendChild(button);
 }
 
-
 /**
  * Add a new section for styling the layout
  */

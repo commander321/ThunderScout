@@ -328,6 +328,9 @@ export function closeDesigner() {
   document.getElementById("matches")?.classList.remove("hidden");
   document.getElementById("settings")?.classList.remove("hidden");
 
+  let previewDiv = document.getElementById("preview");
+  if (previewDiv) previewDiv.style.overflowY = "unset";
+
   document.querySelectorAll(".insert-bar").forEach(element => {
     element.classList.add("hidden");
   });
@@ -368,6 +371,9 @@ export function openDesigner() {
   document.getElementById("export")?.classList.add("hidden");
   document.getElementById("matches")?.classList.add("hidden");
   document.getElementById("settings")?.classList.add("hidden");
+
+  let previewDiv = document.getElementById("preview");
+  if (previewDiv) previewDiv.style.overflowY = "auto";
 
   renderPreview();
 }
@@ -445,6 +451,7 @@ export function loadComponent(data: any): components.Component {
   } else if (component instanceof components.Dropdown) {
     //component.text = data.text;
     component.options = data.options;
+    component.required = data.required;
   } else if (component instanceof components.TextBox) {
     component.key = data.key;
   }

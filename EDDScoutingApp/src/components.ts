@@ -186,12 +186,14 @@ export class Section extends Component {
 export class Dropdown extends Component {
   //text: string;
   options: string[];
+  required: boolean;
   //selection: string;
 
   constructor() {
     super("dropdown");
     //this.text = "New Dropdown";
     this.options = ["Option 1","Option 2"];
+    this.required = false;
     //this.selection = this.options[0];
   }
 
@@ -210,6 +212,11 @@ export class Dropdown extends Component {
         }
     );
     editor.addGroupSection(this);
+
+    editor.addInput(editorDiv, "Required?", this.required, (val: any) => {
+      this.required = val.checked;
+    }, "checkbox");
+
     editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
   }
@@ -564,6 +571,23 @@ export class ResetButton extends Component {
     button.onclick = (e) => {
       e.stopPropagation();
       if (!app.isRuntimeMode()) return;
+
+      //Check for required components (THIS IS 1511 SPECIFIC FOR CHAMPS!!!!)
+      if (matchdata.getCurrentMatch().getEventsByGroup("StartLoc").length == 0 || matchdata.getCurrentMatch().getEventCount("None", "StartLoc") > 0) {
+        alert("Please select a starting location!")
+        return;
+      }
+      if (matchdata.getCurrentMatch().getEventsByGroup("WinAuto").length == 0 || matchdata.getCurrentMatch().getEventCount("None", "WinAuto") > 0) {
+        alert("Please select a win auto option!")
+        return;
+      }
+      if (matchdata.getCurrentMatch().getTextData("Scouter Name").trim().length === 0) {
+        alert("Please enter a scouter name!");
+        return;
+      }
+
+      document.documentElement.scrollTop = 0;
+
       matchdata.saveCurrentMatch();
       console.log(matchdata.getCurrentMatch());
       app.openDesigner();

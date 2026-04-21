@@ -193,9 +193,8 @@ function bluetoothLog(message: string) {
   if (!bluetoothStatus) return;
   if (!(bluetoothStatus instanceof HTMLDivElement)) return;
 
-  bluetoothStatus.classList.remove("hidden");
-
   bluetoothStatus.textContent = message;
+  bluetoothStatus.classList.remove("hidden");
 }
 
 setupBluetoothButton();

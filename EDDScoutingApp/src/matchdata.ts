@@ -92,10 +92,11 @@ export class MatchData {
     /**
      * Returns a count of how many of a certain event there are
      */
-    getEventCount(type: string): number {
+    getEventCount(type: string, group?: string): number {
         let count = 0;
 
         for (const event of this.matchEvents) {
+            if (group && event.group != group) continue;
             if (event.type === type) count++;
         }
 
