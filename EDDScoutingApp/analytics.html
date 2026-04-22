@@ -37,17 +37,25 @@
             <label>Upload Match Data:</label>
             <input id="load" type="file" accept="application/json" multiple></input>
             <div>
-                <button id="bluetooth">Send Data (Bluetooth)</button>
+                <!--
+                <button id="bluetooth">Send Data (Bluetooth)</button> -->
             </div>
             <label>Team Number(s):</label>
             <div>
+                Red:
                 <input id="team1" type="number" style="width:20%;font-size:large;"></input>
                 <input id="team2" type="number" style="width:20%;font-size:large;"></input>
                 <input id="team3" type="number" style="width:20%;font-size:large;"></input>
             </div>
+            <div>
+                Blue:
+                <input id="team4" type="number" style="width:20%;font-size:large;"></input>
+                <input id="team5" type="number" style="width:20%;font-size:large;"></input>
+                <input id="team6" type="number" style="width:20%;font-size:large;"></input>
+            </div>
 
             <label>Events: (optional - select to generate graphs)</label>
-            <div style="height:30%;">
+            <div style="height:35%;">
                 <select multiple id="events" style="width:50%;height:100%;"></select>
             </div>
             <button id="test">Generate Analytics</button>
@@ -55,7 +63,7 @@
 
         <div style="display: inline-block;">
             <h3>Schedule Status:</h3>
-            <div style="overflow-y: auto;height:300px">
+            <div style="overflow-y: auto;height:400px">
                 <table id="schedule-table">
                     <tr>
                         <th>Match #</th>
@@ -96,6 +104,24 @@
             </table>
         </div>
 
+        <div style="overflow-x: auto;" id="table1511-div-4">
+            <table id="table1511-4">
+                
+            </table>
+        </div>
+
+        <div style="overflow-x: auto;" id="table1511-div-5">
+            <table id="table1511-5" class="hidden">
+                
+            </table>
+        </div>
+
+        <div style="overflow-x: auto;" id="table1511-div-6">
+            <table id="table1511-6" class="hidden">
+            
+            </table>
+        </div>
+
 
        <!-- <button id="table-export">Export to CSV</button> -->
     </div>
@@ -104,6 +130,12 @@
         <canvas id="graph1" width="400px" height="400px"></canvas>
         <canvas id="graph2" width="400px" height="400px" class="hidden"></canvas>
         <canvas id="graph3" width="400px" height="400px" class="hidden"></canvas>
+    </div>
+
+    <div style="margin-top:50px">
+        <canvas id="graph4" width="400px" height="400px" class="hidden"></canvas>
+        <canvas id="graph5" width="400px" height="400px" class="hidden"></canvas>
+        <canvas id="graph6" width="400px" height="400px" class="hidden"></canvas>
     </div>
 
     <div>

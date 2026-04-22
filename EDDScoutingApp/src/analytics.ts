@@ -127,6 +127,18 @@ function setupTestButton(): void {
     if (!teamnum3) return;
     if (!(teamnum3 instanceof HTMLInputElement)) return;
 
+    let teamnum4 = document.getElementById("team4");
+    if (!teamnum4) return;
+    if (!(teamnum4 instanceof HTMLInputElement)) return;
+
+    let teamnum5 = document.getElementById("team5");
+    if (!teamnum5) return;
+    if (!(teamnum5 instanceof HTMLInputElement)) return;
+
+    let teamnum6 = document.getElementById("team6");
+    if (!teamnum6) return;
+    if (!(teamnum6 instanceof HTMLInputElement)) return;
+
     let eventSelect = document.getElementById("events");
     if (!eventSelect) return;
     if (!(eventSelect instanceof HTMLSelectElement)) return;
@@ -167,6 +179,45 @@ function setupTestButton(): void {
             if (!table3) return;
             table3.classList.add("hidden");
             table3.innerHTML = "";
+        }
+
+        if (teamnum4.value.length != 0) {
+            updateByMatchTable1511(parseInt(teamnum4.value), "table1511-4");
+            updateChart(parseInt(teamnum4.value), eventTypes, "graph4");
+        } else {
+            Chart.getChart("graph4")?.destroy();
+            document.getElementById("graph4")?.classList.add("hidden");
+
+            let table4 = document.getElementById("table1511-4");
+            if (!table4) return;
+            table4.classList.add("hidden");
+            table4.innerHTML = "";
+        }
+
+        if (teamnum5.value.length != 0) {
+            updateByMatchTable1511(parseInt(teamnum5.value), "table1511-5");
+            updateChart(parseInt(teamnum5.value), eventTypes, "graph5");
+        } else {
+            Chart.getChart("graph5")?.destroy();
+            document.getElementById("graph5")?.classList.add("hidden");
+
+            let table5 = document.getElementById("table1511-5");
+            if (!table5) return;
+            table5.classList.add("hidden");
+            table5.innerHTML = "";
+        }
+
+        if (teamnum6.value.length != 0) {
+            updateByMatchTable1511(parseInt(teamnum6.value), "table1511-6");
+            updateChart(parseInt(teamnum6.value), eventTypes, "graph6");
+        } else {
+            Chart.getChart("graph6")?.destroy();
+            document.getElementById("graph6")?.classList.add("hidden");
+
+            let table6 = document.getElementById("table1511-6");
+            if (!table6) return;
+            table6.classList.add("hidden");
+            table6.innerHTML = "";
         }
     };
 }
@@ -695,12 +746,22 @@ function exportToHTML() {
     const team1 = document.getElementById("team1");
     const team2 = document.getElementById("team2");
     const team3 = document.getElementById("team3");
+    const team4 = document.getElementById("team4");
+    const team5 = document.getElementById("team5");
+    const team6 = document.getElementById("team6");
     if (!team1) return;
     if (!team2) return;
     if (!team3) return;
+    if (!team4) return;
+    if (!team5) return;
+    if (!team6) return;
     if (!(team1 instanceof HTMLInputElement)) return;
     if (!(team2 instanceof HTMLInputElement)) return;
     if (!(team3 instanceof HTMLInputElement)) return;
+    if (!(team4 instanceof HTMLInputElement)) return;
+    if (!(team5 instanceof HTMLInputElement)) return;
+    if (!(team6 instanceof HTMLInputElement)) return;
+
 
     //head and style
     content += "<html> <head>";
@@ -711,6 +772,9 @@ function exportToHTML() {
     content += document.getElementById("table1511-div-1")?.outerHTML;
     content += document.getElementById("table1511-div-2")?.outerHTML;
     content += document.getElementById("table1511-div-3")?.outerHTML;
+    content += document.getElementById("table1511-div-4")?.outerHTML;
+    content += document.getElementById("table1511-div-5")?.outerHTML;
+    content += document.getElementById("table1511-div-6")?.outerHTML;
 
     content += "<div style=\"height:70px;\"></div>";
 
@@ -718,6 +782,9 @@ function exportToHTML() {
     if (Chart.getChart("graph1")) content += "<img src=" + Chart.getChart("graph1")?.toBase64Image() + "></img>";
     if (Chart.getChart("graph2")) content += "<img src=" + Chart.getChart("graph2")?.toBase64Image() + "></img>";
     if (Chart.getChart("graph3")) content += "<img src=" + Chart.getChart("graph3")?.toBase64Image() + "></img>";
+    if (Chart.getChart("graph4")) content += "<img src=" + Chart.getChart("graph4")?.toBase64Image() + "></img>";
+    if (Chart.getChart("graph5")) content += "<img src=" + Chart.getChart("graph5")?.toBase64Image() + "></img>";
+    if (Chart.getChart("graph6")) content += "<img src=" + Chart.getChart("graph6")?.toBase64Image() + "></img>";
 
     content += "</body></html>"
 
@@ -725,7 +792,7 @@ function exportToHTML() {
     const blob = new Blob([content], { type: 'text/html' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = "analytics-" + team1.value + "-" + team2.value + "-" + team3.value + ".html";
+    link.download = "analytics-" + team1.value + "-" + team2.value + "-" + team3.value + "-" + team4.value + "-" + team5.value + "-" + team6.value + ".html";
     
     document.body.appendChild(link);
     link.click();
