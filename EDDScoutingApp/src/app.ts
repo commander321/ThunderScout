@@ -15,23 +15,6 @@ let draggedId: any = null;
 let runtime_mode = false;
 let editor_enabled = true;
 
-const COMPONENT_TYPES = [
-  "root",
-  "label",
-  "counter",
-  "dropdown",
-  "section",
-  "layout",
-  "checkbox",
-  "textbox",
-  "button",
-  "teamnum",
-  "matchnum",
-  "matchtype",
-  "resetbutton",
-  "alliancestation"
-];
-
 // =======================
 // UTILITIES
 // =======================
@@ -261,16 +244,63 @@ function openModal(parentId: string, index: number) {
   let modal = document.getElementById("modal");
   if (!modal) return;
   modal.classList.remove("hidden");
-  modal.innerHTML = "<h3>Select Component</h3>";
+  modal.style.width = "50%";
+  modal.style.height = "75%";
+  modal.innerHTML = "<h2>Select a component to add</h2>";
 
-  COMPONENT_TYPES.forEach(type => {
-    if (type != "root" && modal) {
-      let btn: HTMLButtonElement = document.createElement("button");
-      btn.textContent = type;
-      btn.onclick = () => addComponent(type);
-      modal.appendChild(btn);
+  let grid = document.createElement("div");
+  grid.style.display = "grid";
+  grid.style.height = "80%";
+  grid.style.gridTemplateColumns = "25% 25% 25% 25%";
+  grid.style.placeItems = "center";
+
+  components.COMPONENT_TYPES.forEach(type => {
+    if (type[0] && type[1] && type[2] && type[0] != "root") {
+      let componentDiv: HTMLDivElement = document.createElement("div");
+      componentDiv.style.width = "80%";
+      componentDiv.style.height = "80%";
+      componentDiv.style.marginTop = "10%";
+      componentDiv.style.borderWidth = "1px";
+      componentDiv.style.borderStyle = "solid";
+      componentDiv.style.justifyContent = "center";
+      componentDiv.style.padding = "5px";
+
+      let componentName = document.createElement("strong");
+      componentName.textContent = type[1];
+      componentName.style.width = "100%";
+      componentName.style.display = "flex";
+      componentName.style.justifyContent = "center";
+      componentName.style.textAlign = "center";
+      componentName.style.fontSize = "22px";
+
+      let description = document.createElement("p");
+      description.textContent = type[2];
+      description.style.display = "flex";
+      description.style.justifyContent = "center";
+      description.style.textAlign = "center";
+      description.style.font = "16px";
+      description.style.marginTop = "5px";
+
+      let buttonDiv = document.createElement("div");
+      let addButton: HTMLButtonElement = document.createElement("button");
+      buttonDiv.style.display = "flex";
+      buttonDiv.style.justifyContent = "center";
+      addButton.textContent = "+";
+      addButton.style.width = "90%";
+      addButton.style.textAlign = "center";
+      addButton.style.fontSize = "18px";
+      addButton.style.borderRadius = "20px";
+      addButton.onclick = () => addComponent(type[0] || "null");
+      buttonDiv.appendChild(addButton);
+
+      componentDiv.appendChild(componentName);
+      componentDiv.appendChild(description);
+      componentDiv.appendChild(buttonDiv);
+      grid.appendChild(componentDiv);
     }
   });
+
+  modal.appendChild(grid);
 }
 
 function addComponent(type: string) {
@@ -442,18 +472,18 @@ export function loadComponent(data: any): components.Component {
   component.eventGroup = data.eventGroup;
   
   if (component instanceof components.Layout) {
-    component.text = data.text;
     component.direction = data.direction;
   } else if (component instanceof components.Label) {
     component.text = data.text;
   } else if (component instanceof components.Button) {
     component.text = data.text;
   } else if (component instanceof components.Dropdown) {
-    //component.text = data.text;
     component.options = data.options;
     component.required = data.required;
   } else if (component instanceof components.TextBox) {
     component.key = data.key;
+  } else if (component instanceof components.ResetButton) {
+    component.text = data.text;
   }
 
   for (const child of data.children) {
@@ -665,8 +695,19 @@ function openSettingsModal() {
   }
   toggleEditorDiv.appendChild(toggleEditor);
 
+  let resetButton = document.createElement("button");
+  resetButton.innerHTML = "Clear all match data";
+  resetButton.style.display = "block";
+  resetButton.style.marginTop = "20px";
+  resetButton.onclick = (e) => {
+    e.stopPropagation();
+
+    matchdata.clearAllMatches();
+  };
+
   modal.appendChild(eventCodeDiv);
   modal.appendChild(toggleEditorDiv);
+  modal.appendChild(resetButton);
 }
 
 function closeSettingsModal() {
@@ -687,6 +728,14 @@ function setupSettingsButton() {
   if (overlay) overlay.onclick = closeSettingsModal;
 }
 
+export function getEditorEnabled(): boolean {
+  return editor_enabled;
+}
+
+export function setEditorEnabled(enabled: boolean) {
+  editor_enabled = enabled;
+}
+
 //Manage service worker stuff for android
 /*
 if ("serviceWorker" in navigator) {
@@ -703,6 +752,7 @@ function saveLocalState() {
   localStorage.setItem("events", JSON.stringify(events.getEventTypes()));
   localStorage.setItem("groups", JSON.stringify(events.getEventGroups()));
   localStorage.setItem("app", JSON.stringify(root));
+  localStorage.setItem("unsaved_matches", JSON.stringify(matchdata.getUnsavedMatches()));
 }
 
 /**
@@ -728,6 +778,9 @@ function loadLocalState() {
 
   const saved_app = localStorage.getItem("app");
   if (saved_app) root = loadComponent(JSON.parse(saved_app));
+
+  const saved_unsaved_matches = localStorage.getItem("unsaved_matches");
+  if (saved_unsaved_matches) matchdata.setUnsavedMatches(JSON.parse(saved_unsaved_matches));
 }
 
 setupCloseButton();

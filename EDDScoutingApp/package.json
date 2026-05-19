@@ -11,10 +11,17 @@
   "devDependencies": {
     "@types/node": "^25.5.2",
     "typescript": "~5.9.3",
-    "vite": "^8.0.1"
+    "vite": "^8.0.10"
   },
   "dependencies": {
+    "@types/web-bluetooth": "^0.0.21",
     "chart.js": "^4.5.1",
-    "web-bluetooth": "^0.1.2"
+    "install": "^0.13.0",
+    "node": "^24.15.0",
+    "npm": "^11.13.0",
+    "vite-plugin-html": "^3.2.2",
+    "vite-plugin-pwa": "^1.2.0",
+    "web-bluetooth": "^0.1.2",
+    "webbluetooth": "^3.7.0"
   }
 }

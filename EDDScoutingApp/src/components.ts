@@ -321,29 +321,21 @@ export class Checkbox extends Component {
 
 export class Layout extends Component {
   direction: string;
-  text: string;
 
   constructor() {
     super("layout");
     this.direction = "vertical";
-    this.text = "New Layout";
   }
 
   addEditorFeatures() {
-    editor.addTextLabel(this);
     editor.addSelect("Direction", this.direction, ["vertical", "horizontal"], (val: any) => {
         this.direction = val;
         app.renderPreview();
     });
     editor.addLayoutStyleSection(this);
-    editor.addTextSection(this);
   }
 
   render(div: HTMLDivElement) {
-    let title: HTMLDivElement = document.createElement("div");
-    title.innerHTML = this.text;
-    div.appendChild(title);
-
     div.classList.add("container");
 
     if (this.type === "layout" && this.direction === "horizontal") {
@@ -351,7 +343,6 @@ export class Layout extends Component {
     }
 
     applyLayoutStlyes(div, this.style);
-    applyTextStyles(title, this.style);
   }
 }
 
@@ -573,6 +564,7 @@ export class ResetButton extends Component {
       if (!app.isRuntimeMode()) return;
 
       //Check for required components (THIS IS 1511 SPECIFIC FOR CHAMPS!!!!)
+      /*
       if (matchdata.getCurrentMatch().getEventsByGroup("StartLoc").length == 0 || matchdata.getCurrentMatch().getEventCount("None", "StartLoc") > 0) {
         alert("Please select a starting location!")
         return;
@@ -584,15 +576,23 @@ export class ResetButton extends Component {
       if (matchdata.getCurrentMatch().getTextData("Scouter Name").trim().length === 0) {
         alert("Please enter a scouter name!");
         return;
-      }
+      }*/
 
       document.documentElement.scrollTop = 0;
 
       matchdata.saveCurrentMatch();
       console.log(matchdata.getCurrentMatch());
+      const editorEnabled: boolean = app.getEditorEnabled();
+      app.setEditorEnabled(true);
       app.openDesigner();
       app.renderPreview();
       app.closeDesigner();
+      app.setEditorEnabled(editorEnabled);
+      if (editorEnabled) {
+        document.getElementById("edit")?.classList.remove("hidden")
+      } else {
+        document.getElementById("edit")?.classList.add("hidden")
+      }
     };
 
     div.appendChild(button);
@@ -669,20 +669,38 @@ function applyTextStyles(node: HTMLElement, style: Record<string, any>) {
  */
 export const componentRegistry = {
   root: Root,
-  label: Label,
-  counter: Counter,
-  button: Button,
-  section: Section,
-  dropdown: Dropdown,
-  checkbox: Checkbox,
-  textbox: TextBox,
   layout: Layout,
+  label: Label,
+  button: Button,
+  counter: Counter,
+  checkbox: Checkbox,
+  dropdown: Dropdown,
+  textbox: TextBox,
+  section: Section,
   teamnum: TeamNum,
   matchnum: MatchNum,
   matchtype: MatchType,
-  resetbutton: ResetButton,
   alliancestation: AllianceStation,
+  resetbutton: ResetButton,
 } as const;
+
+export const COMPONENT_TYPES: string[][] = [
+  //[componentClass, displayName, description]
+  ["root", "Root", ""],
+  ["layout", "Layout", "Stores other components to organize your app. Can be oriented either vertically or horizontally."],
+  ["label", "Text Label", "Text."],
+  ["button", "Button", "When clicked, an event of a specified type is tracked."],
+  ["counter", "Event Counter", "Displays the number of a specific type of event that has occured during the match."],
+  ["checkbox", "Checkbox", "Yes/no option that corresponds to a match event."],
+  ["dropdown", "Dropdown", "Select an event type from a specified list of options."],
+  ["textbox", "Text Box", "Text box"],
+  ["section", "Section", "Line to separate sections of the app."],
+  ["teamnum", "Team Number", "Enter the team number for a match."],
+  ["matchnum", "Match Number", "Enter the match number for a match."],
+  ["matchtype", "Match Type", "Select the type of match (practice, quals, etc)."],
+  ["alliancestation", "Alliance Station", "Select the alliance station for the match (Red 1, Blue 1, etc)."],
+  ["resetbutton", "Next Match Button", "Button to save the match data, transfer it, and reset the app to the next match."]
+];
 
 export type ComponentType = keyof typeof componentRegistry;
 

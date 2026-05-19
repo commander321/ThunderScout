@@ -230,12 +230,14 @@ function setupBluetoothButton() {
     if (!button) return;
     if (!(button instanceof HTMLButtonElement)) return;
 
+    /*
     button.onclick = (e) => {
         e.stopPropagation();
 
         //send data
         bluetooth.sendMatches(matchdata.getAllMatches());
     }
+    */
 }
 
 function setupChart(id: string): Chart | null {

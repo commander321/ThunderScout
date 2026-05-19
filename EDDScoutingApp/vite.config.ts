@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [
@@ -21,5 +22,13 @@ export default defineConfig({
         ]
       }
     })
-  ]
+  ],
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        analytics: resolve(__dirname, 'analytics.html'),
+      },
+    },
+  },
 })

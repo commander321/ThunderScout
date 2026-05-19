@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "vite-plugin-pwa": "^1.2.0"
-  },
-  "devDependencies": {
-    "@types/node": "^25.5.2",
-    "@types/web-bluetooth": "^0.0.21"
-  }
-}

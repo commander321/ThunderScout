@@ -1,6 +1,6 @@
 import * as matchdata from "./matchdata.js"
 
-async function bluetoothSend(json: string) {
+async function bluetoothSend(json: string, match: matchdata.MatchData) {
 
   let device = null;
   let server = null;
@@ -11,7 +11,7 @@ async function bluetoothSend(json: string) {
 
     // Step 1: Ask user to pick the device
     device = await navigator.bluetooth.requestDevice({
-      acceptAllDevices: true,
+      filters: [{name: "ROBOTICS-07"}],
       optionalServices: [SERVICE_UUID]
     });
 
@@ -72,6 +72,8 @@ async function bluetoothSend(json: string) {
     console.log("Sent:", json);
     bluetoothLog("Match data successfully transfered!");
 
+    matchdata.removeUnsavedMatch(match);
+
     //close log when done
     await new Promise(r => setTimeout(r, 5000));
     document.getElementById("bluetooth-status")?.classList.add("hidden");
@@ -79,6 +81,10 @@ async function bluetoothSend(json: string) {
   } catch (error) {
     console.error("Bluetooth error: ", error);
     bluetoothLog("Bluetooth error: " + error);
+
+    //mark the match as unsaved and save it (but make sure it's only in once)
+    matchdata.removeUnsavedMatch(match);
+    matchdata.addUnsavedMatch(match);
 
     //close log if it failed
     await new Promise(r => setTimeout(r, 5000));
@@ -149,13 +155,21 @@ async function startRequest(characteristic: any) {
 }
 
 /**
- * Sends the current match data over bluetooth
+ * Sends the current match data over bluetooth. Also tries to send over unsaved matches.
  */
 export function sendCurrentMatch() {
   const data: matchdata.MatchData = matchdata.getCurrentMatch();
   const json: string = JSON.stringify(data, null, 2);
 
-  bluetoothSend(json);
+  console.log(matchdata.getUnsavedMatches());
+  bluetoothSend(json, matchdata.getCurrentMatch());
+
+  //try to send over any matches that weren't saved.
+
+  for (const match of matchdata.getUnsavedMatches()) {
+    const unsavedJSON: string = JSON.stringify(match, null, 2);
+    bluetoothSend(unsavedJSON, match);
+  }
 }
 
 /**
@@ -164,17 +178,19 @@ export function sendCurrentMatch() {
 export function sendMatch(match: matchdata.MatchData) {
   const json: string = JSON.stringify(match, null, 2);
 
-  bluetoothSend(json);
+  bluetoothSend(json, match);
 }
 
 /**
  * Send multiple matches over bluetooth
  */
+/*
 export function sendMatches(matches: matchdata.MatchData[]) {
   const json: string = JSON.stringify(matches, null, 2); //THIS PROBABLY DOESNT WORK RIGHT!!!
 
   bluetoothSend(json);
 }
+*/
 
 /**
  * Sets up the bluetooth test button (which just sends current match data)

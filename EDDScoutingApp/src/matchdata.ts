@@ -121,6 +121,7 @@ export class MatchData {
 
 let currentMatchData: MatchData = new MatchData();
 let savedMatches: MatchData[] = [];
+let unsavedMatches: MatchData[] = [];
 
 export function getCurrentMatch(): MatchData {
     return currentMatchData;
@@ -157,6 +158,7 @@ export function saveCurrentMatch() {
     let matchType: MatchType = currentMatchData.matchType;
     let allianceStation: AllianceStation = currentMatchData.allianceStation;
     let eventCode: string = currentMatchData.eventCode;
+    let name: string = currentMatchData.getTextData("Scouter Name");
 
     //save with bluetooth
     bluetooth.sendCurrentMatch();
@@ -166,6 +168,7 @@ export function saveCurrentMatch() {
     currentMatchData.matchType = matchType;
     currentMatchData.allianceStation = allianceStation;
     currentMatchData.eventCode = eventCode;
+    currentMatchData.setTextData("Scouter Name", name);
 }
 
 /**
@@ -219,5 +222,63 @@ export function removeDuplicates(matchNum: number, teamNum: number, allianceStat
         if (m.teamNumber == teamNum && m.matchNumber == matchNum && m.matchType == matchType && m.eventCode == eventCode && m.allianceStation == allianceStation) {
             savedMatches.splice(i, 1);
         }
+    }
+}
+
+export function clearAllMatches() {
+    savedMatches = [];
+    unsavedMatches = [];
+}
+
+export function addUnsavedMatch(match: MatchData) {
+    unsavedMatches.push(match);
+}
+
+export function removeUnsavedMatch(match: MatchData) {
+    for (let i=0;i<unsavedMatches.length;i++) {
+        if (unsavedMatches[i] == match) unsavedMatches.splice(i, 1);
+    }
+}
+
+export function getUnsavedMatches(): MatchData[] {
+    return unsavedMatches;
+}
+
+export function setUnsavedMatches(matches: MatchData[]) {
+    //code mostly copied from analytics
+    for (const match of matches) {
+        //Add event counts for analytics. Also add event types
+        match.eventcounts = new Map<string, number>();
+        for (const event of match.matchEvents) {
+            if (match.eventcounts.has(event.type)) {
+                let count = match.eventcounts.get(event.type);
+                match.eventcounts.set(event.type, (count === undefined) ? 1 : count + 1);
+            } else {
+                match.eventcounts.set(event.type, 1);
+            }
+        }
+
+        //Set text data map based on the JSON string
+        if (match.textDataJSON.trim().length != 0) {
+            match.textData = new Map<string, string>(Object.entries(JSON.parse(match.textDataJSON)))
+            match.textDataJSON = "";
+        } else {
+            match.textData = new Map<string, string>();
+        }
+
+        //Create new matchdata object (this makes it a true MatchData object)
+        let newMatch = new MatchData();
+        newMatch.matchNumber = match.matchNumber;
+        newMatch.teamNumber = match.teamNumber;
+        newMatch.allianceStation = match.allianceStation;
+        newMatch.matchType = match.matchType;
+        newMatch.eventCode = match.eventCode;
+        newMatch.matchEvents = match.matchEvents;
+        newMatch.textData = match.textData;
+        newMatch.textDataJSON = match.textDataJSON;
+        newMatch.eventcounts = match.eventcounts;
+
+        //Add to the list of matches to be added (since it doesn't include duplicates)
+        addUnsavedMatch(newMatch);
     }
 }
