@@ -140,10 +140,15 @@ export function addLayoutStyleSection(node: components.Component) {
       }, "color");
 
 
-    addInput(editorDiv, "Width (%)", node.style.width || 100, (val: any) => {
+    addInput(editorDiv, "Width (px)", node.style.width || 0, (val: any) => {
         node.style.width = val;
         app.renderPreview();
       }, "number");
+
+    addInput(editorDiv, "Height (px)", node.style.height || 0, (val: any) => {
+        node.style.height = val;
+        app.renderPreview();
+    }, "number");
 
 
     //======= Div Alignment =======
@@ -241,10 +246,20 @@ export function addTextSection(node: components.Component) {
         app.renderPreview();
     }, "number");
 
+    addSelect("Font", node.style.fontFamily || "Arial", ["Arial", "Verdana", "Tahoma", "Trebuchet MS", "Times New Roman", "Georgia", "Garamond", "Courier New", "Brush Script MT"], (val: any) => {
+        node.style.fontFamily = val;
+        app.renderPreview();
+    });
+
+    addSelect("Text Align", node.style.textAlign || "Left", ["Left", "Right", "Center"], (val: any) => {
+        node.style.textAlign = val;
+        app.renderPreview();
+    });
+
     addInput(editorDiv, "Text Color", node.style.color || "#000000", (val: any) => {
         node.style.color = val;
         app.renderPreview();
-      }, "color");
+    }, "color");
 
     addInput(editorDiv, "Bold", node.style.bold || false, (val: any) => {
         node.style.bold = val.checked;
@@ -260,6 +275,39 @@ export function addTextSection(node: components.Component) {
         node.style.textDecoration = val.checked ? "underline" : "";
         app.renderPreview();
     }, "checkbox");
+}
+
+export function addBorderSection(node: components.Component) {
+  const editorDiv = document.getElementById("editor");
+    if (!editorDiv) return;
+    if (!(editorDiv instanceof HTMLDivElement)) return;
+
+    editorDiv.appendChild(document.createElement("hr"));
+    let label = document.createElement("div");
+    label.textContent = "Text:";
+    editorDiv.appendChild(label);
+    editorDiv.appendChild(document.createElement("br"));
+
+    //border width, radius, style, and color
+    addInput(editorDiv, "Border Width", node.style.borderWidth || 0, (val: any) => {
+      node.style.borderWidth = parseInt(val);
+      app.renderPreview();
+    }, "number");
+
+    addInput(editorDiv, "Border Radius", node.style.borderRadius || 0, (val: any) => {
+      node.style.borderRadius = parseInt(val);
+      app.renderPreview();
+    }, "number");
+
+    addSelect("Border Style", node.style.borderStyle || "none", ["none", "solid", "dotted", "dashed", "double", "groove", "ridge", "inset", "outset"], (val: any) => { 
+      node.style.borderStyle = val;
+      app.renderPreview();
+    });
+
+    addInput(editorDiv, "Border Color", node.style.borderColor || "#000000", (val: any) => {
+      node.style.borderColor = val;
+      app.renderPreview();
+    }, "color");
 }
 
 

@@ -57,6 +57,7 @@ export class Label extends Component {
     editor.addTextLabel(this);
     editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
+    editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement) {
@@ -64,6 +65,7 @@ export class Label extends Component {
 
     applyLayoutStlyes(div, this.style);
     applyTextStyles(div, this.style);
+    applyBorderStyles(div, this.style);
   }
 }
 
@@ -80,6 +82,7 @@ export class Counter extends Component {
     editor.addEventSelection(this);
     editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
+    editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement) {
@@ -91,6 +94,7 @@ export class Counter extends Component {
 
     applyLayoutStlyes(div, this.style);
     applyTextStyles(label, this.style);
+    applyBorderStyles(label, this.style);
   }
 
   update() {
@@ -117,9 +121,30 @@ export class Button extends Component {
   addEditorFeatures() {
     editor.addTextLabel(this);
     editor.addEventSelection(this);
-    //Button styles aren't working now... hmm
+    //add a button styles section (for background colors, hover colors, etc)
+    const editorDiv = document.getElementById("editor");
+    if (!editorDiv) return;
+    if (!(editorDiv instanceof HTMLDivElement)) return;
+
+    editorDiv.appendChild(document.createElement("hr"));
+    let label = document.createElement("div");
+    label.textContent = "Button Style";
+    editorDiv.appendChild(label);
+    editorDiv.appendChild(document.createElement("br"));
+
+    editor.addInput(editorDiv, "Button Color", this.style.buttonColor || "#F0F0F0", (val: any) => {
+        this.style.buttonColor = val || "#F0F0F0";
+        app.renderPreview();
+    }, "color");
+
+    editor.addInput(editorDiv, "Button Hover Color", this.style.buttonHoverColor || "E0E0E0", (val: any) => {
+        this.style.buttonHoverColor = val || "#E0E0E0";
+        app.renderPreview();
+    }, "color");
+
     editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
+    editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement) {
@@ -127,7 +152,7 @@ export class Button extends Component {
     button.textContent = this.text;
 
     button.onclick = (e) => {
-      e.stopPropagation();
+      //e.stopPropagation();
       if (app.isRuntimeMode()) {
         matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.eventType, this.eventGroup));
         updateCounters(this.eventType);
@@ -136,10 +161,29 @@ export class Button extends Component {
       app.renderPreview();
     };
 
+    button.onmouseover = (e) => {
+      e.stopPropagation();
+      button.style.backgroundColor = this.style.buttonHoverColor || "#E0E0E0";
+      if (app.isRuntimeMode()) {
+        button.style.cursor = "pointer";
+      }
+    }
+
+    button.onmouseout = (e) => {
+      e.stopPropagation();
+      button.style.backgroundColor = this.style.buttonColor || "#F0F0F0";
+      button.style.cursor = "auto";
+    }
+
     div.appendChild(button);
+    console.log(app.isRuntimeMode());
 
     applyLayoutStlyes(div, this.style);
+    applyLayoutStlyes(button, this.style);
+    //apply button background
+    button.style.backgroundColor = this.style.buttonColor || "#F0F0F0";
     applyTextStyles(button, this.style);
+    applyBorderStyles(button, this.style);
   }
 }
 
@@ -219,6 +263,7 @@ export class Dropdown extends Component {
 
     editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
+    editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement) {
@@ -262,6 +307,7 @@ export class Dropdown extends Component {
 
     applyLayoutStlyes(div, this.style);
     applyTextStyles(select, this.style);
+    applyBorderStyles(select, this.style);
   }
 }
 
@@ -280,14 +326,32 @@ export class Checkbox extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
+    editor.addEventSelection(this);
+
     //checkbox features
-    editor.addInput(editorDiv, "Scale", this.style.scale || 1, (val: any) => {
-      this.style.scale = val;
+    editorDiv.appendChild(document.createElement("hr"));
+    let label = document.createElement("div");
+    label.textContent = "Checkbox Style";
+    editorDiv.appendChild(label);
+    editorDiv.appendChild(document.createElement("br"));
+
+    editor.addInput(editorDiv, "Size (px)", this.style.scale || 0, (val: any) => {
+      this.style.scale = val || 0;
       app.renderPreview();
     }, "number");
 
-    editor.addEventSelection(this);
+    editor.addInput(editorDiv, "Default Color", this.style.checkboxColor || "#FFFFFF", (val: any) => {
+        this.style.checkboxColor = val || "#FFFFFF";
+        app.renderPreview();
+    }, "color");
+
+    editor.addInput(editorDiv, "Checked Color", this.style.checkboxCheckedColor || "#FF3333", (val: any) => {
+        this.style.checkboxCheckedColor = val || "#FF3333";
+        app.renderPreview();
+    }, "color");
+
     editor.addLayoutStyleSection(this);
+    editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement) {
@@ -315,7 +379,11 @@ export class Checkbox extends Component {
     div.appendChild(checkbox);
 
     applyLayoutStlyes(div, this.style);
-    checkbox.style.scale = this.style.scale || 1;
+    applyBorderStyles(checkbox, this.style);
+    checkbox.style.width = this.style.scale ? (this.style.scale == 0 ? "auto" : this.style.scale + "px") : "auto";
+    checkbox.style.height = this.style.scale ? (this.style.scale == 0 ? "auto" : this.style.scale + "px") : "auto";
+    checkbox.style.backgroundColor = this.style.checkboxColor || "#FFFFFF";
+    checkbox.style.accentColor = this.style.checkboxCheckedColor || "#FF3333";
   }
 }
 
@@ -333,6 +401,7 @@ export class Layout extends Component {
         app.renderPreview();
     });
     editor.addLayoutStyleSection(this);
+    editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement) {
@@ -343,6 +412,7 @@ export class Layout extends Component {
     }
 
     applyLayoutStlyes(div, this.style);
+    applyBorderStyles(div, this.style);
   }
 }
 
@@ -354,6 +424,7 @@ export class TeamNum extends Component {
   addEditorFeatures(): void {
     editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
+    editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement): void {
@@ -371,6 +442,7 @@ export class TeamNum extends Component {
 
     applyLayoutStlyes(div, this.style);
     applyTextStyles(team, this.style);
+    applyBorderStyles(team, this.style);
   }
 }
 
@@ -397,6 +469,7 @@ export class TextBox extends Component {
       
     editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
+    editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement): void {
@@ -422,6 +495,7 @@ export class TextBox extends Component {
 
       applyLayoutStlyes(div, this.style);
       applyTextStyles(textbox, this.style);
+      applyBorderStyles(textbox, this.style);
   }
 }
 
@@ -433,6 +507,7 @@ export class MatchNum extends Component {
   addEditorFeatures(): void {
     editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
+    editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement): void {
@@ -450,6 +525,7 @@ export class MatchNum extends Component {
 
     applyLayoutStlyes(div, this.style);
     applyTextStyles(match, this.style);
+    applyBorderStyles(match, this.style);
   }
 }
 
@@ -461,6 +537,7 @@ export class MatchType extends Component {
   addEditorFeatures(): void {
     editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
+    editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement): void {
@@ -490,6 +567,7 @@ export class MatchType extends Component {
 
     applyLayoutStlyes(div, this.style);
     applyTextStyles(select, this.style);
+    applyBorderStyles(select, this.style);
   }
 }
 
@@ -501,6 +579,7 @@ export class AllianceStation extends Component {
   addEditorFeatures(): void {
     editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
+    editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement): void {
@@ -536,6 +615,7 @@ export class AllianceStation extends Component {
 
     applyLayoutStlyes(div, this.style);
     applyTextStyles(select, this.style);
+    applyBorderStyles(select, this.style);
   }
 }
 
@@ -553,6 +633,7 @@ export class ResetButton extends Component {
     editor.addTextLabel(this);
     editor.addLayoutStyleSection(this);
     editor.addTextSection(this);
+    editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement): void {
@@ -599,6 +680,7 @@ export class ResetButton extends Component {
 
     applyLayoutStlyes(div, this.style);
     applyTextStyles(button, this.style);
+    applyBorderStyles(button, this.style);
   }
 }
 
@@ -626,7 +708,8 @@ function applyLayoutStlyes(node: HTMLElement, style: Record<string, any>) {
   if (!style) return;
 
   node.style.background = style.background || "";
-  node.style.width = (style.width || 100) + "%";
+  node.style.width = style.width ? (style.width == 0 ? "auto" : style.width + "px") : "auto";
+  node.style.height = style.height ? (style.height == 0 ? "auto" : style.height + "px") : "auto";
 
   node.style.paddingLeft = (style.paddingLeft == "0" ? 0 : (style.paddingLeft || 5)) + "px";
   node.style.paddingRight = (style.paddingRight == "0" ? 0 : (style.paddingRight || 5)) + "px";
@@ -658,10 +741,19 @@ function applyLayoutStlyes(node: HTMLElement, style: Record<string, any>) {
  */
 function applyTextStyles(node: HTMLElement, style: Record<string, any>) {
   node.style.fontSize = (style.textSize || 14) + "px";
+  node.style.fontFamily = style.fontFamily || "Arial";
   node.style.fontWeight = style.bold ? "bold" : "normal";
   node.style.fontStyle = style.fontStyle || ""
+  node.style.textAlign = style.textAlign || "Left";
   node.style.textDecoration = style.textDecoration || ""
   node.style.color = style.color || "#000000";
+}
+
+function applyBorderStyles(node: HTMLElement, style: Record<string, any>) {
+  node.style.borderWidth = (style.borderWidth || 0) + "px";
+  node.style.borderRadius = (style.borderRadius || 0) + "px";
+  node.style.borderColor = style.borderColor || "#000000";
+  node.style.borderStyle = style.borderStyle || "none";
 }
 
 /**

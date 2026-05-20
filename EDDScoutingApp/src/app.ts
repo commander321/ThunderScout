@@ -244,21 +244,21 @@ function openModal(parentId: string, index: number) {
   let modal = document.getElementById("modal");
   if (!modal) return;
   modal.classList.remove("hidden");
-  modal.style.width = "50%";
+  modal.style.width = "60%";
   modal.style.height = "75%";
   modal.innerHTML = "<h2>Select a component to add</h2>";
 
   let grid = document.createElement("div");
   grid.style.display = "grid";
-  grid.style.height = "80%";
-  grid.style.gridTemplateColumns = "25% 25% 25% 25%";
+  //grid.style.height = "80%";
+  grid.style.gridTemplateColumns = "33% 33% 33%";
   grid.style.placeItems = "center";
 
   components.COMPONENT_TYPES.forEach(type => {
     if (type[0] && type[1] && type[2] && type[0] != "root") {
       let componentDiv: HTMLDivElement = document.createElement("div");
       componentDiv.style.width = "80%";
-      componentDiv.style.height = "80%";
+      componentDiv.style.height = "300px";
       componentDiv.style.marginTop = "10%";
       componentDiv.style.borderWidth = "1px";
       componentDiv.style.borderStyle = "solid";
@@ -280,16 +280,14 @@ function openModal(parentId: string, index: number) {
       description.style.textAlign = "center";
       description.style.font = "16px";
       description.style.marginTop = "5px";
+      description.style.height = "73%";
 
       let buttonDiv = document.createElement("div");
       let addButton: HTMLButtonElement = document.createElement("button");
       buttonDiv.style.display = "flex";
       buttonDiv.style.justifyContent = "center";
       addButton.textContent = "+";
-      addButton.style.width = "90%";
-      addButton.style.textAlign = "center";
-      addButton.style.fontSize = "18px";
-      addButton.style.borderRadius = "20px";
+      addButton.classList.add("add-component-button");
       addButton.onclick = () => addComponent(type[0] || "null");
       buttonDiv.appendChild(addButton);
 
