@@ -1,8 +1,9 @@
 import * as app from "./app.js";
 import * as components from "./components.js";
 import * as events from "./events.js";
+import * as actions from "./action.js"
 
-export function addInput(parentDiv: HTMLDivElement, labelText: string, value: any, onChange: any, type: string = "text") {
+export function addInput(node: components.Component, parentDiv: HTMLDivElement, labelText: string, value: any, onChange: any, type: string = "text") {
   let label = document.createElement("div");
   label.textContent = labelText;
   parentDiv.appendChild(label);
@@ -11,7 +12,6 @@ export function addInput(parentDiv: HTMLDivElement, labelText: string, value: an
   input.type = type;
   input.value = value;
 
-  
   if (type === "number") {
     input.classList.add("number-input");
   }
@@ -19,15 +19,21 @@ export function addInput(parentDiv: HTMLDivElement, labelText: string, value: an
   //Checkboxes have onchange instead of oninput like text fields
   if (type === "checkbox") {
     input.checked = value
-    input.onchange = () => onChange(input);
+    input.onchange = () => {
+      actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
+      onChange(input);
+    }
   } else {
-    input.oninput = () => onChange(input.value);
+    input.oninput = () => {
+      actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
+      onChange(input.value);
+    }
   }
 
   parentDiv.appendChild(input);
 }
 
-export function addSelect(labelText: string, value: string, options: string[], onChange: any) {
+export function addSelect(node: components.Component, labelText: string, value: string, options: string[], onChange: any) {
   const editorDiv = document.getElementById("editor");
   if (!editorDiv) return;
 
@@ -45,7 +51,10 @@ export function addSelect(labelText: string, value: string, options: string[], o
   });
 
   select.value = value;
-  select.onchange = () => onChange(select.value);
+  select.onchange = () => {
+    actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
+    onChange(select.value);
+  }
 
   editorDiv.appendChild(select);
 }
@@ -58,7 +67,7 @@ export function addTextLabel(node: any) {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    addInput(editorDiv, "Label", node.text, (val: any) => {
+    addInput(node, editorDiv, "Label", node.text, (val: any) => {
         node.text = val;
         app.renderPreview();
     });
@@ -72,12 +81,12 @@ export function addEventSelection(node: components.Component) {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    addSelect("Event", node.eventType, events.getEventTypes(), (val: any) => { 
+    addSelect(node, "Event", node.eventType, events.getEventTypes(), (val: any) => { 
       node.eventType = val;
       app.renderPreview();
     });
 
-    addSelect("Group", node.eventGroup, events.getEventGroups(), (val: any) => {
+    addSelect(node, "Group", node.eventGroup, events.getEventGroups(), (val: any) => {
       node.eventGroup = val;
       app.renderPreview();
     });
@@ -102,7 +111,7 @@ export function addGroupSection(node: components.Component) {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    addSelect("Group", node.eventGroup, events.getEventGroups(), (val: any) => {
+    addSelect(node, "Group", node.eventGroup, events.getEventGroups(), (val: any) => {
       node.eventGroup = val;
       app.renderPreview();
     });
@@ -134,18 +143,18 @@ export function addLayoutStyleSection(node: components.Component) {
     editorDiv.appendChild(label);
     editorDiv.appendChild(document.createElement("br"));
 
-    addInput(editorDiv, "Background", node.style.background || "#FFFFFF", (val: any) => {
+    addInput(node, editorDiv, "Background", node.style.background || "#FFFFFF", (val: any) => {
         node.style.background = val;
         app.renderPreview();
       }, "color");
 
 
-    addInput(editorDiv, "Width (px)", node.style.width || 0, (val: any) => {
+    addInput(node, editorDiv, "Width (px)", node.style.width || 0, (val: any) => {
         node.style.width = val;
         app.renderPreview();
       }, "number");
 
-    addInput(editorDiv, "Height (px)", node.style.height || 0, (val: any) => {
+    addInput(node, editorDiv, "Height (px)", node.style.height || 0, (val: any) => {
         node.style.height = val;
         app.renderPreview();
     }, "number");
@@ -153,7 +162,7 @@ export function addLayoutStyleSection(node: components.Component) {
 
     //======= Div Alignment =======
     
-    addSelect("Allignment", node.style.allignment || "left", ["left", "right", "center"], (val: any) => {
+    addSelect(node, "Allignment", node.style.allignment || "left", ["left", "right", "center"], (val: any) => {
         node.style.allignment = val;
         app.renderPreview();
     });
@@ -163,12 +172,12 @@ export function addLayoutStyleSection(node: components.Component) {
     let paddingDiv1 = document.createElement("div");
     paddingDiv1.classList.add("horizontal-editor-inputs");
 
-    addInput(paddingDiv1, "Padding Left", node.style.paddingLeft || 5, (val: any) => {
+    addInput(node, paddingDiv1, "Padding Left", node.style.paddingLeft || 5, (val: any) => {
         node.style.paddingLeft = parseInt(val);
         app.renderPreview();
       }, "number"); 
       
-    addInput(paddingDiv1, "Padding Right", node.style.paddingRight || 5, (val: any) => {
+    addInput(node, paddingDiv1, "Padding Right", node.style.paddingRight || 5, (val: any) => {
       node.style.paddingRight = parseInt(val);
       app.renderPreview();
     }, "number");  
@@ -178,12 +187,12 @@ export function addLayoutStyleSection(node: components.Component) {
     let paddingDiv2 = document.createElement("div");
     paddingDiv2.classList.add("horizontal-editor-inputs");
 
-    addInput(paddingDiv2, "Padding Top", node.style.paddingTop || 5, (val: any) => {
+    addInput(node, paddingDiv2, "Padding Top", node.style.paddingTop || 5, (val: any) => {
         node.style.paddingTop = parseInt(val) == 0 ? "0" : parseInt(val);
         app.renderPreview();
       }, "number"); 
       
-    addInput(paddingDiv2, "Padding Bottom", node.style.paddingBottom || 5, (val: any) => {
+    addInput(node, paddingDiv2, "Padding Bottom", node.style.paddingBottom || 5, (val: any) => {
       node.style.paddingBottom = parseInt(val) == 0 ? "0" : parseInt(val);
       app.renderPreview();
     }, "number");  
@@ -197,12 +206,12 @@ export function addLayoutStyleSection(node: components.Component) {
     let marginDiv1 = document.createElement("div");
     marginDiv1.classList.add("horizontal-editor-inputs");
 
-    addInput(marginDiv1, "Margin Left", node.style.marginLeft || 0, (val: any) => {
+    addInput(node, marginDiv1, "Margin Left", node.style.marginLeft || 0, (val: any) => {
       node.style.marginLeft = parseInt(val) == 0 ? "0" : parseInt(val);
       app.renderPreview();
     }, "number");  
 
-    addInput(marginDiv1, "Margin Right", node.style.marginRight || 0, (val: any) => {
+    addInput(node, marginDiv1, "Margin Right", node.style.marginRight || 0, (val: any) => {
       node.style.marginRight = parseInt(val) == 0 ? "0" : parseInt(val);
       app.renderPreview();
     }, "number");  
@@ -212,12 +221,12 @@ export function addLayoutStyleSection(node: components.Component) {
     let marginDiv2 = document.createElement("div");
     marginDiv2.classList.add("horizontal-editor-inputs");
 
-    addInput(marginDiv2, "Margin Top", node.style.marginTop || 6, (val: any) => {
+    addInput(node, marginDiv2, "Margin Top", node.style.marginTop || 6, (val: any) => {
       node.style.marginTop = parseInt(val) == 0 ? "0" : parseInt(val); //Make 0 be a string otherwise it glitches out and always set it to 6
       app.renderPreview();
     }, "number");  
 
-    addInput(marginDiv2, "Margin Bottom", node.style.marginBottom || 6, (val: any) => {
+    addInput(node, marginDiv2, "Margin Bottom", node.style.marginBottom || 6, (val: any) => {
       node.style.marginBottom = parseInt(val) == 0 ? "0" : parseInt(val);
       app.renderPreview();
     }, "number");  
@@ -241,37 +250,37 @@ export function addTextSection(node: components.Component) {
     editorDiv.appendChild(label);
     editorDiv.appendChild(document.createElement("br"));
 
-    addInput(editorDiv, "Font Size", node.style.textSize || 14, (val: any) => {
+    addInput(node, editorDiv, "Font Size", node.style.textSize || 14, (val: any) => {
         node.style.textSize = parseInt(val);
         app.renderPreview();
     }, "number");
 
-    addSelect("Font", node.style.fontFamily || "Arial", ["Arial", "Verdana", "Tahoma", "Trebuchet MS", "Times New Roman", "Georgia", "Garamond", "Courier New", "Brush Script MT"], (val: any) => {
+    addSelect(node, "Font", node.style.fontFamily || "Arial", ["Arial", "Verdana", "Tahoma", "Trebuchet MS", "Times New Roman", "Georgia", "Garamond", "Courier New", "Brush Script MT"], (val: any) => {
         node.style.fontFamily = val;
         app.renderPreview();
     });
 
-    addSelect("Text Align", node.style.textAlign || "Left", ["Left", "Right", "Center"], (val: any) => {
+    addSelect(node, "Text Align", node.style.textAlign || "Left", ["Left", "Right", "Center"], (val: any) => {
         node.style.textAlign = val;
         app.renderPreview();
     });
 
-    addInput(editorDiv, "Text Color", node.style.color || "#000000", (val: any) => {
+    addInput(node, editorDiv, "Text Color", node.style.color || "#000000", (val: any) => {
         node.style.color = val;
         app.renderPreview();
     }, "color");
 
-    addInput(editorDiv, "Bold", node.style.bold || false, (val: any) => {
+    addInput(node, editorDiv, "Bold", node.style.bold || false, (val: any) => {
         node.style.bold = val.checked;
         app.renderPreview();
     }, "checkbox");
 
-    addInput(editorDiv, "Italics", node.style.fontStyle === "italic" || false, (val: any) => {
+    addInput(node, editorDiv, "Italics", node.style.fontStyle === "italic" || false, (val: any) => {
         node.style.fontStyle = val.checked ? "italic" : "";
         app.renderPreview();
     }, "checkbox");
 
-    addInput(editorDiv, "Underlined", node.style.textDecoration === "underline" || false, (val: any) => {
+    addInput(node, editorDiv, "Underlined", node.style.textDecoration === "underline" || false, (val: any) => {
         node.style.textDecoration = val.checked ? "underline" : "";
         app.renderPreview();
     }, "checkbox");
@@ -289,22 +298,22 @@ export function addBorderSection(node: components.Component) {
     editorDiv.appendChild(document.createElement("br"));
 
     //border width, radius, style, and color
-    addInput(editorDiv, "Border Width", node.style.borderWidth || 0, (val: any) => {
+    addInput(node, editorDiv, "Border Width", node.style.borderWidth || 0, (val: any) => {
       node.style.borderWidth = parseInt(val);
       app.renderPreview();
     }, "number");
 
-    addInput(editorDiv, "Border Radius", node.style.borderRadius || 0, (val: any) => {
+    addInput(node, editorDiv, "Border Radius", node.style.borderRadius || 0, (val: any) => {
       node.style.borderRadius = parseInt(val);
       app.renderPreview();
     }, "number");
 
-    addSelect("Border Style", node.style.borderStyle || "none", ["none", "solid", "dotted", "dashed", "double", "groove", "ridge", "inset", "outset"], (val: any) => { 
+    addSelect(node, "Border Style", node.style.borderStyle || "none", ["none", "solid", "dotted", "dashed", "double", "groove", "ridge", "inset", "outset"], (val: any) => { 
       node.style.borderStyle = val;
       app.renderPreview();
     });
 
-    addInput(editorDiv, "Border Color", node.style.borderColor || "#000000", (val: any) => {
+    addInput(node, editorDiv, "Border Color", node.style.borderColor || "#000000", (val: any) => {
       node.style.borderColor = val;
       app.renderPreview();
     }, "color");

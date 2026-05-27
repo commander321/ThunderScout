@@ -132,12 +132,12 @@ export class Button extends Component {
     editorDiv.appendChild(label);
     editorDiv.appendChild(document.createElement("br"));
 
-    editor.addInput(editorDiv, "Button Color", this.style.buttonColor || "#F0F0F0", (val: any) => {
+    editor.addInput(this, editorDiv, "Button Color", this.style.buttonColor || "#F0F0F0", (val: any) => {
         this.style.buttonColor = val || "#F0F0F0";
         app.renderPreview();
     }, "color");
 
-    editor.addInput(editorDiv, "Button Hover Color", this.style.buttonHoverColor || "E0E0E0", (val: any) => {
+    editor.addInput(this, editorDiv, "Button Hover Color", this.style.buttonHoverColor || "E0E0E0", (val: any) => {
         this.style.buttonHoverColor = val || "#E0E0E0";
         app.renderPreview();
     }, "color");
@@ -176,7 +176,6 @@ export class Button extends Component {
     }
 
     div.appendChild(button);
-    console.log(app.isRuntimeMode());
 
     applyLayoutStlyes(div, this.style);
     applyLayoutStlyes(button, this.style);
@@ -202,11 +201,15 @@ export class Section extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    editor.addInput(editorDiv, "Thickness (px)", this.thickness || 2, (val: any) => {
+    editor.addInput(this, editorDiv, "Width (px)", this.style.width || 0, (val: any) => {
+        this.style.width = parseInt(val) || 0;
+        app.renderPreview();
+    }, "number");
+    editor.addInput(this, editorDiv, "Thickness (px)", this.thickness || 2, (val: any) => {
         this.thickness = parseInt(val) || 2;
         app.renderPreview();
     }, "number");
-    editor.addInput(editorDiv, "Color", this.color || "#000000", (val: any) => {
+    editor.addInput(this, editorDiv, "Color", this.color || "#000000", (val: any) => {
         this.color = val;
         app.renderPreview();
     }, "color");
@@ -216,14 +219,21 @@ export class Section extends Component {
     let hr: HTMLHRElement = document.createElement("hr");
 
     hr.style.border = "none";
-    hr.style.height = this.thickness + "px";
-    hr.style.backgroundColor = this.color || "#000";
-
-    hr.onclick = e => e.stopPropagation();
+    hr.style.backgroundColor = this.color || "#000000";
 
     div.appendChild(hr);
 
     applyLayoutStlyes(div, this.style);
+    div.style.margin = "0px";
+    div.style.padding = "0px";
+    hr.style.margin = "0px";
+    hr.style.padding = "0px";
+
+    div.style.width = this.style.width ? (this.style.width == 0 ? "auto" : this.style.width + "px") : "auto";
+    hr.style.width = this.style.width ? (this.style.width == 0 ? "auto" : this.style.width + "px") : "auto";
+
+    div.style.height = this.thickness + "px";
+    hr.style.height = this.thickness + "px";
   }
 }
 
@@ -247,7 +257,7 @@ export class Dropdown extends Component {
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
     //editor.addTextLabel(this);
-    editor.addInput(editorDiv, 
+    editor.addInput(this, editorDiv, 
         "Options (comma separated)",
         this.options.join(","),
         (val: any) => {
@@ -257,7 +267,7 @@ export class Dropdown extends Component {
     );
     editor.addGroupSection(this);
 
-    editor.addInput(editorDiv, "Required?", this.required, (val: any) => {
+    editor.addInput(this, editorDiv, "Required?", this.required, (val: any) => {
       this.required = val.checked;
     }, "checkbox");
 
@@ -283,7 +293,7 @@ export class Dropdown extends Component {
     });
 
     select.onclick = e => {
-      e.stopPropagation();
+      //e.stopPropagation();
 
       //Handle events, remove all of the other options and add the selected one
       if (app.isRuntimeMode()) {
@@ -335,17 +345,17 @@ export class Checkbox extends Component {
     editorDiv.appendChild(label);
     editorDiv.appendChild(document.createElement("br"));
 
-    editor.addInput(editorDiv, "Size (px)", this.style.scale || 0, (val: any) => {
+    editor.addInput(this, editorDiv, "Size (px)", this.style.scale || 0, (val: any) => {
       this.style.scale = val || 0;
       app.renderPreview();
     }, "number");
 
-    editor.addInput(editorDiv, "Default Color", this.style.checkboxColor || "#FFFFFF", (val: any) => {
+    editor.addInput(this, editorDiv, "Default Color", this.style.checkboxColor || "#FFFFFF", (val: any) => {
         this.style.checkboxColor = val || "#FFFFFF";
         app.renderPreview();
     }, "color");
 
-    editor.addInput(editorDiv, "Checked Color", this.style.checkboxCheckedColor || "#FF3333", (val: any) => {
+    editor.addInput(this, editorDiv, "Checked Color", this.style.checkboxCheckedColor || "#FF3333", (val: any) => {
         this.style.checkboxCheckedColor = val || "#FF3333";
         app.renderPreview();
     }, "color");
@@ -396,7 +406,7 @@ export class Layout extends Component {
   }
 
   addEditorFeatures() {
-    editor.addSelect("Direction", this.direction, ["vertical", "horizontal"], (val: any) => {
+    editor.addSelect(this, "Direction", this.direction, ["vertical", "horizontal"], (val: any) => {
         this.direction = val;
         app.renderPreview();
     });
@@ -441,6 +451,11 @@ export class TeamNum extends Component {
     div.appendChild(team);
 
     applyLayoutStlyes(div, this.style);
+    div.style.width = "fit-content";
+    div.style.height = "auto";
+    team.style.width = this.style.width ? (this.style.width == 0 ? "fit-content" : this.style.width + "px") : "fit-content";
+    team.style.height = this.style.height ? (this.style.height == 0 ? "auto" : this.style.height + "px") : "auto";
+    team.style.marginBottom = "0px";
     applyTextStyles(team, this.style);
     applyBorderStyles(team, this.style);
   }
@@ -462,7 +477,7 @@ export class TextBox extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    editor.addInput(editorDiv, "Textbox ID (event name)", this.key, (val: any) => {
+    editor.addInput(this, editorDiv, "Textbox ID (event name)", this.key, (val: any) => {
           this.key = val;
           app.renderPreview();
         }, "text");
@@ -494,6 +509,11 @@ export class TextBox extends Component {
       div.appendChild(textbox);
 
       applyLayoutStlyes(div, this.style);
+      div.style.width = "fit-content";
+      div.style.height = "auto";
+      textbox.style.width = this.style.width ? (this.style.width == 0 ? "fit-content" : this.style.width + "px") : "fit-content";
+      textbox.style.height = this.style.height ? (this.style.height == 0 ? "auto" : this.style.height + "px") : "auto";
+      textbox.style.marginBottom = "0px";
       applyTextStyles(textbox, this.style);
       applyBorderStyles(textbox, this.style);
   }
@@ -524,6 +544,11 @@ export class MatchNum extends Component {
     div.appendChild(match);
 
     applyLayoutStlyes(div, this.style);
+    div.style.width = "fit-content";
+    div.style.height = "auto";
+    match.style.width = this.style.width ? (this.style.width == 0 ? "fit-content" : this.style.width + "px") : "fit-content";
+    match.style.height = this.style.height ? (this.style.height == 0 ? "auto" : this.style.height + "px") : "auto";
+    match.style.marginBottom = "0px";
     applyTextStyles(match, this.style);
     applyBorderStyles(match, this.style);
   }
@@ -566,6 +591,11 @@ export class MatchType extends Component {
     div.appendChild(select);
 
     applyLayoutStlyes(div, this.style);
+    div.style.width = "fit-content";
+    div.style.height = "auto";
+    select.style.width = this.style.width ? (this.style.width == 0 ? "fit-content" : this.style.width + "px") : "fit-content";
+    select.style.height = this.style.height ? (this.style.height == 0 ? "auto" : this.style.height + "px") : "auto";
+    select.style.marginBottom = "0px";
     applyTextStyles(select, this.style);
     applyBorderStyles(select, this.style);
   }
@@ -614,6 +644,11 @@ export class AllianceStation extends Component {
     div.appendChild(select);
 
     applyLayoutStlyes(div, this.style);
+    div.style.width = "fit-content";
+    div.style.height = "auto";
+    select.style.width = this.style.width ? (this.style.width == 0 ? "fit-content" : this.style.width + "px") : "fit-content";
+    select.style.height = this.style.height ? (this.style.height == 0 ? "auto" : this.style.height + "px") : "auto";
+    select.style.marginBottom = "0px";
     applyTextStyles(select, this.style);
     applyBorderStyles(select, this.style);
   }
@@ -641,8 +676,9 @@ export class ResetButton extends Component {
     button.textContent = this.text;
 
     button.onclick = (e) => {
-      e.stopPropagation();
+      //e.stopPropagation();
       if (!app.isRuntimeMode()) return;
+      e.stopPropagation();
 
       //Check for required components (THIS IS 1511 SPECIFIC FOR CHAMPS!!!!)
       /*
@@ -708,7 +744,7 @@ function applyLayoutStlyes(node: HTMLElement, style: Record<string, any>) {
   if (!style) return;
 
   node.style.background = style.background || "";
-  node.style.width = style.width ? (style.width == 0 ? "auto" : style.width + "px") : "auto";
+  node.style.width = style.width ? (style.width == 0 ? "fit-content" : style.width + "px") : "fit-content";
   node.style.height = style.height ? (style.height == 0 ? "auto" : style.height + "px") : "auto";
 
   node.style.paddingLeft = (style.paddingLeft == "0" ? 0 : (style.paddingLeft || 5)) + "px";
@@ -750,8 +786,11 @@ function applyTextStyles(node: HTMLElement, style: Record<string, any>) {
 }
 
 function applyBorderStyles(node: HTMLElement, style: Record<string, any>) {
-  node.style.borderWidth = (style.borderWidth || 0) + "px";
   node.style.borderRadius = (style.borderRadius || 0) + "px";
+  if (!style.borderStyle) return;
+  if (style.borderStyle == "none") return;
+
+  node.style.borderWidth = (style.borderWidth || 0) + "px";
   node.style.borderColor = style.borderColor || "#000000";
   node.style.borderStyle = style.borderStyle || "none";
 }

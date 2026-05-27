@@ -6,30 +6,54 @@ import * as components from "./components.js";
 import * as events from "./events.js";
 import * as matchdata from "./matchdata.js";
 import * as bluetooth from "./bluetooth.js";
+import * as actions from "./action.js";
 
-let root = components.createComponent("root") 
+//import pictures of components
+/*import imageAllianceStation from "./assets/components/alliancestation.png";
+import imageButton from "./assets/components/button.png";
+import imageCheckbox from "./assets/components/checkbox.png";
+import imageCounter from "./assets/components/counter.png";
+import imageDropdown from "./assets/components/dropdown.png";
+import imageLabel from "./assets/components/label.png";
+import imageLayout from "./assets/components/layout.png";
+import imageMatchnum from "./assets/components/matchnum.png";
+import imageMatchtype from "./assets/components/matchtype.png";
+import imageResetbutton from "./assets/components/resetbutton.png";
+import imageSection from "./assets/components/section.png";
+import imageTeamnum from "./assets/components/teamnum.png";
+import imageTextbox from "./assets/components/textbox.png";*/
+
+let root = components.createComponent("root");
 let selectedId: any = null;
 let insertContext: any = null;
 let draggedId: any = null;
+let copiedComponent: any = null;
+let cutting: boolean = false;
 
 let runtime_mode = false;
 let editor_enabled = true;
+
+
+//list of saved actions (component, parent) so you can undo them.
+/*
+Every time you do something (edit a comonent, delete one, or add one) it saves that action
+When you hit undo, it gets the last component in the list
+Check if the component exists (id) and get it.
+If that component is exactly the same as the one in the app, then delete it (it means it was just created)
+If the comopnent exists but isn't the same, set the component in the app to the one in the list
+If the component doesn't exist, it was deleted so re-add it.
+*/
+//let savedActions: components.Component[][] = [];
 
 // =======================
 // UTILITIES
 // =======================
 
-/*
-function uid() {
-  return Math.random().toString(36).substr(2, 9);
-}
-*/
-
 function isContainer(node: components.Component) {
-  return node.type === "layout"/*|| node.type === "section"*/ || node.type === "root";
+  return node.type === "layout" || node.type === "root";
 }
 
-function find(id: string, node: components.Component = root, parent: any = null) {
+export function find(id: string, node: components.Component = root, parent: any = null) {
   if (node.id === id) return { node, parent };
 
   if (!node.children) return null;
@@ -142,58 +166,14 @@ function handleDrop(targetId: string) {
   let targetIndex =
     target.parent.children.findIndex((c: components.Component) => c.id === targetId);
 
-  target.parent.children.splice(targetIndex, 0, drag.node);
+  if (target.node instanceof components.Layout) {
+    target.node.children.splice(targetIndex, 0, drag.node);
+  } else {
+    target.parent.children.splice(targetIndex, 0, drag.node);
+  }
 
   renderPreview();
 }
-
-// =======================
-// STYLING
-// =======================
-
-/**
- * Applies styles to a component based on it's styles list. 
- * This is where it makes the actual CSS of the components
- */
-/*
-function applyStyles(div: HTMLDivElement, node: components.Component) {
-  if (!node.style) return;
-
-  div.style.background = node.style.background || "";
-  div.style.fontSize = (node.style.textSize || 14) + "px";
-  div.style.fontWeight = node.style.bold ? "bold" : "normal";
-  div.style.fontStyle = node.style.fontStyle || ""
-  div.style.textDecoration = node.style.textDecoration || ""
-  div.style.width = (node.style.width || 100) + "%";
-
-  div.style.paddingLeft = (node.style.paddingLeft == "0" ? 0 : (node.style.paddingLeft || 5)) + "px";
-  div.style.paddingRight = (node.style.paddingRight == "0" ? 0 : (node.style.paddingRight || 5)) + "px";
-  div.style.paddingTop = (node.style.paddingTop == "0" ? 0 : (node.style.paddingTop || 5)) + "px";
-  div.style.paddingBottom = (node.style.paddingBottom == "0" ? 0 : (node.style.paddingBottom || 5)) + "px";
-
-  div.style.marginTop = (node.style.marginTop == "0" ? 0 : (node.style.marginTop || 6)) + "px";
-  div.style.marginBottom = (node.style.marginBottom == "0" ? 0 : (node.style.marginBottom || 6)) + "px";
-
-  if (node.style.allignment === "right") {
-    div.style.marginRight = (node.style.marginRight == "0" ? 0 : (node.style.marginRight || 0)) + "px";
-    div.classList.remove("center-align");
-    div.classList.remove("left-align");
-    div.classList.add("right-align");
-  } else if (node.style.allignment === "center") {
-    div.classList.remove("right-align");
-    div.classList.remove("left-align");
-    div.classList.add("center-align");
-  } else {
-    div.classList.remove("right-align");
-    div.classList.remove("center-align");
-    div.classList.add("left-align");
-    div.style.marginLeft = (node.style.marginLeft == "0" ? 0 : (node.style.marginLeft || 0)) + "px";
-  }
-
-  div.style.color = node.style.color || "#000000";
-
-  //div.style.color = node.color || "#000000"
-}*/
 
 // =======================
 // EDITOR
@@ -218,6 +198,11 @@ function renderEditor() {
   let del = document.createElement("button");
   del.textContent = "Delete Component";
   del.onclick = () => {
+
+    //add to saved actions so it can be undone
+    //savedActions.push([result.node, result.parent]);
+    actions.saveAction(new actions.Action(result.node, result.parent, actions.ActionType.COMPONENT_DELETE));
+
     result.parent.children =
       result.parent.children.filter((c: components.Component) => c.id !== node.id);
 
@@ -258,7 +243,7 @@ function openModal(parentId: string, index: number) {
     if (type[0] && type[1] && type[2] && type[0] != "root") {
       let componentDiv: HTMLDivElement = document.createElement("div");
       componentDiv.style.width = "80%";
-      componentDiv.style.height = "300px";
+      componentDiv.style.height = "350px";
       componentDiv.style.marginTop = "10%";
       componentDiv.style.borderWidth = "1px";
       componentDiv.style.borderStyle = "solid";
@@ -280,12 +265,29 @@ function openModal(parentId: string, index: number) {
       description.style.textAlign = "center";
       description.style.font = "16px";
       description.style.marginTop = "5px";
-      description.style.height = "73%";
+      description.style.height = "100px";
+
+      let pictureDiv = document.createElement("div");
+      let picture = document.createElement("img");
+      pictureDiv.style.width = "90%";
+      pictureDiv.style.height = "200px";
+      pictureDiv.style.marginTop = "-20%";
+      pictureDiv.style.marginLeft = "auto";
+      pictureDiv.style.marginRight = "auto";
+      pictureDiv.style.display = "flex";
+      pictureDiv.style.justifyContent = "center";
+      picture.src = "/src/assets/components/" + type[0] + ".png";
+      picture.style.objectFit = "contain";
+      picture.style.width = "100%";
+      picture.style.height = "100%";
+      picture.style.textAlign = "center";
+      pictureDiv.appendChild(picture);
 
       let buttonDiv = document.createElement("div");
       let addButton: HTMLButtonElement = document.createElement("button");
       buttonDiv.style.display = "flex";
       buttonDiv.style.justifyContent = "center";
+      buttonDiv.style.marginTop = "25px";
       addButton.textContent = "+";
       addButton.classList.add("add-component-button");
       addButton.onclick = () => addComponent(type[0] || "null");
@@ -293,6 +295,7 @@ function openModal(parentId: string, index: number) {
 
       componentDiv.appendChild(componentName);
       componentDiv.appendChild(description);
+      componentDiv.appendChild(pictureDiv);
       componentDiv.appendChild(buttonDiv);
       grid.appendChild(componentDiv);
     }
@@ -302,10 +305,15 @@ function openModal(parentId: string, index: number) {
 }
 
 function addComponent(type: string) {
-  let parent = find(insertContext.parentId).node;
+  let parent = find(insertContext.parentId);
 
   //Add component
-  parent.children.splice(insertContext.index, 0, components.createComponent(type as components.ComponentType));
+  let component = components.createComponent(type as components.ComponentType)
+  parent.node.children.splice(insertContext.index, 0, component);
+
+  //Add to actions list
+  //savedActions.push([component, parent.parent]);
+  actions.saveAction(new actions.Action(component, parent.parent, actions.ActionType.COMPONENT_PLACE));
 
   closeModal();
   renderPreview();
@@ -460,9 +468,6 @@ export function setupSaveButton() {
  * Creates a component (and all it's children) from a JSON string. Used for loading from files.
  */
 export function loadComponent(data: any): components.Component {
-
-//Right now it only supports styles. Labels, directions, etc should be added manually
-
   let component = components.createComponent(data.type);
   component.id = data.id;
   component.style = data.style;
@@ -482,6 +487,9 @@ export function loadComponent(data: any): components.Component {
     component.key = data.key;
   } else if (component instanceof components.ResetButton) {
     component.text = data.text;
+  } else if (component instanceof components.Section) {
+    component.color = data.color;
+    component.thickness = data.thickness;
   }
 
   for (const child of data.children) {
@@ -490,6 +498,105 @@ export function loadComponent(data: any): components.Component {
 
   return component;
 }
+
+/**
+ * Copy the selected component to the clipboard
+ */
+function copyComponent() {
+  if (!selectedId || selectedId == null) return;
+  let found = find(selectedId);
+  if (!found) return;
+  if (found.node == null) return;
+
+  //make a copy of the component and change the id
+  copiedComponent = loadComponent(found.node);
+  copiedComponent.id = crypto.randomUUID();
+
+  //delete the component if cutting it (and save action in case you undo the cut)
+  if (cutting) {
+    found.parent.children = found.parent.children.filter((c: components.Component) => c.id !== found.node.id);
+    actions.saveAction(new actions.Action(found.node, found.parent, actions.ActionType.COMPONENT_CUT));
+  }
+
+  renderPreview();
+}
+
+/**
+ * Paste a copy of the copied component into the specified component (or it's parent if it isn't a layout)
+ * If it's from a cut, then remove from clipboard afterwards
+ */
+function pasteComponent() {
+  if (!copiedComponent || copiedComponent == null) return;
+
+  let selected = find(selectedId);
+  let pasteInto = selected ? (selected.node instanceof components.Layout ? selected.node : selected.parent) : root;
+  
+  //paste the component to selected id
+  pasteInto.children.push(copiedComponent);
+
+  //save the paste action in case you undo it
+  actions.saveAction(new actions.Action(copiedComponent, pasteInto, actions.ActionType.COMPONENT_PASTE));
+
+  selectedId = copiedComponent.id;
+
+  //if cutting, remove the component from the clipboard. If not, make another copy in case you want to paste it again
+  if (cutting) {
+    copiedComponent = null;
+  } else {
+    let nextComponent = loadComponent(copiedComponent);
+    nextComponent.id = crypto.randomUUID();
+    copiedComponent = nextComponent;
+  }
+  cutting = false;
+
+  renderPreview();
+}
+
+/**
+ * Clears the copied component. Used when undoing a component cut
+ */
+export function clearClipboard() {
+  cutting = false;
+  copiedComponent = null;
+}
+
+//add listener for ctrl + z
+document.addEventListener("keydown", (e) => {
+  if (!e.ctrlKey || e.key.toLowerCase() != 'z') return;
+  actions.undoLastAction();
+});
+
+//keybinds for copy, cut, and paste
+document.addEventListener("keydown", (e) => {
+  if (!e.ctrlKey || e.key.toLowerCase() != 'c') return;
+  cutting = false;
+  copyComponent();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (!e.ctrlKey || e.key.toLowerCase() != 'v') return;
+  pasteComponent();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (!e.ctrlKey || e.key.toLowerCase() != 'x') return;
+  cutting = true;
+  copyComponent();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Delete") return;
+
+  if (!selectedId || selectedId == null) return;
+  let found = find(selectedId);
+  if (!found) return;
+  if (found.node == null) return;
+
+  found.parent.children = found.parent.children.filter((c: components.Component) => c.id !== found.node.id);
+  actions.saveAction(new actions.Action(found.node, found.parent, actions.ActionType.COMPONENT_DELETE));
+
+  renderPreview();
+});
 
 let loadingComponents = [];
 
