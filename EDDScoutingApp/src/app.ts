@@ -530,9 +530,11 @@ function pasteComponent() {
 
   let selected = find(selectedId);
   let pasteInto = selected ? (selected.node instanceof components.Layout ? selected.node : selected.parent) : root;
-  
+
+  let insertIndex = pasteInto.children.findIndex((c: components.Component) => c.id === selectedId);
+
   //paste the component to selected id
-  pasteInto.children.push(copiedComponent);
+  pasteInto.children.splice(insertIndex+1, 0, copiedComponent);
 
   //save the paste action in case you undo it
   actions.saveAction(new actions.Action(copiedComponent, pasteInto, actions.ActionType.COMPONENT_PASTE));
@@ -592,13 +594,11 @@ document.addEventListener("keydown", (e) => {
   if (!found) return;
   if (found.node == null) return;
 
-  found.parent.children = found.parent.children.filter((c: components.Component) => c.id !== found.node.id);
   actions.saveAction(new actions.Action(found.node, found.parent, actions.ActionType.COMPONENT_DELETE));
-
+  found.parent.children = found.parent.children.filter((c: components.Component) => c.id !== found.node.id);
+ 
   renderPreview();
 });
-
-let loadingComponents = [];
 
 export function setupLoadButton() {
   let loadButton = document.getElementById("load");
