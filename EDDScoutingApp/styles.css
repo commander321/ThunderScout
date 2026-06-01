@@ -2,13 +2,14 @@ body {
   margin: 0;
   font-family: Arial;
   display: flex;
+  overflow-y: hidden;
 }
 
 #sidebar {
   width: 320px;
   background: #f4f4f4;
   padding: 15px;
-  height: 100vh;
+  height: calc(100vh - 50px);
   overflow-y: auto;
   border-right: 2px solid #ddd;
 }
@@ -16,7 +17,7 @@ body {
 #preview {
   flex: 1;
   padding: 20px;
-  height: 100vh;
+  height: calc(100vh - 50px);
   overflow-y: auto;
 }
 
@@ -55,6 +56,9 @@ body {
   text-align: center;
   cursor: pointer;
   color: #007bff;
+  font-size: 30px;
+  width:90%;
+  margin:auto;
 }
 
 .insert-bar:hover {
@@ -216,4 +220,53 @@ th, td {
 .add-component-button:hover {
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   background-color: #e0e0e0;
+}
+
+.editor-top-bar {
+      position: sticky;
+      top: 0;
+      left: 100%;
+      width: 40%;
+      height: 50px;
+      border-radius:15px;
+      background: #64646470;
+      color: #000000;
+      z-index: 1000;
+      align-content: center;
+      display:inline-block;
+}
+
+.editor-button {
+  border: none;
+  padding: 12px 16px; 
+  font-size: 26px;
+  cursor: pointer;
+  margin-left:2%;
+  background-color:transparent;
+}
+
+.editor-button-tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.editor-button-tooltip-text {
+  visibility: hidden;
+  background: #64646470;
+  color: #000000;
+  text-align: center;
+  font-size:15px;
+  padding: 5px 0;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 1;
+  width: 130px;
+  top: 100%;
+  left: 50%;
+  margin-left: -65px;
+}
+
+.editor-button-tooltip:hover .editor-button-tooltip-text {
+  visibility: visible;
 }

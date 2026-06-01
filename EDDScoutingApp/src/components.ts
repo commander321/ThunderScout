@@ -2,6 +2,7 @@ import * as editor from "./editor.js";
 import * as app from "./app.js";
 import * as matchdata from "./matchdata.js";
 import * as events from "./events.js";
+import { v4 as uuid } from 'uuid';
 
 export abstract class Component {
   id: string;
@@ -12,7 +13,8 @@ export abstract class Component {
   eventGroup: string;
 
   constructor(type: string) {
-    this.id = crypto.randomUUID();
+    //this.id = ""//crypto.randomUUID();
+    this.id = uuid();
     this.type = type;
     this.style = {};
     this.children = [];

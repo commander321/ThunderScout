@@ -3,6 +3,8 @@
 <head>
   <title>FRC Scouting Builder</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
   <!-- <link rel="manifest" href="/manifest.json"> !-->
   <meta name="theme-color" content="#0f766e">
 </head>
@@ -25,7 +27,36 @@
   <button id="export">Export Data</button>
   <button id="matches">View Saved Matches</button>
   <button id="settings">Settings</button>
-  <h1 id="preview-title">Preview</h1>
+  <span id="preview-title">
+    <h1 style="display:inline;">Preview</h1>
+    <div class="editor-top-bar">
+      <button class="editor-button editor-button-tooltip">
+        <i class="fa fa-undo"></i>
+        <span class="editor-button-tooltip-text">Undo (Ctrl + Z)</span>
+      </button>
+      <button class="editor-button editor-button-tooltip">
+        <i class="fa fa-repeat"></i>
+        <span class="editor-button-tooltip-text">Redo (Ctrl + Y)</span>
+      </button>
+      <button class="editor-button editor-button-tooltip">
+        <i class="fa fa-files-o"></i>
+        <span class="editor-button-tooltip-text">Copy (Ctrl + C)</span>
+      </button>
+      <button class="editor-button editor-button-tooltip">
+        <i class="fa fa-scissors"></i>
+        <span class="editor-button-tooltip-text">Cut (Ctrl + X)</span>
+      </button>
+      <button class="editor-button editor-button-tooltip">
+        <i class="fa fa-clipboard"></i>
+        <span class="editor-button-tooltip-text">Paste (Ctrl + V)</span>
+      </button>
+      <button class="editor-button editor-button-tooltip">
+        <i class="fa fa-trash"></i>
+        <span class="editor-button-tooltip-text">Delete (Del)</span>
+      </button>
+    </div>
+  </span>
+  
   <div id="app"></div>
 </div>
 

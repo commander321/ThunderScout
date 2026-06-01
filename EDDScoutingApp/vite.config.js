@@ -20,6 +20,9 @@ export default defineConfig({
                 ]
             }
         })
-    ]
+    ],
+    server: {
+        allowedHosts: true
+    }
 });
 //# sourceMappingURL=vite.config.js.map

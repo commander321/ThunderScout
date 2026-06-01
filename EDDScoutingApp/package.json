@@ -19,6 +19,7 @@
     "install": "^0.13.0",
     "node": "^24.15.0",
     "npm": "^11.13.0",
+    "uuid": "^14.0.0",
     "vite-plugin-html": "^3.2.2",
     "vite-plugin-pwa": "^1.2.0",
     "web-bluetooth": "^0.1.2",

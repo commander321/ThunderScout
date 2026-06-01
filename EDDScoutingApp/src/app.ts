@@ -7,6 +7,7 @@ import * as events from "./events.js";
 import * as matchdata from "./matchdata.js";
 import * as bluetooth from "./bluetooth.js";
 import * as actions from "./action.js";
+import { v4 as uuid } from 'uuid';
 
 //import pictures of components
 /*import imageAllianceStation from "./assets/components/alliancestation.png";
@@ -364,8 +365,8 @@ export function closeDesigner() {
   document.getElementById("matches")?.classList.remove("hidden");
   document.getElementById("settings")?.classList.remove("hidden");
 
-  let previewDiv = document.getElementById("preview");
-  if (previewDiv) previewDiv.style.overflowY = "unset";
+  //let previewDiv = document.getElementById("preview");
+  //if (previewDiv) previewDiv.style.overflowY = "unset";
 
   document.querySelectorAll(".insert-bar").forEach(element => {
     element.classList.add("hidden");
@@ -408,8 +409,8 @@ export function openDesigner() {
   document.getElementById("matches")?.classList.add("hidden");
   document.getElementById("settings")?.classList.add("hidden");
 
-  let previewDiv = document.getElementById("preview");
-  if (previewDiv) previewDiv.style.overflowY = "auto";
+  //let previewDiv = document.getElementById("preview");
+  //if (previewDiv) previewDiv.style.overflowY = "auto";
 
   renderPreview();
 }
@@ -510,7 +511,7 @@ function copyComponent() {
 
   //make a copy of the component and change the id
   copiedComponent = loadComponent(found.node);
-  copiedComponent.id = crypto.randomUUID();
+  copiedComponent.id = uuid();
 
   //delete the component if cutting it (and save action in case you undo the cut)
   if (cutting) {
@@ -546,7 +547,7 @@ function pasteComponent() {
     copiedComponent = null;
   } else {
     let nextComponent = loadComponent(copiedComponent);
-    nextComponent.id = crypto.randomUUID();
+    nextComponent.id = uuid();
     copiedComponent = nextComponent;
   }
   cutting = false;
