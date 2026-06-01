@@ -77,6 +77,14 @@ export function renderPreview() {
   if (!app) return;
   if (!(app instanceof HTMLDivElement)) return;
   app.innerHTML = "";
+
+  app.onclick = (e) => {
+    //e.stopPropagation();
+    selectedId = null;
+    renderPreview();
+    renderEditor();
+  }
+
   renderNode(root, app);
 }
 
@@ -180,40 +188,35 @@ function handleDrop(targetId: string) {
 // EDITOR
 // =======================
 
-function renderEditor() {
+export function renderEditor() {
   const editorDiv = document.getElementById("editor");
   if (!editorDiv) return;
   editorDiv.innerHTML = "";
 
+  const editorTitle = document.getElementById("editor-title");
+  if (!editorTitle) return;
+
   let result = find(selectedId);
-  if (!result) return;
+  if (!result) {
+    editorTitle.innerHTML = "Select a Component";
+    return;
+  }
 
   let node = result.node;
+
+  let title = "Component"
+  for (const component of components.COMPONENT_TYPES) {
+    if (node.constructor.name.toLowerCase() === component[0] && component[1]) {
+      title = component[1];
+      break;
+    }
+  }
+  editorTitle.innerHTML = title;
 
   //Editor features specific to the type of component
   node.addEditorFeatures();
 
-  if (!node.style) node.style = {};
-
-  // DELETE BUTTON RESTORED
-  let del = document.createElement("button");
-  del.textContent = "Delete Component";
-  del.onclick = () => {
-
-    //add to saved actions so it can be undone
-    //savedActions.push([result.node, result.parent]);
-    actions.saveAction(new actions.Action(result.node, result.parent, actions.ActionType.COMPONENT_DELETE));
-
-    result.parent.children =
-      result.parent.children.filter((c: components.Component) => c.id !== node.id);
-
-    selectedId = null;
-    renderPreview();
-    renderEditor();
-  };
-
-  editorDiv.appendChild(document.createElement("hr"));
-  editorDiv.appendChild(del);
+  if (!node.style) node.style = {}
 }
 
 // =======================
@@ -250,6 +253,7 @@ function openModal(parentId: string, index: number) {
       componentDiv.style.borderStyle = "solid";
       componentDiv.style.justifyContent = "center";
       componentDiv.style.padding = "5px";
+      componentDiv.style.borderRadius = "5px";
 
       let componentName = document.createElement("strong");
       componentName.textContent = type[1];
@@ -444,25 +448,10 @@ export function saveToJSON() {
   URL.revokeObjectURL(url);
 }
 
-/**
- * Adds the listener to the close design mode button
- */
-export function setupCloseButton() {
-  let closeDesignerButton = document.getElementById("close");
-  if (!closeDesignerButton) return;
-  closeDesignerButton.onclick = closeDesigner;
-}
-
 export function setupEditButton() {
   let openDesignerButton = document.getElementById("edit");
   if (!openDesignerButton) return;
   openDesignerButton.onclick = openDesigner;
-}
-
-export function setupSaveButton() {
-  let saveButton = document.getElementById("save");
-  if (!saveButton) return;
-  saveButton.onclick = saveToJSON;
 }
 
 /**
@@ -515,8 +504,8 @@ function copyComponent() {
 
   //delete the component if cutting it (and save action in case you undo the cut)
   if (cutting) {
-    found.parent.children = found.parent.children.filter((c: components.Component) => c.id !== found.node.id);
     actions.saveAction(new actions.Action(found.node, found.parent, actions.ActionType.COMPONENT_CUT));
+    found.parent.children = found.parent.children.filter((c: components.Component) => c.id !== found.node.id);
   }
 
   renderPreview();
@@ -589,7 +578,20 @@ document.addEventListener("keydown", (e) => {
 
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Delete") return;
+  deleteSelectedComponent();
+});
 
+document.addEventListener("keydown", (e) => {
+  if (!e.ctrlKey || e.key.toLowerCase() != 's') return;
+  e.preventDefault();
+  saveLocalState();
+});
+
+/**
+ * Deletes the component you have selected. 
+ * Used for keybind and delete button
+ */
+function deleteSelectedComponent() {
   if (!selectedId || selectedId == null) return;
   let found = find(selectedId);
   if (!found) return;
@@ -599,7 +601,8 @@ document.addEventListener("keydown", (e) => {
   found.parent.children = found.parent.children.filter((c: components.Component) => c.id !== found.node.id);
  
   renderPreview();
-});
+  renderEditor();
+}
 
 export function setupLoadButton() {
   let loadButton = document.getElementById("load");
@@ -834,6 +837,69 @@ function setupSettingsButton() {
   if (overlay) overlay.onclick = closeSettingsModal;
 }
 
+function setupEditorButtons() {
+  const undoButton = document.getElementById("editor-button-undo")
+  if (undoButton) undoButton.onclick = (e) => {
+    e.stopPropagation();
+    actions.undoLastAction();
+  }
+  
+  const redoButton = document.getElementById("editor-button-redo");
+  //This doesn't work yet :(
+
+  const copyButton = document.getElementById("editor-button-copy");
+  if (copyButton) copyButton.onclick = (e) => {
+    e.stopPropagation();
+    cutting = false;
+    copyComponent();
+  }
+
+  const cutButton = document.getElementById("editor-button-cut");
+  if (cutButton) cutButton.onclick = (e) => {
+    e.stopPropagation();
+    cutting = true;
+    copyComponent();
+  }
+
+  const pasteButton = document.getElementById("editor-button-paste");
+  if (pasteButton) pasteButton.onclick = (e) => {
+    e.stopPropagation();
+    pasteComponent();
+  }
+
+  const deleteButton = document.getElementById("editor-button-delete");
+  if (deleteButton) deleteButton.onclick = (e) => {
+    e.stopPropagation();
+    deleteSelectedComponent();
+  }
+
+  const exportButton = document.getElementById("editor-button-export");
+  if (exportButton) exportButton.onclick = (e) => {
+    e.stopPropagation();
+    saveToJSON();
+  }
+
+  const saveButton = document.getElementById("editor-button-save");
+  if (saveButton) saveButton.onclick = (e) => {
+    e.stopPropagation();
+    saveLocalState();
+  }
+
+  const uploadButton = document.getElementById("editor-button-upload");
+  if (uploadButton) uploadButton.onclick = (e) => {
+    e.stopPropagation();
+    const loadButton = document.getElementById("load");
+    if (loadButton && loadButton instanceof HTMLInputElement) loadButton.click();
+  }
+
+  const closeButton = document.getElementById("editor-button-close");
+  if (closeButton) closeButton.onclick = (e) => {
+    e.stopPropagation();
+    closeDesigner();
+  }
+
+}
+
 export function getEditorEnabled(): boolean {
   return editor_enabled;
 }
@@ -889,13 +955,12 @@ function loadLocalState() {
   if (saved_unsaved_matches) matchdata.setUnsavedMatches(JSON.parse(saved_unsaved_matches));
 }
 
-setupCloseButton();
 setupEditButton();
-setupSaveButton();
 setupLoadButton();
 setupExportButton();
 setupMatchesButton();
 setupSettingsButton();
+setupEditorButtons();
 
 //Get the saved state and load either the editor or runtime mode
 loadLocalState();

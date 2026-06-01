@@ -226,14 +226,17 @@ th, td {
       position: sticky;
       top: 0;
       left: 100%;
-      width: 40%;
+      width: auto;
       height: 50px;
+      padding-right:35px;
+      padding-left:35px;
       border-radius:15px;
       background: #64646470;
       color: #000000;
       z-index: 1000;
       align-content: center;
-      display:inline-block;
+      display:inline-flex;
+      justify-content: center;
 }
 
 .editor-button {
@@ -242,7 +245,11 @@ th, td {
   font-size: 26px;
   cursor: pointer;
   margin-left:2%;
-  background-color:transparent;
+  background-color:#00000000;
+}
+
+.editor-button:hover {
+  background-color:#00000020;
 }
 
 .editor-button-tooltip {

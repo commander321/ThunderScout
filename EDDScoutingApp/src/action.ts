@@ -8,12 +8,20 @@ export class Action {
     parent: components.Component | null;
     type: ActionType;
     style: Record<string, any>;
+    insertIndex: number; //for delete actions, to be pasted back in
 
     constructor(component: components.Component, parent: components.Component | null, type: ActionType, style?: Record<string, any>) {
         this.component = component;
         this.parent = parent;
         this.type = type;
         this.style = style || {};
+        
+        //if it was deleted (cut or delete), save the insert index in case its undone
+        if ((type == ActionType.COMPONENT_DELETE || type == ActionType.COMPONENT_CUT) && parent) {
+            this.insertIndex = parent.children.findIndex((c: components.Component) => c.id === component.id);
+        } else {
+            this.insertIndex = -1;
+        }
     }
 }
 
@@ -45,7 +53,12 @@ if (savedActions.length == 0) return;
     //If undoing a component delete, recreate the component
     case ActionType.COMPONENT_DELETE:
         if (lastAction.parent) {
-            lastAction.parent.children.push(lastAction.component);
+            //paste the component to selected id using the insert index
+            if (!lastAction.insertIndex || lastAction.insertIndex <= 0) {
+                lastAction.parent.children.unshift(lastAction.component);
+            } else {
+                lastAction.parent.children.splice(lastAction.insertIndex, 0, lastAction.component);
+            }
         }
         break;
 
@@ -64,7 +77,12 @@ if (savedActions.length == 0) return;
     //If undoing a cut, add the component back and clear the clipboard
     case ActionType.COMPONENT_CUT:
         if (lastAction.parent) {
-            lastAction.parent.children.push(lastAction.component);
+            //paste the component to selected id using the insert index
+            if (!lastAction.insertIndex || lastAction.insertIndex <= 0) {
+                lastAction.parent.children.unshift(lastAction.component);
+            } else {
+                lastAction.parent.children.splice(lastAction.insertIndex, 0, lastAction.component);
+            }
         }
         app.clearClipboard();
         break;
@@ -78,4 +96,5 @@ if (savedActions.length == 0) return;
 
   //render the updated app
   app.renderPreview();
+  app.renderEditor();
 }

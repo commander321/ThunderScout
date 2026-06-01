@@ -67,7 +67,7 @@ export function addTextLabel(node: any) {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    addInput(node, editorDiv, "Label", node.text, (val: any) => {
+    addInput(node, editorDiv, "Text", node.text, (val: any) => {
         node.text = val;
         app.renderPreview();
     });

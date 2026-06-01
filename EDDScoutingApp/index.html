@@ -15,10 +15,26 @@
 -->
 
 <div id="sidebar">
-  <button id="close">Close</button>
-  <button id="save">Save</button>
-  <input id="load" type="file" accept="application/json"></button>
-  <h2>Component Editor</h2>
+  <button class="editor-button editor-button-tooltip" id="editor-button-close">
+        X
+        <span class="editor-button-tooltip-text" style="width:100px;margin-left:-50px">Close Editor</span>
+    </button>
+  <span class="editor-top-bar" style="padding-left:20px;padding-right:20px;left:0%;position: relative;">
+    <button class="editor-button editor-button-tooltip" id="editor-button-save">
+        <i class="fa fa-floppy-o"></i>
+        <span class="editor-button-tooltip-text">Save (Ctrl + S)</span>
+    </button>
+    <button class="editor-button editor-button-tooltip" id="editor-button-export">
+        <i class="fa fa-download"></i>
+        <span class="editor-button-tooltip-text" style="width:160px;margin-left:-80px;">Export App to JSON</span>
+    </button>
+    <button class="editor-button editor-button-tooltip" id="editor-button-upload">
+        <i class="fa fa-upload"></i>
+        <span class="editor-button-tooltip-text" style="width:170px;margin-left:-85px;">Load App from JSON</span>
+    </button>
+    <input id="load" type="file" accept="application/json" class="hidden"></button>
+  </span>
+  <h2 style="margin-top:10%;" id="editor-title">Select a Component</h2>
   <div id="editor"></div>
 </div>
 
@@ -30,29 +46,29 @@
   <span id="preview-title">
     <h1 style="display:inline;">Preview</h1>
     <div class="editor-top-bar">
-      <button class="editor-button editor-button-tooltip">
+      <button class="editor-button editor-button-tooltip" id="editor-button-undo">
         <i class="fa fa-undo"></i>
         <span class="editor-button-tooltip-text">Undo (Ctrl + Z)</span>
       </button>
-      <button class="editor-button editor-button-tooltip">
+      <button class="editor-button editor-button-tooltip" id="editor-button-redo">
         <i class="fa fa-repeat"></i>
         <span class="editor-button-tooltip-text">Redo (Ctrl + Y)</span>
       </button>
-      <button class="editor-button editor-button-tooltip">
+      <button class="editor-button editor-button-tooltip" id="editor-button-copy">
         <i class="fa fa-files-o"></i>
         <span class="editor-button-tooltip-text">Copy (Ctrl + C)</span>
       </button>
-      <button class="editor-button editor-button-tooltip">
+      <button class="editor-button editor-button-tooltip" id="editor-button-cut">
         <i class="fa fa-scissors"></i>
         <span class="editor-button-tooltip-text">Cut (Ctrl + X)</span>
       </button>
-      <button class="editor-button editor-button-tooltip">
+      <button class="editor-button editor-button-tooltip" id="editor-button-paste">
         <i class="fa fa-clipboard"></i>
         <span class="editor-button-tooltip-text">Paste (Ctrl + V)</span>
       </button>
-      <button class="editor-button editor-button-tooltip">
+      <button class="editor-button editor-button-tooltip" id="editor-button-delete">
         <i class="fa fa-trash"></i>
-        <span class="editor-button-tooltip-text">Delete (Del)</span>
+        <span class="editor-button-tooltip-text">Delete (Delete)</span>
       </button>
     </div>
   </span>
