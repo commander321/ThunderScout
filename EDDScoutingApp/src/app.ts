@@ -457,9 +457,9 @@ export function setupEditButton() {
 /**
  * Creates a component (and all it's children) from a JSON string. Used for loading from files.
  */
-export function loadComponent(data: any): components.Component {
+export function loadComponent(data: any, newUUID?: boolean): components.Component {
   let component = components.createComponent(data.type);
-  component.id = data.id;
+  component.id = newUUID ? uuid() : data.id;
   component.style = data.style;
   component.eventType = data.eventType;
   component.eventGroup = data.eventGroup;
@@ -470,6 +470,7 @@ export function loadComponent(data: any): components.Component {
     component.text = data.text;
   } else if (component instanceof components.Button) {
     component.text = data.text;
+    component.decrease = data.decrease;
   } else if (component instanceof components.Dropdown) {
     component.options = data.options;
     component.required = data.required;
@@ -483,7 +484,7 @@ export function loadComponent(data: any): components.Component {
   }
 
   for (const child of data.children) {
-    component.children.push(loadComponent(child));
+    component.children.push(loadComponent(child, newUUID));
   }
 
   return component;
@@ -499,8 +500,8 @@ function copyComponent() {
   if (found.node == null) return;
 
   //make a copy of the component and change the id
-  copiedComponent = loadComponent(found.node);
-  copiedComponent.id = uuid();
+  copiedComponent = loadComponent(found.node, true);
+  //copiedComponent.id = uuid();
 
   //delete the component if cutting it (and save action in case you undo the cut)
   if (cutting) {

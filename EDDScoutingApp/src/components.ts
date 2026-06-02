@@ -90,7 +90,7 @@ export class Counter extends Component {
   render(div: HTMLDivElement) {
     let label: HTMLDivElement = document.createElement("div");
     label.id = this.id;
-    label.textContent = matchdata.getCurrentMatch().getEventCount(this.eventType).toString();
+    label.textContent = matchdata.getCurrentMatch().getEventCount(this.eventType, this.eventGroup).toString();
 
     div.appendChild(label);
 
@@ -102,7 +102,7 @@ export class Counter extends Component {
   update() {
     let label = document.getElementById(this.id);
     if (!label) return;
-    label.textContent = matchdata.getCurrentMatch().getEventCount(this.eventType).toString();
+    label.textContent = matchdata.getCurrentMatch().getEventCount(this.eventType, this.eventGroup).toString();
   }
 }
 
@@ -111,6 +111,7 @@ export class Button extends Component {
   bold: boolean;
   italic: boolean;
   underline: boolean;
+  decrease: boolean;
 
   constructor() {
     super("button");
@@ -118,15 +119,22 @@ export class Button extends Component {
     this.bold = false;
     this.italic = false;
     this.underline = false;
+    this.decrease = false;
   }
 
   addEditorFeatures() {
-    editor.addTextLabel(this);
-    editor.addEventSelection(this);
-    //add a button styles section (for background colors, hover colors, etc)
     const editorDiv = document.getElementById("editor");
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
+
+    editor.addTextLabel(this);
+    editor.addEventSelection(this);
+
+    editor.addInput(this, editorDiv, "Decrease", this.decrease || false, (val: any) => {
+        this.decrease = val.checked;
+    }, "checkbox");
+
+    //add a button styles section (for background colors, hover colors, etc)
 
     editorDiv.appendChild(document.createElement("hr"));
     let label = document.createElement("div");
@@ -156,7 +164,11 @@ export class Button extends Component {
     button.onclick = (e) => {
       //e.stopPropagation();
       if (app.isRuntimeMode()) {
-        matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.eventType, this.eventGroup));
+        if (this.decrease) {
+          matchdata.getCurrentMatch().removeLatestEvent(this.eventType, this.eventGroup);
+        } else {
+          matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.eventType, this.eventGroup));
+        }
         updateCounters(this.eventType);
         console.log(matchdata.getCurrentMatch().matchEvents); //for testing, might remove later (or not, doesn't really matter)
       }

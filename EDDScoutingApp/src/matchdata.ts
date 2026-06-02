@@ -54,6 +54,22 @@ export class MatchData {
     }
 
     /**
+     * Removes the last event of a certain type to occur
+     */
+    removeLatestEvent(type: string, group?: string) {
+        for (let i = this.matchEvents.length-1;i >= 0;i--) {
+            const event = this.matchEvents[i];
+            if (event === undefined) continue;
+            if (event.type != type) continue;
+            if (group && event.group != group) continue;
+
+            this.matchEvents.splice(i);
+
+            break;
+        }
+    }
+
+    /**
      * Removes all events of a specifc type from the match
      */
     removeType(type: string, group?: string) {
