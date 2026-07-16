@@ -209,6 +209,10 @@ function openModal(parentId: string, index: number) {
   modal.classList.remove("hidden");
   modal.style.width = "60%";
   modal.style.height = "75%";
+  modal.style.borderStyle = "solid";
+  modal.style.borderWidth = "2px";
+  modal.style.borderColor = "#bbbbbb";
+  modal.style.borderRadius = "5px";
   modal.innerHTML = "<h2>Select a component to add</h2>";
 
   let grid = document.createElement("div");

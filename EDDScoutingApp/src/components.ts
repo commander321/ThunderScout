@@ -1060,8 +1060,8 @@ function applyLayoutStlyes(node: HTMLElement, style: Record<string, any>) {
   if (!style) return;
 
   node.style.background = style.background || "";
-  node.style.width = style.width ? (style.width == 0 ? "fit-content" : style.width + "px") : "fit-content";
-  node.style.height = style.height ? (style.height == 0 ? "auto" : style.height + "px") : "auto";
+  node.style.width = style.width ? (style.width == 0 ? "fit-content" : style.width + (style.widthType || "px")) : "fit-content";
+  node.style.height = style.height ? (style.height == 0 ? "auto" : style.height + (style.heightType || "px")) : "auto";
 
   node.style.paddingLeft = (style.paddingLeft == "0" ? 0 : (style.paddingLeft || 5)) + "px";
   node.style.paddingRight = (style.paddingRight == "0" ? 0 : (style.paddingRight || 5)) + "px";

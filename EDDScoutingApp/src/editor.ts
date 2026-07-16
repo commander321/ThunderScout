@@ -133,21 +133,33 @@ export function addLayoutStyleSection(node: components.Component) {
     editorDiv.appendChild(label);
     editorDiv.appendChild(document.createElement("br"));
 
+    //width and height
+    let widthLabel = document.createElement("div");
+    widthLabel.textContent = "Width:";
+    editorDiv.appendChild(widthLabel);
+    addPixelPercentInput(node, "width", "widthType");
+
+    let heightLabel = document.createElement("div");
+    heightLabel.textContent = "Height:";
+    editorDiv.appendChild(heightLabel);
+    addPixelPercentInput(node, "height", "heightType");
+
+    /*
+    addInput(node, editorDiv, "Width (px)", node.style.width || 0, (val: any) => {
+        node.style.width = val;
+        app.renderPreview();
+    }, "number");*/
+
+    /*
+    addInput(node, editorDiv, "Height (px)", node.style.height || 0, (val: any) => {
+        node.style.height = val;
+        app.renderPreview();
+    }, "number");*/
+
     addInput(node, editorDiv, "Background", node.style.background || "#FFFFFF", (val: any) => {
         node.style.background = val;
         app.renderPreview();
     }, "color");
-    
-    addInput(node, editorDiv, "Width (px)", node.style.width || 0, (val: any) => {
-        node.style.width = val;
-        app.renderPreview();
-    }, "number");
-
-    addInput(node, editorDiv, "Height (px)", node.style.height || 0, (val: any) => {
-        node.style.height = val;
-        app.renderPreview();
-    }, "number");
-
 
     //======= Div Alignment =======
     
@@ -222,6 +234,49 @@ export function addLayoutStyleSection(node: components.Component) {
 
     editorDiv.appendChild(marginDiv2);
 
+}
+
+/**
+ * Add a input that has pixel and percentage options (width and height)
+ */
+export function addPixelPercentInput(node: components.Component, numberProperty: string, typeProperty: string) {
+  const editorDiv = document.getElementById("editor");
+  if (!editorDiv) return;
+  if (!(editorDiv instanceof HTMLDivElement)) return;
+
+  let div = document.createElement("div");
+  div.classList.add("editor-width-height");
+
+  let numberInput = document.createElement("input");
+  numberInput.classList.add("editor-width-height-input");
+  numberInput.type = "number";
+  numberInput.min = "0";
+  numberInput.max = "9999";
+  numberInput.style.fontSize = "14px";
+  numberInput.style.width = "60%";
+
+  let divider = document.createElement("div");
+  divider.classList.add("textbox-editor-divider");
+
+  let typeDropdown = document.createElement("select");
+  typeDropdown.classList.add("editor-width-height-input");
+  typeDropdown.style.fontSize = "14px";
+  typeDropdown.style.width = "40%";
+  addInput(node, div, "", node.style[numberProperty] || 0, (val: any) => {
+    node.style[numberProperty] = val;
+    app.renderPreview();
+  }, "number", numberInput);
+  div.appendChild(numberInput);
+
+  div.appendChild(divider);
+
+  addSelect(node, div, "", node.style[typeProperty] || "px", ["px", "%"], (val: any) => {
+    node.style[typeProperty] = val;
+    app.renderPreview();
+  }, typeDropdown);
+  div.appendChild(typeDropdown);
+
+  editorDiv.appendChild(div);
 }
 
 /**
