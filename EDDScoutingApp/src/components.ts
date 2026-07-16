@@ -56,9 +56,11 @@ export class Label extends Component {
   }
 
   addEditorFeatures() {
-    editor.addTextLabel(this);
+    editor.addTextEditor(this, true);
+    //editor.addTextLabel(this);
     editor.addLayoutStyleSection(this);
-    editor.addTextSection(this);
+    //editor.addTextSection(this);
+    //editor.addTextSectionNew(this);
     editor.addBorderSection(this);
   }
 
@@ -82,8 +84,8 @@ export class Counter extends Component {
 
   addEditorFeatures() {
     editor.addEventSelection(this);
+    editor.addTextEditor(this, false, matchdata.getCurrentMatch().getEventCount(this.eventType, this.eventGroup).toString());
     editor.addLayoutStyleSection(this);
-    editor.addTextSection(this);
     editor.addBorderSection(this);
   }
 
@@ -127,7 +129,7 @@ export class Button extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    editor.addTextLabel(this);
+    editor.addTextEditor(this, true);
     editor.addEventSelection(this);
 
     editor.addInput(this, editorDiv, "Decrease", this.decrease || false, (val: any) => {
@@ -153,7 +155,7 @@ export class Button extends Component {
     }, "color");
 
     editor.addLayoutStyleSection(this);
-    editor.addTextSection(this);
+    //editor.addTextSection(this);
     editor.addBorderSection(this);
   }
 
@@ -285,8 +287,9 @@ export class Dropdown extends Component {
       this.required = val.checked;
     }, "checkbox");
 
+    editor.addTextEditor(this, false, this.options.toString());
     editor.addLayoutStyleSection(this);
-    editor.addTextSection(this);
+    //editor.addTextSection(this);
     editor.addBorderSection(this);
   }
 
@@ -420,7 +423,11 @@ export class Layout extends Component {
   }
 
   addEditorFeatures() {
-    editor.addSelect(this, "Direction", this.direction, ["vertical", "horizontal"], (val: any) => {
+    const editorDiv = document.getElementById("editor");
+    if (!editorDiv) return;
+    if (!(editorDiv instanceof HTMLDivElement)) return;
+
+    editor.addSelect(this, editorDiv, "Direction", this.direction, ["vertical", "horizontal"], (val: any) => {
         this.direction = val;
         app.renderPreview();
     });
@@ -447,7 +454,7 @@ export class TeamNum extends Component {
 
   addEditorFeatures(): void {
     editor.addLayoutStyleSection(this);
-    editor.addTextSection(this);
+    editor.addTextEditor(this, false, matchdata.getCurrentMatch().teamNumber.toString());
     editor.addBorderSection(this);
   }
 
@@ -497,7 +504,7 @@ export class TextBox extends Component {
         }, "text");
       
     editor.addLayoutStyleSection(this);
-    editor.addTextSection(this);
+    editor.addTextEditor(this, false, matchdata.getCurrentMatch().getTextData(this.key));
     editor.addBorderSection(this);
   }
 
@@ -540,7 +547,7 @@ export class MatchNum extends Component {
 
   addEditorFeatures(): void {
     editor.addLayoutStyleSection(this);
-    editor.addTextSection(this);
+    editor.addTextEditor(this, false, matchdata.getCurrentMatch().matchNumber.toString());
     editor.addBorderSection(this);
   }
 
@@ -575,7 +582,7 @@ export class MatchType extends Component {
 
   addEditorFeatures(): void {
     editor.addLayoutStyleSection(this);
-    editor.addTextSection(this);
+    editor.addTextEditor(this, false, matchdata.getCurrentMatch().matchType.toString());
     editor.addBorderSection(this);
   }
 
@@ -622,7 +629,7 @@ export class AllianceStation extends Component {
 
   addEditorFeatures(): void {
     editor.addLayoutStyleSection(this);
-    editor.addTextSection(this);
+    editor.addTextEditor(this, false, matchdata.getCurrentMatch().allianceStation.toString());
     editor.addBorderSection(this);
   }
 
@@ -669,7 +676,6 @@ export class AllianceStation extends Component {
 }
 
 export class ResetButton extends Component {
-
   text: string;
 
   constructor() {
@@ -679,9 +685,8 @@ export class ResetButton extends Component {
   }
 
   addEditorFeatures(): void {
-    editor.addTextLabel(this);
+    editor.addTextEditor(this, true);
     editor.addLayoutStyleSection(this);
-    editor.addTextSection(this);
     editor.addBorderSection(this);
   }
 
@@ -734,7 +739,304 @@ export class ResetButton extends Component {
   }
 }
 
+export class AnalyticsMatchesTable extends Component {
 
+/*
+How analytics tables will work:
+Rows are for each match
+Columns can be added to view events and what not
+Maybe each column type can be a component?
+
+
+Maybe add by team tables too
+
+Lets start with a 1511 style table (by match for a team)
+You can add columns 
+Different types:
+- Match num
+- Other header info (start loc, alliance station, etc)
+- List events of a group type
+- List count of events of a specific type and/or group
+- List data from a text field
+- Match averages for event count of a type
+- Custom (advanced), make a thing like workflows but this is complicated. I'd love to have things like conditions and what not.
+
+
+
+*/
+  minRows: number;
+
+  constructor() {
+    super("analyticsmatchestable");
+
+    this.minRows = 5;
+
+    //default columns
+    let matchNum = new AnalyticsMatchesTableColumn();
+    matchNum.dataType = "Match Number";
+    matchNum.header = "Match Number";
+    let teamNum = new AnalyticsMatchesTableColumn();
+    teamNum.dataType = "Team Number";
+    teamNum.header = "Team Number";
+
+    this.children.push(matchNum);
+    this.children.push(teamNum);
+  }
+
+  addEditorFeatures(): void {
+    const editorDiv = document.getElementById("editor");
+    if (!editorDiv) return;
+    if (!(editorDiv instanceof HTMLDivElement)) return;
+
+    editor.addInput(this, editorDiv, "Minimum Rows", this.minRows, (val: any) => {
+      this.minRows = val;
+      app.renderPreview();
+    }, "number");
+
+    editor.addLayoutStyleSection(this);
+  }
+
+  render(div: HTMLDivElement): void {
+    let table = document.createElement("table");
+
+    //DEFAULT BORDER STYLES
+    table.style.borderCollapse = "collapse";
+    table.style.border = "1px solid";
+
+    //colgroup
+    let colgroup = document.createElement("colgroup");
+    for (const column of this.children) {
+      if (!(column instanceof AnalyticsMatchesTableColumn)) continue;
+      column.addToColgroup(colgroup);
+    }
+    table.appendChild(colgroup);
+
+    //header row
+    let header = document.createElement("tr");
+    for (const column of this.children) {
+      if (!(column instanceof AnalyticsMatchesTableColumn)) continue;
+      column.addToHeader(header);
+    }
+    table.appendChild(header);
+
+    //get all matches for the current selected team
+    for (const match of matchdata.getAllMatches().filter((m: matchdata.MatchData) => m.teamNumber == matchdata.getCurrentMatch().teamNumber)) {
+      let row = document.createElement("tr");
+      
+      for (const column of this.children) {
+        if (!(column instanceof AnalyticsMatchesTableColumn)) continue;
+        column.addToRow(row, match);
+      }
+
+      table.appendChild(row);
+    }
+
+    //be able to set a minimum table size (default is 5)
+    while (table.children.length <= this.minRows) {
+      let row = document.createElement("tr");
+      for (const column of this.children) {
+        if (!(column instanceof AnalyticsMatchesTableColumn)) continue;
+        column.addToBlankRow(row);
+      }
+      table.appendChild(row);
+    }
+
+    //if editing, add a button to add a column
+    if (!app.isRuntimeMode()) {
+      let addButton: HTMLButtonElement = document.createElement("button");
+      addButton.innerHTML = "Add Column";
+      addButton.onclick = (e) => {
+        e.stopPropagation();
+        let newColumn = new AnalyticsMatchesTableColumn();
+        //this.columns.push(newColumn);
+        this.children.push(newColumn);
+        app.renderPreview();
+      }
+      table.appendChild(addButton);
+    }
+
+    div.appendChild(table);
+  }
+
+}
+
+export class AnalyticsMatchesTableColumn extends Component {
+  value: any;
+
+  header: string;
+  dataType: string; //make this enum later
+  textboxKey: string; //only used if the data is from a textbox
+  colElement: any; //col element in colgroup
+  hovering: boolean; //are you hovering over the elemenet
+
+  constructor() {
+    super("analyticsmatchestablecolumn");
+  
+    this.header = "New Column";
+    this.dataType = "Event Count";
+    this.textboxKey = "";
+    this.hovering = false;
+  }
+
+  addEditorFeatures(): void {
+    const editorDiv = document.getElementById("editor");
+    if (!editorDiv) return;
+    if (!(editorDiv instanceof HTMLDivElement)) return;
+
+    editor.addInput(this, editorDiv, "Header", this.header, (val: any) => {
+      this.header = val;
+      app.renderPreview();
+    }, "text");
+
+    //columns have selection to select if it's an event, group, header info, etc
+    editor.addSelect(this, editorDiv, "Data Type", this.dataType, ["Event Count", "Group", "Textbox", "Match Number", "Team Number", "Alliance Station", "Match Type", "Event Code"], (val: any) => {
+      this.dataType = val;
+      app.renderPreview();
+      app.renderEditor();
+    });
+
+    if (this.dataType == "Event Count") {
+      editor.addEventSelection(this);
+    } else if (this.dataType == "Group") {
+      editor.addGroupSection(this);
+    } else if (this.dataType == "Textbox") {
+        editor.addInput(this, editorDiv, "Textbox ID", this.textboxKey, (val: any) => {
+          this.textboxKey = val;
+          app.renderPreview();
+        }, "text");
+    }
+
+    editor.addTextEditor(this, false);
+  }
+
+  render(div: HTMLDivElement): void {
+    return;
+  }
+
+  //adds the component selection events because these aren't "real" components
+  //stolen from the render node method in app.ts
+  applySelectionEvents(element: HTMLElement) {
+    element.onclick = e => {
+      if (app.isRuntimeMode()) return;
+      e.stopPropagation();
+      app.setSelectedID(this.id);
+
+      app.renderPreview();
+      app.renderEditor();
+    };
+
+    //hover styles
+    /*element.onmouseenter = e => {
+      //if (app.isRuntimeMode()) return;
+      e.stopPropagation();
+
+      this.hovering = true;
+
+      app.renderPreview();
+    };
+
+    element.onmouseleave = e => {
+      console.log("aaa");
+      //if (!app.isRuntimeMode()) return;
+      e.stopPropagation();
+
+      this.hovering = false;
+
+      app.renderPreview();
+    }*/
+  }
+
+  /**
+   * Apply styles to the column/cells
+   */
+  applyStyles(element: HTMLElement) {
+    //default borders
+    
+    if (app.getSelectedID() == this.id) {
+      element.style.backgroundColor = "#eef6ff;"
+      element.style.borderLeft = "2px solid #007bff";
+      element.style.borderRight = "2px solid #007bff";
+      element.style.borderTop = "1px solid";
+      element.style.borderBottom = "1px solid";
+    } else if (this.hovering) {
+      element.style.backgroundColor = "#eef6ff;"
+      element.style.borderLeft = "1px solid #007bff";
+      element.style.borderRight = "1px solid #007bff";
+      element.style.borderTop = "1px solid";
+      element.style.borderBottom = "1px solid";
+    } else {
+      element.classList.add("editor-component");
+      element.style.borderCollapse = "collapse";
+      element.style.border = "1px solid #000000";
+    }
+
+  }
+
+  /**
+   * Add this column to a colgroup element and set this object's colgroup
+   */
+  addToColgroup(colgroup: HTMLElement) {
+    let col: HTMLTableColElement = document.createElement("col");
+    colgroup.appendChild(col);
+
+    this.colElement = col;
+  }
+
+  /**
+   * Add this column to a header row in a table
+   */
+  addToHeader(row: HTMLTableRowElement) {
+    let cell: HTMLTableCellElement = document.createElement("th");
+    cell.textContent = this.header;
+
+    this.applyStyles(cell);
+
+    this.applySelectionEvents(cell);
+    row.appendChild(cell);
+  }
+
+  /**
+   * Add this column to a row, but don't include any data
+   */
+  addToBlankRow(row: HTMLTableRowElement) {
+    let cell: HTMLTableCellElement = document.createElement("td");
+
+    this.applyStyles(cell);
+
+    this.applySelectionEvents(cell);
+    row.appendChild(cell);
+  }
+
+  /**
+   * Add this column to a row
+   */
+  addToRow(row: HTMLTableRowElement, match: matchdata.MatchData) {
+    let cell: HTMLTableCellElement = document.createElement("td");
+
+    this.applyStyles(cell);
+
+    if (this.dataType == "Event Count") {
+      cell.textContent = match.getEventCount(this.eventType, this.eventGroup).toString();
+    } else if (this.dataType == "Group") {
+      cell.textContent = match.getEventsByGroup(this.eventGroup).toString();
+    } else if (this.dataType == "Textbox") {
+      cell.textContent = match.getTextData(this.textboxKey);
+    } else if (this.dataType == "Match Number") {
+      cell.textContent = match.matchNumber.toString();
+    } else if (this.dataType == "Team Number") {
+      cell.textContent = match.teamNumber.toString();
+    } else if (this.dataType == "Alliance Station") {
+      cell.textContent = match.allianceStation.toString();
+    } else if (this.dataType == "Match Type") {
+      cell.textContent = match.matchType.toString();
+    } else if (this.dataType == "Event Code") {
+      cell.textContent = match.eventCode;
+    }
+
+    this.applySelectionEvents(cell);
+    row.appendChild(cell);
+  }
+}
 
 
 /**
@@ -789,12 +1091,12 @@ function applyLayoutStlyes(node: HTMLElement, style: Record<string, any>) {
 /**
  * Apply CSS styles for text
  */
-function applyTextStyles(node: HTMLElement, style: Record<string, any>) {
+export function applyTextStyles(node: HTMLElement, style: Record<string, any>) {
   node.style.fontSize = (style.textSize || 14) + "px";
   node.style.fontFamily = style.fontFamily || "Arial";
   node.style.fontWeight = style.bold ? "bold" : "normal";
   node.style.fontStyle = style.fontStyle || ""
-  node.style.textAlign = style.textAlign || "Left";
+  node.style.textAlign = style.textAlign || "left";
   node.style.textDecoration = style.textDecoration || ""
   node.style.color = style.color || "#000000";
 }
@@ -827,6 +1129,8 @@ export const componentRegistry = {
   matchtype: MatchType,
   alliancestation: AllianceStation,
   resetbutton: ResetButton,
+  analyticsmatchestable: AnalyticsMatchesTable,
+  analyticsmatchestablecolumn: AnalyticsMatchesTableColumn,
 } as const;
 
 export const COMPONENT_TYPES: string[][] = [
@@ -844,7 +1148,8 @@ export const COMPONENT_TYPES: string[][] = [
   ["matchnum", "Match Number", "Enter the match number for a match."],
   ["matchtype", "Match Type", "Select the type of match (practice, quals, etc)."],
   ["alliancestation", "Alliance Station", "Select the alliance station for the match (Red 1, Blue 1, etc)."],
-  ["resetbutton", "Next Match Button", "Button to save the match data, transfer it, and reset the app to the next match."]
+  ["resetbutton", "Next Match Button", "Button to save the match data, transfer it, and reset the app to the next match."],
+  ["analyticsmatchestable", "Matches Table", "Custom table to analyze a teams data across their matches."]
 ];
 
 export type ComponentType = keyof typeof componentRegistry;

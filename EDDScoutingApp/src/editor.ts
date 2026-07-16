@@ -3,12 +3,14 @@ import * as components from "./components.js";
 import * as events from "./events.js";
 import * as actions from "./action.js"
 
-export function addInput(node: components.Component, parentDiv: HTMLDivElement, labelText: string, value: any, onChange: any, type: string = "text") {
-  let label = document.createElement("div");
-  label.textContent = labelText;
-  parentDiv.appendChild(label);
-
-  let input = document.createElement("input");
+export function addInput(node: components.Component, parentDiv: HTMLDivElement, labelText: string, value: any, onChange: any, type: string = "text", inputElement?: HTMLInputElement) {
+  if (labelText != "") {
+    let label = document.createElement("div");
+    label.textContent = labelText;
+    parentDiv.appendChild(label);
+  }
+  
+  let input = inputElement || document.createElement("input");
   input.type = type;
   input.value = value;
 
@@ -30,18 +32,20 @@ export function addInput(node: components.Component, parentDiv: HTMLDivElement, 
     }
   }
 
-  parentDiv.appendChild(input);
+  if (!inputElement) parentDiv.appendChild(input);
 }
 
-export function addSelect(node: components.Component, labelText: string, value: string, options: string[], onChange: any) {
-  const editorDiv = document.getElementById("editor");
-  if (!editorDiv) return;
+export function addSelect(node: components.Component, parentDiv: HTMLDivElement, labelText: string, value: string, options: string[], onChange: any, selectElement?: HTMLSelectElement) {
+  //const editorDiv = document.getElementById("editor");
+  //if (!editorDiv) return;
 
-  let label = document.createElement("div");
-  label.textContent = labelText;
-  editorDiv.appendChild(label);
+  if (labelText != "") {
+    let label = document.createElement("div");
+    label.textContent = labelText;
+    parentDiv.appendChild(label);
+  }
 
-  let select = document.createElement("select");
+  let select = selectElement || document.createElement("select");
 
   options.forEach(opt => {
     let option = document.createElement("option");
@@ -56,21 +60,7 @@ export function addSelect(node: components.Component, labelText: string, value: 
     onChange(select.value);
   }
 
-  editorDiv.appendChild(select);
-}
-
-/**
- * Add the label option for components with a text label
- */
-export function addTextLabel(node: any) {
-    const editorDiv = document.getElementById("editor");
-    if (!editorDiv) return;
-    if (!(editorDiv instanceof HTMLDivElement)) return;
-
-    addInput(node, editorDiv, "Text", node.text, (val: any) => {
-        node.text = val;
-        app.renderPreview();
-    });
+  if (!selectElement) parentDiv.appendChild(select);
 }
 
 /**
@@ -81,12 +71,12 @@ export function addEventSelection(node: components.Component) {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    addSelect(node, "Event", node.eventType, events.getEventTypes(), (val: any) => { 
+    addSelect(node, editorDiv, "Event", node.eventType, events.getEventTypes(), (val: any) => { 
       node.eventType = val;
       app.renderPreview();
     });
 
-    addSelect(node, "Group", node.eventGroup, events.getEventGroups(), (val: any) => {
+    addSelect(node, editorDiv, "Group", node.eventGroup, events.getEventGroups(), (val: any) => {
       node.eventGroup = val;
       app.renderPreview();
     });
@@ -111,7 +101,7 @@ export function addGroupSection(node: components.Component) {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    addSelect(node, "Group", node.eventGroup, events.getEventGroups(), (val: any) => {
+    addSelect(node, editorDiv, "Group", node.eventGroup, events.getEventGroups(), (val: any) => {
       node.eventGroup = val;
       app.renderPreview();
     });
@@ -146,13 +136,12 @@ export function addLayoutStyleSection(node: components.Component) {
     addInput(node, editorDiv, "Background", node.style.background || "#FFFFFF", (val: any) => {
         node.style.background = val;
         app.renderPreview();
-      }, "color");
-
-
+    }, "color");
+    
     addInput(node, editorDiv, "Width (px)", node.style.width || 0, (val: any) => {
         node.style.width = val;
         app.renderPreview();
-      }, "number");
+    }, "number");
 
     addInput(node, editorDiv, "Height (px)", node.style.height || 0, (val: any) => {
         node.style.height = val;
@@ -162,7 +151,7 @@ export function addLayoutStyleSection(node: components.Component) {
 
     //======= Div Alignment =======
     
-    addSelect(node, "Allignment", node.style.allignment || "left", ["left", "right", "center"], (val: any) => {
+    addSelect(node, editorDiv, "Allignment", node.style.allignment || "left", ["left", "right", "center"], (val: any) => {
         node.style.allignment = val;
         app.renderPreview();
     });
@@ -236,54 +225,158 @@ export function addLayoutStyleSection(node: components.Component) {
 }
 
 /**
- * Add a section for components with text
+ * New fancy text editor box
  */
-export function addTextSection(node: components.Component) {
-    const editorDiv = document.getElementById("editor");
-    if (!editorDiv) return;
-    if (!(editorDiv instanceof HTMLDivElement)) return;
+export function addTextEditor(node: components.Component, editable: boolean, textValue?: string) {
+  const editorDiv = document.getElementById("editor");
+  if (!editorDiv) return;
+  if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    //Add a line between component info and text section
-    editorDiv.appendChild(document.createElement("hr"));
-    let label = document.createElement("div");
-    label.textContent = "Text:";
-    editorDiv.appendChild(label);
-    editorDiv.appendChild(document.createElement("br"));
+  //Add a line between component info and text section
+  editorDiv.appendChild(document.createElement("hr"));
+  //let label = document.createElement("div");
+  //label.textContent = "Text:";
+  //editorDiv.appendChild(label);
+  editorDiv.appendChild(document.createElement("br"));
 
-    addInput(node, editorDiv, "Font Size", node.style.textSize || 14, (val: any) => {
-        node.style.textSize = parseInt(val);
-        app.renderPreview();
-    }, "number");
+  //create textbox
+  let textboxEditor = document.getElementById("textbox-editor")?.cloneNode(true);
+  if (!textboxEditor || !(textboxEditor instanceof HTMLElement)) return;
+  textboxEditor.classList.remove("hidden");
+  textboxEditor.classList.add("textbox-editor");
+  editorDiv.appendChild(textboxEditor);
 
-    addSelect(node, "Font", node.style.fontFamily || "Arial", ["Arial", "Verdana", "Tahoma", "Trebuchet MS", "Times New Roman", "Georgia", "Garamond", "Courier New", "Brush Script MT"], (val: any) => {
-        node.style.fontFamily = val;
-        app.renderPreview();
-    });
+  let textboxStyleBar = document.getElementById("textbox-style-bar");
+  if (!textboxStyleBar || !(textboxStyleBar instanceof HTMLDivElement)) return;
 
-    addSelect(node, "Text Align", node.style.textAlign || "Left", ["Left", "Right", "Center"], (val: any) => {
-        node.style.textAlign = val;
-        app.renderPreview();
-    });
+  //the actual text
+  let textbox = document.getElementById("textbox-editor-textbox");
+  if (!textbox || !(textbox instanceof HTMLDivElement)) return;
+  if (!editable) textbox.contentEditable = "false";
+  if (textValue) textbox.textContent = textValue;
+  if (editable && 'text' in node && typeof node.text == 'string') {
+    textbox.textContent = node.text;
+    textbox.oninput = (e) => {
+      e.stopPropagation();
+      actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
+      node.text = textbox.textContent;
+      app.renderPreview();
+    }
+  }
+  
 
-    addInput(node, editorDiv, "Text Color", node.style.color || "#000000", (val: any) => {
+  //set styles (using the same method the component uses)
+  components.applyTextStyles(textbox, node.style);
+
+  //font selection
+  let fontSelection = document.getElementById("textbox-editor-font");
+  if (fontSelection && fontSelection instanceof HTMLSelectElement) {
+    addSelect(node, textboxStyleBar, "", node.style.fontFamily || "Arial", ["Arial", "Verdana", "Tahoma", "Trebuchet MS", "Times New Roman", "Georgia", "Garamond", "Courier New", "Brush Script MT"], (val: any) => {
+      node.style.fontFamily = val;
+      app.renderPreview();
+      components.applyTextStyles(textbox, node.style);
+    }, fontSelection);
+  }
+
+  //font size
+  let fontSize = document.getElementById("textbox-editor-font-size");
+  if (fontSize && fontSize instanceof HTMLInputElement) {
+    addInput(node, textboxStyleBar, "", node.style.textSize || 14, (val: any) => {
+      node.style.textSize = parseInt(val);
+      app.renderPreview();
+      components.applyTextStyles(textbox, node.style);
+    }, "number", fontSize);
+  }
+
+  //bold button
+  let boldButton = document.getElementById("textbox-editor-bold");
+  if (boldButton && boldButton instanceof HTMLButtonElement) {
+    if (node.style.bold) boldButton.classList.add("textbox-editor-button-selected");
+    boldButton.onclick = (e) => {
+      e.stopPropagation();
+      actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
+      boldButton.classList.toggle("textbox-editor-button-selected");
+      node.style.bold = !node.style.bold;
+      app.renderPreview();
+      components.applyTextStyles(textbox, node.style);
+    }
+  }
+
+  //italic button
+  let italicButton = document.getElementById("textbox-editor-italic");
+  if (italicButton && italicButton instanceof HTMLButtonElement) {
+    if (node.style.fontStyle === "italic") italicButton.classList.add("textbox-editor-button-selected");
+    italicButton.onclick = (e) => {
+      e.stopPropagation();
+      actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
+      italicButton.classList.toggle("textbox-editor-button-selected");
+      node.style.fontStyle = (node.style.fontStyle === "italic") ? "" : "italic";
+      app.renderPreview();
+      components.applyTextStyles(textbox, node.style);
+    }
+  }
+
+  //underline button
+  let underlineButton = document.getElementById("textbox-editor-underline");
+  if (underlineButton && underlineButton instanceof HTMLButtonElement) {
+    if (node.style.textDecoration === "underline") underlineButton.classList.add("textbox-editor-button-selected");
+    underlineButton.onclick = (e) => {
+      e.stopPropagation();
+      actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
+      underlineButton.classList.toggle("textbox-editor-button-selected");
+      node.style.textDecoration = (node.style.textDecoration === "underline") ? "" : "underline";
+      app.renderPreview();
+      components.applyTextStyles(textbox, node.style);
+    }
+  }
+
+  //text color
+  let colorInput = document.getElementById("textbox-editor-text-color");
+  let icon = document.getElementById("textbox-editor-text-color-icon");
+  if (colorInput && colorInput instanceof HTMLInputElement && icon && icon instanceof HTMLElement) {
+    icon.style.color = node.style.color || "#000000";
+    addInput(node, textboxStyleBar, "", node.style.color || "#000000", (val: any) => {
         node.style.color = val;
         app.renderPreview();
-    }, "color");
+        icon.style.color = node.style.color || "#000000";
+        components.applyTextStyles(textbox, node.style);
+    }, "color", colorInput);
+  }
+  
+  //text alignment
+  for (const align of ["left", "center", "right"]) {
+    let alignButton = document.getElementById("textbox-editor-align-" + align);
+    if (!alignButton || !(alignButton instanceof HTMLButtonElement)) continue;
+    if (node.style.textAlign == align || (!node.style.textAlign && align === "left")) alignButton.classList.add("textbox-editor-button-selected");
+    alignButton.onclick = (e) => {
+      e.stopPropagation();
+      if (node.style.textAlign == align) return;
+      actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
+      node.style.textAlign = align;
+      app.renderPreview();
+      app.renderEditor(); //render editor to deselect the other buttons
+    };
+  }
 
-    addInput(node, editorDiv, "Bold", node.style.bold || false, (val: any) => {
-        node.style.bold = val.checked;
-        app.renderPreview();
-    }, "checkbox");
+  //old funny dropdowns
+  /*let alignmentDropdown = document.getElementById("textbox-editor-alignment-dropdown")
+  if (alignmentDropdown) {
+    //open the dropdown
+    alignmentDropdown.onclick = (e) => {
+      console.log("aaa");
+      //e.stopPropagation();
+      alignmentDropdown.classList.toggle("open");
+    }
 
-    addInput(node, editorDiv, "Italics", node.style.fontStyle === "italic" || false, (val: any) => {
-        node.style.fontStyle = val.checked ? "italic" : "";
+    //select an option
+    document.querySelectorAll(".textbox-editor-alignment-option").forEach((val: any) => {
+      if (val instanceof HTMLElement) val.onclick = (e) => {
+        node.style.textAlign = val.getAttribute("data-align") || "left";
+        alignmentDropdown.classList.remove("open");
         app.renderPreview();
-    }, "checkbox");
-
-    addInput(node, editorDiv, "Underlined", node.style.textDecoration === "underline" || false, (val: any) => {
-        node.style.textDecoration = val.checked ? "underline" : "";
-        app.renderPreview();
-    }, "checkbox");
+      };
+    });
+  }*/
 }
 
 export function addBorderSection(node: components.Component) {
@@ -293,7 +386,7 @@ export function addBorderSection(node: components.Component) {
 
     editorDiv.appendChild(document.createElement("hr"));
     let label = document.createElement("div");
-    label.textContent = "Text:";
+    label.textContent = "Border:";
     editorDiv.appendChild(label);
     editorDiv.appendChild(document.createElement("br"));
 
@@ -308,7 +401,7 @@ export function addBorderSection(node: components.Component) {
       app.renderPreview();
     }, "number");
 
-    addSelect(node, "Border Style", node.style.borderStyle || "none", ["none", "solid", "dotted", "dashed", "double", "groove", "ridge", "inset", "outset"], (val: any) => { 
+    addSelect(node, editorDiv, "Border Style", node.style.borderStyle || "none", ["none", "solid", "dotted", "dashed", "double", "groove", "ridge", "inset", "outset"], (val: any) => { 
       node.style.borderStyle = val;
       app.renderPreview();
     });

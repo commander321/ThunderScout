@@ -9,21 +9,6 @@ import * as bluetooth from "./bluetooth.js";
 import * as actions from "./action.js";
 import { v4 as uuid } from 'uuid';
 
-//import pictures of components
-/*import imageAllianceStation from "./assets/components/alliancestation.png";
-import imageButton from "./assets/components/button.png";
-import imageCheckbox from "./assets/components/checkbox.png";
-import imageCounter from "./assets/components/counter.png";
-import imageDropdown from "./assets/components/dropdown.png";
-import imageLabel from "./assets/components/label.png";
-import imageLayout from "./assets/components/layout.png";
-import imageMatchnum from "./assets/components/matchnum.png";
-import imageMatchtype from "./assets/components/matchtype.png";
-import imageResetbutton from "./assets/components/resetbutton.png";
-import imageSection from "./assets/components/section.png";
-import imageTeamnum from "./assets/components/teamnum.png";
-import imageTextbox from "./assets/components/textbox.png";*/
-
 let root = components.createComponent("root");
 let selectedId: any = null;
 let insertContext: any = null;
@@ -33,18 +18,6 @@ let cutting: boolean = false;
 
 let runtime_mode = false;
 let editor_enabled = true;
-
-
-//list of saved actions (component, parent) so you can undo them.
-/*
-Every time you do something (edit a comonent, delete one, or add one) it saves that action
-When you hit undo, it gets the last component in the list
-Check if the component exists (id) and get it.
-If that component is exactly the same as the one in the app, then delete it (it means it was just created)
-If the comopnent exists but isn't the same, set the component in the app to the one in the list
-If the component doesn't exist, it was deleted so re-add it.
-*/
-//let savedActions: components.Component[][] = [];
 
 // =======================
 // UTILITIES
@@ -89,7 +62,7 @@ export function renderPreview() {
 }
 
 function renderNode(node: components.Component, container: HTMLDivElement) {
-  // ROOT HANDLING
+  //handle the root
   if (node.type === "root") {
     renderChildren(node, container);
     return;
@@ -98,8 +71,9 @@ function renderNode(node: components.Component, container: HTMLDivElement) {
   let div: HTMLDivElement = document.createElement("div");
   div.className = "editor-component";
 
-  if (node.id === selectedId)
+  if (node.id === selectedId) {
     div.classList.add("selected");
+  }
 
   div.onclick = e => {
     if (runtime_mode) return;
@@ -134,7 +108,7 @@ function renderNode(node: components.Component, container: HTMLDivElement) {
 
   container.appendChild(div);
 
-  // Only containers render children + insert bars
+  //only containers render children and insert bars
   if (isContainer(node)) {
     renderChildren(node, div);
   }
@@ -316,6 +290,9 @@ function addComponent(type: string) {
   let component = components.createComponent(type as components.ComponentType)
   parent.node.children.splice(insertContext.index, 0, component);
 
+  //set background to parent so it looks right when adding new components in a layout
+  component.style.background = parent.node.style.background || "#FFFFFF";
+
   //Add to actions list
   //savedActions.push([component, parent.parent]);
   actions.saveAction(new actions.Action(component, parent.parent, actions.ActionType.COMPONENT_PLACE));
@@ -381,6 +358,7 @@ export function closeDesigner() {
     element.classList.remove("selected");
     element.classList.remove("container");
     element.classList.add("component");
+    element.removeAttribute("draggable");
   });
 
   renderPreview();
@@ -481,6 +459,14 @@ export function loadComponent(data: any, newUUID?: boolean): components.Componen
   } else if (component instanceof components.Section) {
     component.color = data.color;
     component.thickness = data.thickness;
+  } else if (component instanceof components.AnalyticsMatchesTable) {
+    component.minRows = data.minRows;
+    component.children = [];
+  } else if (component instanceof components.AnalyticsMatchesTableColumn) {
+    component.dataType = data.dataType;
+    component.header = data.header;
+    component.textboxKey = data.textboxKey;
+    component.value = data.value;
   }
 
   for (const child of data.children) {
@@ -907,6 +893,14 @@ export function getEditorEnabled(): boolean {
 
 export function setEditorEnabled(enabled: boolean) {
   editor_enabled = enabled;
+}
+
+//used by analytics tables because their columns are weird
+export function setSelectedID(id: any) {
+  selectedId = id;
+}
+export function getSelectedID(): any {
+  return selectedId;
 }
 
 //Manage service worker stuff for android

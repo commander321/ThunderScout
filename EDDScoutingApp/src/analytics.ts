@@ -812,6 +812,27 @@ function setupExportButton() {
     exportButton.onclick = exportToHTML;
 }
 
+//=========================
+// Analytics Table Objects
+//=========================
+
+/*
+export abstract class AnalyticsColumn {
+
+    /**
+     * Creates a cell in a row in the table
+     
+    abstract addToRow(row: HTMLTableRowElement, match: matchdata.MatchData): void;
+}
+
+export class AnalyticsMatchNumColumn extends AnalyticsColumn{
+
+    addToRow(row: HTMLTableRowElement, match: matchdata.MatchData) {
+        
+    }
+}
+*/
+
 //Example events (change later)!
 /*
 let types: string[] = [
