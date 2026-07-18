@@ -159,9 +159,10 @@ input, select {
   top: 10%;
   left: 50%;
   transform: translateX(-50%);
-  background: white;
+  background: #ffffff;
   padding: 20px;
-  border: 1px solid #ccc;
+  border: 2px solid #aaaaaa;
+  border-radius: 6px;
   width: 30%;
   height: 60%;
 }

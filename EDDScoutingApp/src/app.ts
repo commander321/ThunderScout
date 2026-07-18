@@ -7,8 +7,10 @@ import * as events from "./events.js";
 import * as matchdata from "./matchdata.js";
 import * as bluetooth from "./bluetooth.js";
 import * as actions from "./action.js";
+import * as storage from "./storage.js";
 import { v4 as uuid } from 'uuid';
 
+let appName: string = "";
 let root = components.createComponent("root");
 let selectedId: any = null;
 let insertContext: any = null;
@@ -410,6 +412,7 @@ export function saveToJSON() {
 
   //get the data that needs to be saved to JSON
   let data = {
+    name: appName,
     events: events.getEventTypes(),
     groups: events.getEventGroups(),
     app: root
@@ -471,6 +474,8 @@ export function loadComponent(data: any, newUUID?: boolean): components.Componen
     component.header = data.header;
     component.textboxKey = data.textboxKey;
     component.value = data.value;
+  } else if (component instanceof components.Image) {
+    component.imageId = data.imageId;
   }
 
   for (const child of data.children) {
@@ -611,10 +616,16 @@ export function setupLoadButton() {
       const data = JSON.parse(reader.result as string)
 
       console.log(data);
+
+      //set the app/page name
+      appName = data.name;
+      document.title = appName;
+
+      //set the event types and groups
       events.setEventTypes(data.events);
       events.setEventGroups(data.groups);
 
-      //Loads the root component, which loads all other ones
+      //loads the root component, which loads all other ones
       root = loadComponent(data.app);
 
       renderPreview();
@@ -744,70 +755,61 @@ function openSettingsModal() {
   let modal = document.getElementById("modal-settings");
   if (!modal) return;
   modal.classList.remove("hidden");
-  modal.innerHTML = "<h3>Settings</h3>";
-
-  /*
-    Things to add:
-    - Event code
-    - Clear all matches
-    - Disable editing
-    - Import schedule
-  */
-
-  let eventCodeDiv = document.createElement("div");
-  eventCodeDiv.textContent = "Event Code: ";
-
-  let eventCode = document.createElement("input");
-  eventCode.type = "text";
-  eventCode.value = matchdata.getCurrentMatch().eventCode;
-  eventCode.onchange = (e) => {
-    e.stopPropagation();
-
-    matchdata.getCurrentMatch().eventCode = eventCode.value;
-
-    //save to the local storage
-    localStorage.setItem("event_code", JSON.stringify(matchdata.getCurrentMatch().eventCode));
-  }
-  eventCodeDiv.appendChild(eventCode);
-
-  let toggleEditorDiv = document.createElement("div");
-  toggleEditorDiv.textContent = "Edit Mode:";
-  toggleEditorDiv.style.display = "inline-block";
-
-  //Switch to disable edit mode
-  let toggleEditor = document.createElement("input");
-  toggleEditor.type = "checkbox";
-  toggleEditor.style.scale = "1.5";
-  toggleEditor.checked = editor_enabled;
-  toggleEditor.onclick = (e) => {
-    e.stopPropagation();
-
-    editor_enabled = toggleEditor.checked;
-
-    if (editor_enabled) {
-      document.getElementById("edit")?.classList.remove("hidden")
-    } else {
-      document.getElementById("edit")?.classList.add("hidden");
+ 
+  let name = document.getElementById("settings-app-name");
+  if (name && name instanceof HTMLInputElement) {
+    name.value = appName;
+    name.onchange = (e) => {
+      e.stopPropagation();
+      appName = name.value;
+      document.title = appName;
+      localStorage.setItem("app_name", JSON.stringify(appName));
     }
-
-    //save the editor enabled option to local storage
-    localStorage.setItem("editor_enabled", JSON.stringify(editor_enabled));
   }
-  toggleEditorDiv.appendChild(toggleEditor);
 
-  let resetButton = document.createElement("button");
-  resetButton.innerHTML = "Clear all match data";
-  resetButton.style.display = "block";
-  resetButton.style.marginTop = "20px";
-  resetButton.onclick = (e) => {
-    e.stopPropagation();
+  //event code
+  let eventCode = document.getElementById("settings-event-code");
+  if (eventCode && eventCode instanceof HTMLInputElement) {
+    eventCode.value = matchdata.getCurrentMatch().eventCode;
+    eventCode.onchange = (e) => {
+      e.stopPropagation();
 
-    matchdata.clearAllMatches();
-  };
+      matchdata.getCurrentMatch().eventCode = eventCode.value;
 
-  modal.appendChild(eventCodeDiv);
-  modal.appendChild(toggleEditorDiv);
-  modal.appendChild(resetButton);
+      //save to the local storage
+      localStorage.setItem("event_code", JSON.stringify(matchdata.getCurrentMatch().eventCode));
+    }
+  }
+
+  //toggle editor
+  let toggleEditor = document.getElementById("settings-editor-enabled");
+  if (toggleEditor && toggleEditor instanceof HTMLInputElement) {
+    toggleEditor.checked = editor_enabled;
+    toggleEditor.onclick = (e) => {
+      e.stopPropagation();
+
+      editor_enabled = toggleEditor.checked;
+
+      if (editor_enabled) {
+        document.getElementById("edit")?.classList.remove("hidden")
+      } else {
+        document.getElementById("edit")?.classList.add("hidden");
+      }
+
+      //save the editor enabled option to local storage
+      localStorage.setItem("editor_enabled", JSON.stringify(editor_enabled));
+    }
+  }
+
+  //reset button
+  let resetButton = document.getElementById("settings-reset-button");
+  if (resetButton && resetButton instanceof HTMLButtonElement) {
+    resetButton.onclick = (e) => {
+      e.stopPropagation();
+
+      matchdata.clearAllMatches();
+    };
+  }
 }
 
 function closeSettingsModal() {
@@ -924,6 +926,7 @@ function saveLocalState() {
   localStorage.setItem("groups", JSON.stringify(events.getEventGroups()));
   localStorage.setItem("app", JSON.stringify(root));
   localStorage.setItem("unsaved_matches", JSON.stringify(matchdata.getUnsavedMatches()));
+  localStorage.setItem("app_name", JSON.stringify(appName));
 }
 
 /**
@@ -952,14 +955,24 @@ function loadLocalState() {
 
   const saved_unsaved_matches = localStorage.getItem("unsaved_matches");
   if (saved_unsaved_matches) matchdata.setUnsavedMatches(JSON.parse(saved_unsaved_matches));
+
+  const saved_app_name = localStorage.getItem("app_name");
+  if (saved_app_name) {
+    appName = JSON.parse(saved_app_name);
+    document.title = JSON.parse(saved_app_name);
+  }
 }
 
+//initialize buttons
 setupEditButton();
 setupLoadButton();
 setupExportButton();
 setupMatchesButton();
 setupSettingsButton();
 setupEditorButtons();
+
+//load all saved image files (only do this when loading the page)
+storage.loadImages();
 
 //Get the saved state and load either the editor or runtime mode
 loadLocalState();

@@ -87,7 +87,33 @@
 <div id="modal-matches" class="hidden"></div>
 
 <div id="overlay-settings" class="hidden"></div>
-<div id="modal-settings" class="hidden"></div>
+<div id="modal-settings" class="hidden">
+  <div>
+    <h3>Settings</h3>
+
+    <div>
+      <label>App Name</label>
+      <input type="text" id="settings-app-name"></input>
+    </div>
+
+    <div>
+      <label> Event Code:</label> 
+      <input type="text" id="settings-event-code"></input>
+    </div>
+
+    <div style="display:inline-block">
+      <label>Edit Mode:</label> 
+      <input type="checkbox" id="settings-editor-enabled" style="scale:1.5"></input>
+    </div>
+
+    <div>
+      <button id="settings-reset-button">
+        Clear all match data
+      </button>
+    </div>
+
+  </div>
+</div>
 
 <div id="bluetooth-status" class="hidden"></div>
 

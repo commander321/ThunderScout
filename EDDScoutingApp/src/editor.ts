@@ -2,6 +2,7 @@ import * as app from "./app.js";
 import * as components from "./components.js";
 import * as events from "./events.js";
 import * as actions from "./action.js"
+import * as storage from "./storage.js";
 
 export function addInput(node: components.Component, parentDiv: HTMLDivElement, labelText: string, value: any, onChange: any, type: string = "text", inputElement?: HTMLInputElement) {
   if (labelText != "") {
@@ -412,59 +413,118 @@ export function addTextEditor(node: components.Component, editable: boolean, tex
       app.renderEditor(); //render editor to deselect the other buttons
     };
   }
+}
 
-  //old funny dropdowns
-  /*let alignmentDropdown = document.getElementById("textbox-editor-alignment-dropdown")
-  if (alignmentDropdown) {
-    //open the dropdown
-    alignmentDropdown.onclick = (e) => {
-      console.log("aaa");
-      //e.stopPropagation();
-      alignmentDropdown.classList.toggle("open");
+export function addImageSelection(node: components.Component, imageIDProperty: string) {
+  const editorDiv = document.getElementById("editor");
+  if (!editorDiv) return;
+  if (!(editorDiv instanceof HTMLDivElement)) return;
+
+  let outerDiv = document.createElement("div");
+  outerDiv.classList.add("image-selection");
+
+  let div = document.createElement("div");
+  div.classList.add("image-selection-scrollable");
+
+  for (const image of storage.getImages()) {
+    let row = document.createElement("div");
+    row.classList.add("image-selection-row");
+
+    if ((node as any)[imageIDProperty] == image.id) row.classList.add("image-selection-row-selected");
+
+    let imgContainer = document.createElement("div");
+    imgContainer.classList.add("image-selection-image-container");
+    let img = document.createElement("img");
+    img.src = image.tempURL;
+    img.classList.add("image-selection-image");
+    imgContainer.appendChild(img);
+    row.appendChild(imgContainer);
+
+    let textDiv = document.createElement("div");
+    textDiv.innerText = "Image Name";
+    textDiv.classList.add("image-selection-text");
+    row.appendChild(textDiv);
+
+    let deleteButton = document.createElement("button");
+    deleteButton.classList.add("image-selection-delete-button");
+    let deleteButtonIcon = document.createElement("i");
+    deleteButtonIcon.classList.add("fa");
+    deleteButtonIcon.classList.add("fa-trash");
+    deleteButton.appendChild(deleteButtonIcon);
+    row.appendChild(deleteButton);
+
+    //set image
+    row.onclick = (e) => {
+      e.stopPropagation();
+      if (!(node as any)[imageIDProperty]) return;
+      if ((node as any)[imageIDProperty] == image.id) return;
+
+      (node as any)[imageIDProperty] = image.id;
+      
+      document.querySelectorAll(".image-selection-row-selected").forEach((val) => {
+        val.classList.remove("image-selection-row-selected");
+      });
+      row.classList.add("image-selection-row-selected");
+
+      app.renderPreview();
     }
 
-    //select an option
-    document.querySelectorAll(".textbox-editor-alignment-option").forEach((val: any) => {
-      if (val instanceof HTMLElement) val.onclick = (e) => {
-        node.style.textAlign = val.getAttribute("data-align") || "left";
-        alignmentDropdown.classList.remove("open");
-        app.renderPreview();
-      };
-    });
-  }*/
+    //delete button
+    deleteButton.onclick = async (e) => {
+      e.stopPropagation();
+
+      await storage.deleteImage(image.id);
+
+      if ((node as any)[imageIDProperty] == image.id) (node as any)[imageIDProperty] = "";
+
+      row.remove();
+      app.renderPreview();
+    }
+
+    div.appendChild(row);
+
+    //break line
+    let hr = document.createElement("hr");
+    hr.classList.add("image-selection-hr");
+    div.appendChild(hr);
+  }
+
+  outerDiv.appendChild(div);
+
+  editorDiv.appendChild(outerDiv);
 }
 
 export function addBorderSection(node: components.Component) {
   const editorDiv = document.getElementById("editor");
-    if (!editorDiv) return;
-    if (!(editorDiv instanceof HTMLDivElement)) return;
+  if (!editorDiv) return;
+  if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    editorDiv.appendChild(document.createElement("hr"));
-    let label = document.createElement("div");
-    label.textContent = "Border:";
-    editorDiv.appendChild(label);
-    editorDiv.appendChild(document.createElement("br"));
+  editorDiv.appendChild(document.createElement("hr"));
+  let label = document.createElement("div");
+  label.textContent = "Border:";
+  editorDiv.appendChild(label);
+  editorDiv.appendChild(document.createElement("br"));
 
-    //border width, radius, style, and color
-    addInput(node, editorDiv, "Border Width", node.style.borderWidth || 0, (val: any) => {
-      node.style.borderWidth = parseInt(val);
-      app.renderPreview();
-    }, "number");
+  //border width, radius, style, and color
+  addInput(node, editorDiv, "Border Width", node.style.borderWidth || 0, (val: any) => {
+    node.style.borderWidth = parseInt(val);
+    app.renderPreview();
+  }, "number");
 
-    addInput(node, editorDiv, "Border Radius", node.style.borderRadius || 0, (val: any) => {
-      node.style.borderRadius = parseInt(val);
-      app.renderPreview();
-    }, "number");
+  addInput(node, editorDiv, "Border Radius", node.style.borderRadius || 0, (val: any) => {
+    node.style.borderRadius = parseInt(val);
+    app.renderPreview();
+  }, "number");
 
-    addSelect(node, editorDiv, "Border Style", node.style.borderStyle || "none", ["none", "solid", "dotted", "dashed", "double", "groove", "ridge", "inset", "outset"], (val: any) => { 
-      node.style.borderStyle = val;
-      app.renderPreview();
-    });
+  addSelect(node, editorDiv, "Border Style", node.style.borderStyle || "none", ["none", "solid", "dotted", "dashed", "double", "groove", "ridge", "inset", "outset"], (val: any) => { 
+    node.style.borderStyle = val;
+    app.renderPreview();
+  });
 
-    addInput(node, editorDiv, "Border Color", node.style.borderColor || "#000000", (val: any) => {
-      node.style.borderColor = val;
-      app.renderPreview();
-    }, "color");
+  addInput(node, editorDiv, "Border Color", node.style.borderColor || "#000000", (val: any) => {
+    node.style.borderColor = val;
+    app.renderPreview();
+  }, "color");
 }
 
 

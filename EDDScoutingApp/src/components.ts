@@ -2,6 +2,7 @@ import * as editor from "./editor.js";
 import * as app from "./app.js";
 import * as matchdata from "./matchdata.js";
 import * as events from "./events.js";
+import * as storage from "./storage.js";
 import { v4 as uuid } from 'uuid';
 
 export abstract class Component {
@@ -20,7 +21,7 @@ export abstract class Component {
     this.children = [];
     this.eventType = "None";
     this.eventGroup = "None";
-  }
+}
 
   /**
    * Creates the editor for the component
@@ -537,6 +538,55 @@ export class TextBox extends Component {
       textbox.style.marginBottom = "0px";
       applyTextStyles(textbox, this.style);
       applyBorderStyles(textbox, this.style);
+  }
+}
+
+export class Image extends Component {
+  imageId: string;
+
+  constructor() {
+    super("image");
+
+    this.imageId = "";
+  }
+
+  addEditorFeatures(): void {
+    const editorDiv = document.getElementById("editor");
+    if (!editorDiv) return;
+    if (!(editorDiv instanceof HTMLDivElement)) return;
+
+    editor.addImageSelection(this, "imageId");
+
+    let imageInput = document.createElement("input");
+    imageInput.type = "file";
+    imageInput.accept = "image/*"
+    imageInput.onchange = () => {
+      if (!imageInput) return;
+
+      const file = imageInput.files?.[0];
+      if (!file) return;
+
+      this.imageId = uuid();
+      storage.uploadImage(this.imageId, file);
+
+      app.renderPreview();
+    }
+
+    editorDiv.appendChild(imageInput);
+
+    editor.addLayoutStyleSection(this);
+  }
+
+  render(div: HTMLDivElement) {
+    let image = document.createElement("img");
+
+    image.src = storage.getImageURL(this.imageId);
+    image.style.width = "100%";
+    image.style.height = "100%";
+    applyLayoutStlyes(div, this.style);
+    
+
+    div.appendChild(image);
   }
 }
 
@@ -1124,6 +1174,7 @@ export const componentRegistry = {
   dropdown: Dropdown,
   textbox: TextBox,
   section: Section,
+  image: Image,
   teamnum: TeamNum,
   matchnum: MatchNum,
   matchtype: MatchType,
@@ -1144,6 +1195,7 @@ export const COMPONENT_TYPES: string[][] = [
   ["dropdown", "Dropdown", "Select an event type from a specified list of options."],
   ["textbox", "Text Box", "Text box"],
   ["section", "Section", "Line to separate sections of the app."],
+  ["image", "Image", "Add an image."],
   ["teamnum", "Team Number", "Enter the team number for a match."],
   ["matchnum", "Match Number", "Enter the match number for a match."],
   ["matchtype", "Match Type", "Select the type of match (practice, quals, etc)."],
