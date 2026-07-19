@@ -1,4 +1,4 @@
-import * as events from "./events.js";
+import * as events from "./matchevents.js";
 import * as matchdata from "./matchdata.js";
 import * as bluetooth from "./bluetooth.js";
 import {Chart} from 'chart.js/auto';

@@ -1,8 +1,9 @@
 import * as editor from "./editor.js";
 import * as app from "./app.js";
 import * as matchdata from "./matchdata.js";
-import * as events from "./events.js";
+import * as matchevents from "./matchevents.js";
 import * as storage from "./storage.js";
+import * as events from "./events.js";
 import { v4 as uuid } from 'uuid';
 
 export abstract class Component {
@@ -12,6 +13,7 @@ export abstract class Component {
   children: Component[];
   eventType: string;
   eventGroup: string;
+  componentEvents: events.Event[];
 
   constructor(type: string) {
     //this.id = ""//crypto.randomUUID();
@@ -21,7 +23,8 @@ export abstract class Component {
     this.children = [];
     this.eventType = "None";
     this.eventGroup = "None";
-}
+    this.componentEvents = [];
+  }
 
   /**
    * Creates the editor for the component
@@ -130,6 +133,8 @@ export class Button extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
+    editor.addNewEventSection(this);
+
     editor.addTextEditor(this, true);
     editor.addEventSelection(this);
 
@@ -170,7 +175,7 @@ export class Button extends Component {
         if (this.decrease) {
           matchdata.getCurrentMatch().removeLatestEvent(this.eventType, this.eventGroup);
         } else {
-          matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.eventType, this.eventGroup));
+          matchdata.getCurrentMatch().addEvent(new matchevents.MatchEvent(this.eventType, this.eventGroup));
         }
         updateCounters(this.eventType);
         console.log(matchdata.getCurrentMatch().matchEvents); //for testing, might remove later (or not, doesn't really matter)
@@ -319,7 +324,7 @@ export class Dropdown extends Component {
           matchdata.getCurrentMatch().removeType(t, this.eventGroup);
         });
 
-        matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.options[select.selectedIndex] || "null", this.eventGroup));
+        matchdata.getCurrentMatch().addEvent(new matchevents.MatchEvent(this.options[select.selectedIndex] || "null", this.eventGroup));
         updateCounters();
       }
 
@@ -395,7 +400,7 @@ export class Checkbox extends Component {
 
       //Handle changing the event
       if (checkbox.checked) {
-        matchdata.getCurrentMatch().addEvent(new events.MatchEvent(this.eventType, this.eventGroup));
+        matchdata.getCurrentMatch().addEvent(new matchevents.MatchEvent(this.eventType, this.eventGroup));
       } else {
         matchdata.getCurrentMatch().removeType(this.eventType, this.eventGroup);
       }
@@ -1113,16 +1118,16 @@ function applyLayoutStlyes(node: HTMLElement, style: Record<string, any>) {
   node.style.width = style.width ? (style.width == 0 ? "fit-content" : style.width + (style.widthType || "px")) : "fit-content";
   node.style.height = style.height ? (style.height == 0 ? "auto" : style.height + (style.heightType || "px")) : "auto";
 
-  node.style.paddingLeft = (style.paddingLeft == "0" ? 0 : (style.paddingLeft || 5)) + "px";
-  node.style.paddingRight = (style.paddingRight == "0" ? 0 : (style.paddingRight || 5)) + "px";
-  node.style.paddingTop = (style.paddingTop == "0" ? 0 : (style.paddingTop || 5)) + "px";
-  node.style.paddingBottom = (style.paddingBottom == "0" ? 0 : (style.paddingBottom || 5)) + "px";
+  node.style.paddingLeft = (style.paddingLeft == "0" ? 0 : (style.paddingLeft || 5)) + (style.paddingLeftType || "px");
+  node.style.paddingRight = (style.paddingRight == "0" ? 0 : (style.paddingRight || 5)) + (style.paddingRightType || "px");
+  node.style.paddingTop = (style.paddingTop == "0" ? 0 : (style.paddingTop || 5)) + (style.paddingTopType || "px");
+  node.style.paddingBottom = (style.paddingBottom == "0" ? 0 : (style.paddingBottom || 5)) + (style.paddingBottomType || "px");
 
-  node.style.marginTop = (style.marginTop == "0" ? 0 : (style.marginTop || 6)) + "px";
-  node.style.marginBottom = (style.marginBottom == "0" ? 0 : (style.marginBottom || 6)) + "px";
+  node.style.marginTop = (style.marginTop == "0" ? 0 : (style.marginTop || 6)) + (style.marginTopType || "px");
+  node.style.marginBottom = (style.marginBottom == "0" ? 0 : (style.marginBottom || 6)) + (style.marginBottomType || "px");
 
   if (style.allignment === "right") {
-    node.style.marginRight = (style.marginRight == "0" ? 0 : (style.marginRight || 0)) + "px";
+    node.style.marginRight = (style.marginRight == "0" ? 0 : (style.marginRight || 0)) + (style.marginRightType || "px");
     node.classList.remove("center-align");
     node.classList.remove("left-align");
     node.classList.add("right-align");
@@ -1134,7 +1139,7 @@ function applyLayoutStlyes(node: HTMLElement, style: Record<string, any>) {
     node.classList.remove("right-align");
     node.classList.remove("center-align");
     node.classList.add("left-align");
-    node.style.marginLeft = (style.marginLeft == "0" ? 0 : (style.marginLeft || 0)) + "px";
+    node.style.marginLeft = (style.marginLeft == "0" ? 0 : (style.marginLeft || 0)) + (style.marginLeftType || "px");
   }  
 }
 

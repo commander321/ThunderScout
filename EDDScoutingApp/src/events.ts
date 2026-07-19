@@ -1,50 +1,142 @@
-export class MatchEvent {
+import * as components from "./components.js";
+import * as matchdata from "./matchdata.js"
+import * as matchevents from "./matchevents.js";
 
-    type: string;
-    group: string;
-    timestamp: number
+export class Event {
+    trigger: EventTrigger;
+    actions: EventAction[];
 
-    constructor(type: string, group: string) {
-        this.type = type;
-        this.timestamp = Date.now();
-        this.group = group || "";
+    constructor(trigger: EventTrigger) {
+        this.trigger = trigger;
+        this.actions = [];
     }
 
+    /**
+     * Runs the event when it is triggered
+     */
+    run(): void {
+        for (const action of this.actions) {
+            action.onTrigger();
+        }
+    }
 }
 
-let eventTypes: string[] = ["None", "Test1", "Test2"];
-let eventGroups: string[] =["None", "TestGroup1", "TestGroup2"];
-
-export function getEventTypes(): string[] {
-    return eventTypes;
+export abstract class EventAction {
+    /**
+     * Code that runs when the event is triggered
+     */
+    abstract onTrigger(): void;
 }
 
-export function addEventType(type: string): void {
-    eventTypes.push(type);
+/**
+ * Ways an event can be triggered
+ */
+export enum EventTrigger {
+    OTHER_EVENT,
+    COMPONENT_CLICK,
+    COMPONENT_HOVER,
 }
 
-export function removeEventType(type: string): void {
-    if (!eventTypes.includes(type)) return;
-    eventTypes.splice(eventTypes.findIndex(value => value === type), 1);
+
+
+
+//=======================
+// Event Actions
+//=======================
+
+/**
+ * Records a match event of a specific type/group
+ */
+export class ActionRecordMatchEvent extends EventAction {
+    matchEventType: string;
+    matchEventGroup: string;
+
+    constructor(matchEventType: string, matchEventGroup: string) {
+        super();
+        this.matchEventType = matchEventType;
+        this.matchEventGroup = matchEventGroup;        
+    }
+
+    onTrigger(): void {
+        matchdata.getCurrentMatch().addEvent(new matchevents.MatchEvent(this.matchEventType, this.matchEventGroup));
+    }
 }
 
-export function setEventTypes(events: string[]): void {
-    eventTypes = events;
+/**
+ * Triggers another event
+ */
+export class ActionTriggerEvent extends EventAction {
+    event: Event;
+
+    constructor(event: Event) {
+        super();
+        this.event = event;
+    }
+
+    onTrigger(): void {
+        if (this.event.trigger == EventTrigger.OTHER_EVENT) this.event.run();
+    }
 }
 
-export function getEventGroups(): string[] {
-    return eventGroups;
+/**
+ * Change the style of a component
+ */
+export class ActionStyleChange extends EventAction {
+
+    component: components.Component;
+    styles: Record<string, any>;
+
+    constructor(component: components.Component, styles: Record<string, any>) {
+        super();
+
+        this.component = component;
+        this.styles = styles;
+    }
+
+    onTrigger(): void {
+        for (const [style, value] of Object.entries(this.styles)) {
+            this.component.style[style] = value;
+        }
+    }
 }
 
-export function addEventGroup(group: string): void {
-    eventGroups.push(group);
+
+//=======================
+// End of Actions
+//=======================
+
+
+/**
+ * Add events from a component to its rendered HTML Element
+ */
+export function applyComponentEvents(component: components.Component, element: HTMLElement) {
+    for (const event of component.componentEvents) {
+        switch (event.trigger) {
+            case EventTrigger.COMPONENT_CLICK:
+                element.onclick = (e) => {
+                    e.stopPropagation();
+                    event.run();
+                }
+                break;
+            case EventTrigger.COMPONENT_HOVER:
+                element.onmouseover = (e) => {
+                    e.stopPropagation();
+                    event.run();
+                }
+            default:
+                break;
+        }
+    }
 }
 
-export function setEventGroups(groups: string[]): void {
-    eventGroups = groups;
-}
+/*
+Lets plan events here!
 
-export function removeEventGroup(group: string): void {
-    if (!eventGroups.includes(group)) return;
-    eventGroups.splice(eventGroups.findIndex(value => value === group), 1);
-}
+Components have a list of their corresponding events
+Events have triggers and a list of actions that happen when they are run
+When a component is loaded, it's triggers are applied by passing the component and HTML elements into the apply component events function
+Triggers are an enum with things like Click, Hover, etc.
+Each event action is it's own class (record match event, change component style, etc)
+
+
+*/

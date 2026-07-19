@@ -1,8 +1,9 @@
 import * as app from "./app.js";
 import * as components from "./components.js";
-import * as events from "./events.js";
+import * as matchevents from "./matchevents.js";
 import * as actions from "./action.js"
 import * as storage from "./storage.js";
+import * as events from "./events.js";
 
 export function addInput(node: components.Component, parentDiv: HTMLDivElement, labelText: string, value: any, onChange: any, type: string = "text", inputElement?: HTMLInputElement) {
   if (labelText != "") {
@@ -19,6 +20,13 @@ export function addInput(node: components.Component, parentDiv: HTMLDivElement, 
     input.classList.add("number-input");
   }
 
+  if (type === "color") {
+    input.onfocus = () => {
+      console.log("focus")
+      actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
+    }
+  }
+
   //Checkboxes have onchange instead of oninput like text fields
   if (type === "checkbox") {
     input.checked = value
@@ -28,7 +36,7 @@ export function addInput(node: components.Component, parentDiv: HTMLDivElement, 
     }
   } else {
     input.oninput = () => {
-      actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
+      if (type != "color") actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
       onChange(input.value);
     }
   }
@@ -72,12 +80,12 @@ export function addEventSelection(node: components.Component) {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    addSelect(node, editorDiv, "Event", node.eventType, events.getEventTypes(), (val: any) => { 
+    addSelect(node, editorDiv, "Event", node.eventType, matchevents.getEventTypes(), (val: any) => { 
       node.eventType = val;
       app.renderPreview();
     });
 
-    addSelect(node, editorDiv, "Group", node.eventGroup, events.getEventGroups(), (val: any) => {
+    addSelect(node, editorDiv, "Group", node.eventGroup, matchevents.getEventGroups(), (val: any) => {
       node.eventGroup = val;
       app.renderPreview();
     });
@@ -102,7 +110,7 @@ export function addGroupSection(node: components.Component) {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    addSelect(node, editorDiv, "Group", node.eventGroup, events.getEventGroups(), (val: any) => {
+    addSelect(node, editorDiv, "Group", node.eventGroup, matchevents.getEventGroups(), (val: any) => {
       node.eventGroup = val;
       app.renderPreview();
     });
@@ -128,123 +136,129 @@ export function addLayoutStyleSection(node: components.Component) {
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
     //Add a line between component info and style
-    editorDiv.appendChild(document.createElement("hr"));
-    let label = document.createElement("div");
-    label.textContent = "Layout Style:";
-    editorDiv.appendChild(label);
     editorDiv.appendChild(document.createElement("br"));
 
+    //details and summary
+    let layoutStyleSection = createSection("Layout:", editorDiv);
+
     //width and height
-    let widthLabel = document.createElement("div");
-    widthLabel.textContent = "Width:";
-    editorDiv.appendChild(widthLabel);
-    addPixelPercentInput(node, "width", "widthType");
+    let widthDiv = document.createElement("div");
+    widthDiv.textContent = "Width:";
+    widthDiv.style.width="40%";
+    addPixelPercentInput(node, "width", "widthType", widthDiv);
+    layoutStyleSection.appendChild(widthDiv);
 
-    let heightLabel = document.createElement("div");
-    heightLabel.textContent = "Height:";
-    editorDiv.appendChild(heightLabel);
-    addPixelPercentInput(node, "height", "heightType");
+    let heightDiv = document.createElement("div");
+    heightDiv.textContent = "Height:";
+    heightDiv.style.width = "40%";
+    addPixelPercentInput(node, "height", "heightType", heightDiv);
+    layoutStyleSection.appendChild(heightDiv);
 
-    /*
-    addInput(node, editorDiv, "Width (px)", node.style.width || 0, (val: any) => {
-        node.style.width = val;
-        app.renderPreview();
-    }, "number");*/
-
-    /*
-    addInput(node, editorDiv, "Height (px)", node.style.height || 0, (val: any) => {
-        node.style.height = val;
-        app.renderPreview();
-    }, "number");*/
-
-    addInput(node, editorDiv, "Background", node.style.background || "#FFFFFF", (val: any) => {
+    //background color
+    addInput(node, layoutStyleSection, "Background", node.style.background || "#FFFFFF", (val: any) => {
         node.style.background = val;
         app.renderPreview();
     }, "color");
 
-    //======= Div Alignment =======
-    
-    addSelect(node, editorDiv, "Allignment", node.style.allignment || "left", ["left", "right", "center"], (val: any) => {
+    //alignment
+    addSelect(node, layoutStyleSection, "Allignment", node.style.allignment || "left", ["left", "right", "center"], (val: any) => {
         node.style.allignment = val;
         app.renderPreview();
     });
 
-    //======= Padding Section =======
+    //padding
+    let paddingSection = document.createElement("div");
+    paddingSection.textContent = "Padding:";
 
     let paddingDiv1 = document.createElement("div");
     paddingDiv1.classList.add("horizontal-editor-inputs");
+    paddingDiv1.style.paddingTop = "15px";
 
-    addInput(node, paddingDiv1, "Padding Left", node.style.paddingLeft || 5, (val: any) => {
-        node.style.paddingLeft = parseInt(val);
-        app.renderPreview();
-      }, "number"); 
-      
-    addInput(node, paddingDiv1, "Padding Right", node.style.paddingRight || 5, (val: any) => {
-      node.style.paddingRight = parseInt(val);
-      app.renderPreview();
-    }, "number");  
+    let paddingLeft = document.createElement("div");
+    paddingLeft.textContent = "Left:";
+    paddingLeft.style.width = "40%";
+    addPixelPercentInput(node, "paddingLeft", "paddingLeftType", paddingLeft);
 
-    editorDiv.appendChild(paddingDiv1);
+    let paddingRight = document.createElement("div");
+    paddingRight.textContent = "Right:";
+    paddingRight.style.width = "40%";
+    paddingRight.style.paddingLeft = "10%";
+    addPixelPercentInput(node, "paddingRight", "paddingRightType", paddingRight);
+
+    paddingDiv1.appendChild(paddingLeft);
+    paddingDiv1.appendChild(paddingRight);
+    paddingSection.appendChild(paddingDiv1);
 
     let paddingDiv2 = document.createElement("div");
     paddingDiv2.classList.add("horizontal-editor-inputs");
-
-    addInput(node, paddingDiv2, "Padding Top", node.style.paddingTop || 5, (val: any) => {
-        node.style.paddingTop = parseInt(val) == 0 ? "0" : parseInt(val);
-        app.renderPreview();
-      }, "number"); 
-      
-    addInput(node, paddingDiv2, "Padding Bottom", node.style.paddingBottom || 5, (val: any) => {
-      node.style.paddingBottom = parseInt(val) == 0 ? "0" : parseInt(val);
-      app.renderPreview();
-    }, "number");  
-
-    //Should probably make label divs for padding and margins, do this later
     paddingDiv2.style.paddingBottom = "15px";
-    editorDiv.appendChild(paddingDiv2);
 
-    //======= Margins Section =======
+    let paddingTop = document.createElement("div");
+    paddingTop.textContent = "Top:";
+    paddingTop.style.width = "40%";
+    addPixelPercentInput(node, "paddingTop", "paddingTopType", paddingTop);
+
+    let paddingBottom = document.createElement("div");
+    paddingBottom.textContent = "Bottom:";
+    paddingBottom.style.width = "40%";
+    paddingBottom.style.paddingLeft = "10%";
+    addPixelPercentInput(node, "paddingBottom", "paddingBottomType", paddingBottom);
+
+    paddingDiv2.appendChild(paddingTop);
+    paddingDiv2.appendChild(paddingBottom);
+    paddingSection.appendChild(paddingDiv2);
+
+    layoutStyleSection.appendChild(paddingSection);
+
+    //margins
+    let marginSection = document.createElement("div");
+    marginSection.textContent = "Margins:";
 
     let marginDiv1 = document.createElement("div");
     marginDiv1.classList.add("horizontal-editor-inputs");
+    marginDiv1.style.marginTop = "15px";
 
-    addInput(node, marginDiv1, "Margin Left", node.style.marginLeft || 0, (val: any) => {
-      node.style.marginLeft = parseInt(val) == 0 ? "0" : parseInt(val);
-      app.renderPreview();
-    }, "number");  
+    let marginLeft = document.createElement("div");
+    marginLeft.textContent = "Left:";
+    marginLeft.style.width = "40%";
+    addPixelPercentInput(node, "marginLeft", "marginLeftType", marginLeft);
 
-    addInput(node, marginDiv1, "Margin Right", node.style.marginRight || 0, (val: any) => {
-      node.style.marginRight = parseInt(val) == 0 ? "0" : parseInt(val);
-      app.renderPreview();
-    }, "number");  
+    let marginRight = document.createElement("div");
+    marginRight.textContent = "Right:";
+    marginRight.style.width = "40%";
+    marginRight.style.marginLeft = "10%";
+    addPixelPercentInput(node, "marginRight", "marginRightType", marginRight);
 
-    editorDiv.appendChild(marginDiv1);
+    marginDiv1.appendChild(marginLeft);
+    marginDiv1.appendChild(marginRight);
+    marginSection.appendChild(marginDiv1);
 
     let marginDiv2 = document.createElement("div");
     marginDiv2.classList.add("horizontal-editor-inputs");
+    marginDiv2.style.marginBottom = "15px";
 
-    addInput(node, marginDiv2, "Margin Top", node.style.marginTop || 6, (val: any) => {
-      node.style.marginTop = parseInt(val) == 0 ? "0" : parseInt(val); //Make 0 be a string otherwise it glitches out and always set it to 6
-      app.renderPreview();
-    }, "number");  
+    let marginTop = document.createElement("div");
+    marginTop.textContent = "Top:";
+    marginTop.style.width = "40%";
+    addPixelPercentInput(node, "marginTop", "marginTopType", marginTop);
 
-    addInput(node, marginDiv2, "Margin Bottom", node.style.marginBottom || 6, (val: any) => {
-      node.style.marginBottom = parseInt(val) == 0 ? "0" : parseInt(val);
-      app.renderPreview();
-    }, "number");  
+    let marginBottom = document.createElement("div");
+    marginBottom.textContent = "Bottom:";
+    marginBottom.style.width = "40%";
+    marginBottom.style.marginLeft = "10%";
+    addPixelPercentInput(node, "marginBottom", "marginBottomType", marginBottom);
 
-    editorDiv.appendChild(marginDiv2);
+    marginDiv2.appendChild(marginTop);
+    marginDiv2.appendChild(marginBottom);
+    marginSection.appendChild(marginDiv2);
 
+    layoutStyleSection.appendChild(marginSection);
 }
 
 /**
  * Add a input that has pixel and percentage options (width and height)
  */
-export function addPixelPercentInput(node: components.Component, numberProperty: string, typeProperty: string) {
-  const editorDiv = document.getElementById("editor");
-  if (!editorDiv) return;
-  if (!(editorDiv instanceof HTMLDivElement)) return;
-
+export function addPixelPercentInput(node: components.Component, numberProperty: string, typeProperty: string, parent: HTMLElement) {
   let div = document.createElement("div");
   div.classList.add("editor-width-height");
 
@@ -277,7 +291,7 @@ export function addPixelPercentInput(node: components.Component, numberProperty:
   }, typeDropdown);
   div.appendChild(typeDropdown);
 
-  editorDiv.appendChild(div);
+  parent.appendChild(div);
 }
 
 /**
@@ -289,18 +303,17 @@ export function addTextEditor(node: components.Component, editable: boolean, tex
   if (!(editorDiv instanceof HTMLDivElement)) return;
 
   //Add a line between component info and text section
-  editorDiv.appendChild(document.createElement("hr"));
-  //let label = document.createElement("div");
-  //label.textContent = "Text:";
-  //editorDiv.appendChild(label);
   editorDiv.appendChild(document.createElement("br"));
+
+  //details and summary
+  let textSection = createSection("Text:", editorDiv);
 
   //create textbox
   let textboxEditor = document.getElementById("textbox-editor")?.cloneNode(true);
   if (!textboxEditor || !(textboxEditor instanceof HTMLElement)) return;
   textboxEditor.classList.remove("hidden");
   textboxEditor.classList.add("textbox-editor");
-  editorDiv.appendChild(textboxEditor);
+  textSection.appendChild(textboxEditor);
 
   let textboxStyleBar = document.getElementById("textbox-style-bar");
   if (!textboxStyleBar || !(textboxStyleBar instanceof HTMLDivElement)) return;
@@ -320,7 +333,6 @@ export function addTextEditor(node: components.Component, editable: boolean, tex
     }
   }
   
-
   //set styles (using the same method the component uses)
   components.applyTextStyles(textbox, node.style);
 
@@ -499,29 +511,32 @@ export function addBorderSection(node: components.Component) {
   if (!editorDiv) return;
   if (!(editorDiv instanceof HTMLDivElement)) return;
 
-  editorDiv.appendChild(document.createElement("hr"));
-  let label = document.createElement("div");
-  label.textContent = "Border:";
-  editorDiv.appendChild(label);
   editorDiv.appendChild(document.createElement("br"));
 
+  //details and summary
+  let borderSection = createSection("Border:", editorDiv);
+
   //border width, radius, style, and color
-  addInput(node, editorDiv, "Border Width", node.style.borderWidth || 0, (val: any) => {
+  addSelect(node, borderSection, "Border Style", node.style.borderStyle || "none", ["none", "solid", "dotted", "dashed", "double", "groove", "ridge", "inset", "outset"], (val: any) => { 
+    node.style.borderStyle = val;
+    app.renderPreview();
+    app.renderEditor();
+  });
+
+  //only add border section if there's a border
+  if (node.style.borderStyle === "none" || !node.style.borderStyle) return;
+
+  addInput(node, borderSection, "Border Width", node.style.borderWidth || 1, (val: any) => {
     node.style.borderWidth = parseInt(val);
     app.renderPreview();
   }, "number");
 
-  addInput(node, editorDiv, "Border Radius", node.style.borderRadius || 0, (val: any) => {
+  addInput(node, borderSection, "Border Radius", node.style.borderRadius || 0, (val: any) => {
     node.style.borderRadius = parseInt(val);
     app.renderPreview();
   }, "number");
 
-  addSelect(node, editorDiv, "Border Style", node.style.borderStyle || "none", ["none", "solid", "dotted", "dashed", "double", "groove", "ridge", "inset", "outset"], (val: any) => { 
-    node.style.borderStyle = val;
-    app.renderPreview();
-  });
-
-  addInput(node, editorDiv, "Border Color", node.style.borderColor || "#000000", (val: any) => {
+  addInput(node, borderSection, "Border Color", node.style.borderColor || "#000000", (val: any) => {
     node.style.borderColor = val;
     app.renderPreview();
   }, "color");
@@ -542,7 +557,7 @@ function openEventsModal() {
   typesDiv.style.overflowY = "auto";
   typesDiv.style.height = "30%";
 
-  for (const type of events.getEventTypes()) {
+  for (const type of matchevents.getEventTypes()) {
     let text = document.createElement("div")
     text.textContent = type;
 
@@ -552,7 +567,7 @@ function openEventsModal() {
     remove.style.marginLeft = "25px";
     remove.onclick = (e) => {
       e.stopPropagation();
-      events.removeEventType(type);
+      matchevents.removeEventType(type);
       openEventsModal();
     }
     text.appendChild(remove);
@@ -572,13 +587,13 @@ function openEventsModal() {
   addButton.onclick = (e) => {
     e.stopPropagation();
     if (addInput.value.trim().length === 0) return;
-    if (events.getEventTypes().includes(addInput.value)) return;
+    if (matchevents.getEventTypes().includes(addInput.value)) return;
 
     /*let text = document.createElement("div")
     text.textContent = addInput.value;
     typesDiv.appendChild(text);*/
 
-    events.addEventType(addInput.value);
+    matchevents.addEventType(addInput.value);
     addInput.value = "";
 
     openEventsModal();
@@ -596,7 +611,7 @@ function openEventsModal() {
   title.innerHTML = "Event Groups:";
   groupsDiv.appendChild(title);
 
-  for (const group of events.getEventGroups()) {
+  for (const group of matchevents.getEventGroups()) {
      let text = document.createElement("div")
     text.textContent = group;
 
@@ -606,7 +621,7 @@ function openEventsModal() {
     remove.style.marginLeft = "25px";
     remove.onclick = (e) => {
       e.stopPropagation();
-      events.removeEventGroup(group);
+      matchevents.removeEventGroup(group);
       openEventsModal();
     }
     text.appendChild(remove);
@@ -625,9 +640,9 @@ function openEventsModal() {
   addGroupButton.onclick = (e) => {
     e.stopPropagation();
     if (addGroupInput.value.trim().length === 0) return;
-    if (events.getEventGroups().includes(addGroupInput.value)) return;
+    if (matchevents.getEventGroups().includes(addGroupInput.value)) return;
 
-    events.addEventGroup(addGroupInput.value);
+    matchevents.addEventGroup(addGroupInput.value);
     addGroupInput.value = "";
 
     openEventsModal();
@@ -636,6 +651,80 @@ function openEventsModal() {
   modal.appendChild(addGroupInput);
   modal.appendChild(addGroupButton);
 
+}
+
+export function addNewEventSection(node: components.Component) {
+  const editorDiv = document.getElementById("editor");
+  if (!editorDiv) return;
+  if (!(editorDiv instanceof HTMLDivElement)) return;
+
+  let container = document.createElement("div");
+  let eventSection = createSection("Events:", container);
+
+  let outerDiv = document.createElement("div");
+  outerDiv.classList.add("image-selection");
+
+  let scrollableDiv = document.createElement("div");
+  scrollableDiv.classList.add("image-selection-scrollable");
+
+  let contentDiv = document.createElement("div");
+  contentDiv.classList.add("editor-event-content");
+
+  for (const event of node.componentEvents) {
+    
+    let eventDiv = document.createElement("div");
+
+    //add action
+    let eventLabel = document.createElement("div");
+    eventLabel.classList.add("editor-event-label");
+    eventLabel.innerHTML = event.trigger.toString().toLowerCase().replace("_", " ");
+    eventDiv.appendChild(eventLabel);
+
+    for (const action of event.actions) {
+      //add action
+      
+    }
+
+    contentDiv.appendChild(eventDiv);
+  }
+
+  //add action button
+  let addEventButton = document.createElement("div");
+  addEventButton.classList.add("editor-event-add");
+  addEventButton.innerHTML = "Add Event";
+  addEventButton.onclick = (e) => {
+    e.stopPropagation();
+    //test event adding
+    node.componentEvents.push(new events.Event(events.EventTrigger.COMPONENT_CLICK));
+    app.renderPreview();
+    app.renderEditor();
+  }
+  contentDiv.appendChild(addEventButton);
+
+  scrollableDiv.appendChild(contentDiv);
+  outerDiv.appendChild(scrollableDiv);
+  eventSection.appendChild(outerDiv);
+
+  editorDiv.appendChild(container);
+}
+
+/**
+ * Creates a section and returns the div to add content
+ */
+export function createSection(title: string, parent: HTMLElement): HTMLDivElement {
+  let details = document.createElement("details");
+  details.open = true;
+  let summary = document.createElement("summary");
+  summary.innerHTML = title;
+  summary.classList.add("editor-summary")
+  details.appendChild(summary);
+
+  let content = document.createElement("div");
+  details.appendChild(content);
+
+  parent.appendChild(details);
+
+  return content;
 }
 
 

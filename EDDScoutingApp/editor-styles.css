@@ -258,7 +258,7 @@
     padding-left: 5px;
     background: #ffffff;
     font-size: 14px;
-    width: 40%;
+    width: 100%;
     display: flex;
     margin-bottom: 8px;
 }
@@ -342,4 +342,49 @@
 
 .image-selection-text {
     margin-left: 15px;
+}
+
+.horizontal-editor-inputs {
+    display: flex;
+    white-space: nowrap;
+    justify-content: space-evenly;
+}
+
+.editor-summary {
+    font-size: 18px;
+    cursor: pointer;
+    padding-bottom: 15px;
+}
+
+.editor-event-label {
+    background-color: #eeeeee;
+    border-color: #b0b0b0;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 4px;
+    color: #111111;
+    font-size: 16px;
+    cursor: pointer;
+    padding:8px;
+}
+
+.editor-event-add {
+    background-color: #eeeeee;
+    border-color: #b0b0b0;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 6px;
+    color: #111111;
+    font-size: 16px;
+    cursor: pointer;
+    padding:8px;
+    width: 50%;
+}
+
+.editor-event-content {
+    width:90%;
+    display: flex;
+    justify-self: center;
+    padding-top: 20px;
+    flex-direction: column;
 }

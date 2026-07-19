@@ -77,12 +77,6 @@ input, select {
   padding: 4px;
 }
 
-.horizontal-editor-inputs {
-  display: flex;
-  white-space: nowrap;
-  justify-content: space-evenly;
-}
-
 .center-align {
   margin: auto;
 }

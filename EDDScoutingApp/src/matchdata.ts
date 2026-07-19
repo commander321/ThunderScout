@@ -1,4 +1,4 @@
-import {MatchEvent} from "./events.js";
+import {MatchEvent} from "./matchevents.js";
 import * as bluetooth from "./bluetooth.js";
 
 export enum MatchType {

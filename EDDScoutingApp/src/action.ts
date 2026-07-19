@@ -35,6 +35,7 @@ export enum ActionType {
 
 export function saveAction(action: Action) {
     savedActions.push(action);
+    console.log(savedActions);
 }
 
 export function undoLastAction() {

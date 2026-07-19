@@ -3,7 +3,7 @@
 // =======================
 
 import * as components from "./components.js";
-import * as events from "./events.js";
+import * as events from "./matchevents.js";
 import * as matchdata from "./matchdata.js";
 import * as bluetooth from "./bluetooth.js";
 import * as actions from "./action.js";
