@@ -3,7 +3,8 @@ import * as app from "./app.js";
 import * as matchdata from "./matchdata.js";
 import * as matchevents from "./matchevents.js";
 import * as storage from "./storage.js";
-import * as events from "./events.js";
+import * as events from "./events.js"
+import * as style from "./style.js";
 import { v4 as uuid } from 'uuid';
 
 export abstract class Component {
@@ -14,6 +15,7 @@ export abstract class Component {
   eventType: string;
   eventGroup: string;
   componentEvents: events.Event[];
+  abstract readonly styleTypes: style.Style[];
 
   constructor(type: string) {
     //this.id = ""//crypto.randomUUID();
@@ -38,6 +40,8 @@ export abstract class Component {
 }
 
 export class Root extends Component {
+  readonly styleTypes: style.Style[] = [];
+
   constructor() {
     super("root");
   }
@@ -52,6 +56,7 @@ export class Root extends Component {
 }
 
 export class Label extends Component {
+  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
   text: string;
 
   constructor() {
@@ -74,10 +79,14 @@ export class Label extends Component {
     applyLayoutStlyes(div, this.style);
     applyTextStyles(div, this.style);
     applyBorderStyles(div, this.style);
+
+    events.applyComponentEvents(this, div);
   }
 }
 
 export class Counter extends Component {
+  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
+
   //list of counters so that they can be updated
   static counters: Counter[] = [];
 
@@ -87,7 +96,7 @@ export class Counter extends Component {
   }
 
   addEditorFeatures() {
-    editor.addEventSelection(this);
+    //editor.addEventSelection(this);
     editor.addTextEditor(this, false, matchdata.getCurrentMatch().getEventCount(this.eventType, this.eventGroup).toString());
     editor.addLayoutStyleSection(this);
     editor.addBorderSection(this);
@@ -103,6 +112,8 @@ export class Counter extends Component {
     applyLayoutStlyes(div, this.style);
     applyTextStyles(label, this.style);
     applyBorderStyles(label, this.style);
+
+    events.applyComponentEvents(this, label);
   }
 
   update() {
@@ -113,19 +124,12 @@ export class Counter extends Component {
 }
 
 export class Button extends Component {
+  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes, style.buttonColor, style.buttonHoverColor];
   text: string;
-  bold: boolean;
-  italic: boolean;
-  underline: boolean;
-  decrease: boolean;
 
   constructor() {
     super("button");
     this.text = "New Button";
-    this.bold = false;
-    this.italic = false;
-    this.underline = false;
-    this.decrease = false;
   }
 
   addEditorFeatures() {
@@ -136,32 +140,18 @@ export class Button extends Component {
     editor.addNewEventSection(this);
 
     editor.addTextEditor(this, true);
-    editor.addEventSelection(this);
-
-    editor.addInput(this, editorDiv, "Decrease", this.decrease || false, (val: any) => {
-        this.decrease = val.checked;
-    }, "checkbox");
 
     //add a button styles section (for background colors, hover colors, etc)
-
     editorDiv.appendChild(document.createElement("hr"));
     let label = document.createElement("div");
     label.textContent = "Button Style";
     editorDiv.appendChild(label);
     editorDiv.appendChild(document.createElement("br"));
 
-    editor.addInput(this, editorDiv, "Button Color", this.style.buttonColor || "#F0F0F0", (val: any) => {
-        this.style.buttonColor = val || "#F0F0F0";
-        app.renderPreview();
-    }, "color");
-
-    editor.addInput(this, editorDiv, "Button Hover Color", this.style.buttonHoverColor || "E0E0E0", (val: any) => {
-        this.style.buttonHoverColor = val || "#E0E0E0";
-        app.renderPreview();
-    }, "color");
+    editor.addInput(this, editorDiv, style.buttonColor.displayName, style.buttonColor);
+    editor.addInput(this, editorDiv, style.buttonHoverColor.displayName, style.buttonHoverColor);
 
     editor.addLayoutStyleSection(this);
-    //editor.addTextSection(this);
     editor.addBorderSection(this);
   }
 
@@ -169,7 +159,7 @@ export class Button extends Component {
     let button: HTMLButtonElement = document.createElement("button");
     button.textContent = this.text;
 
-    button.onclick = (e) => {
+   /* button.onclick = (e) => {
       //e.stopPropagation();
       if (app.isRuntimeMode()) {
         if (this.decrease) {
@@ -178,10 +168,10 @@ export class Button extends Component {
           matchdata.getCurrentMatch().addEvent(new matchevents.MatchEvent(this.eventType, this.eventGroup));
         }
         updateCounters(this.eventType);
-        console.log(matchdata.getCurrentMatch().matchEvents); //for testing, might remove later (or not, doesn't really matter)
+        //console.log(matchdata.getCurrentMatch().matchEvents); //for testing, might remove later (or not, doesn't really matter)
       }
       app.renderPreview();
-    };
+    };*/
 
     button.onmouseover = (e) => {
       e.stopPropagation();
@@ -205,10 +195,13 @@ export class Button extends Component {
     button.style.backgroundColor = this.style.buttonColor || "#F0F0F0";
     applyTextStyles(button, this.style);
     applyBorderStyles(button, this.style);
+
+    events.applyComponentEvents(this, button);
   }
 }
 
 export class Section extends Component {
+  readonly styleTypes: style.Style[] = [style.width, style.thickness, style.background];
   thickness: number;
   color: string;
 
@@ -223,25 +216,16 @@ export class Section extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    editor.addInput(this, editorDiv, "Width (px)", this.style.width || 0, (val: any) => {
-        this.style.width = parseInt(val) || 0;
-        app.renderPreview();
-    }, "number");
-    editor.addInput(this, editorDiv, "Thickness (px)", this.thickness || 2, (val: any) => {
-        this.thickness = parseInt(val) || 2;
-        app.renderPreview();
-    }, "number");
-    editor.addInput(this, editorDiv, "Color", this.color || "#000000", (val: any) => {
-        this.color = val;
-        app.renderPreview();
-    }, "color");
+    editor.addInput(this, editorDiv, style.width.displayName, style.width);
+    editor.addInput(this, editorDiv, style.thickness.displayName, style.thickness);
+    editor.addInput(this, editorDiv, style.background.displayName, style.background);
   }
 
   render(div: HTMLDivElement) {
     let hr: HTMLHRElement = document.createElement("hr");
 
     hr.style.border = "none";
-    hr.style.backgroundColor = this.color || "#000000";
+    hr.style.backgroundColor = this.style[style.background.style] || style.background.defaultValue;
 
     div.appendChild(hr);
 
@@ -254,12 +238,15 @@ export class Section extends Component {
     div.style.width = this.style.width ? (this.style.width == 0 ? "auto" : this.style.width + "px") : "auto";
     hr.style.width = this.style.width ? (this.style.width == 0 ? "auto" : this.style.width + "px") : "auto";
 
-    div.style.height = this.thickness + "px";
-    hr.style.height = this.thickness + "px";
+    div.style.height = (this.style.thickness || 2) + "px";
+    hr.style.height = (this.style.thickness || 2) + "px";
+
+    events.applyComponentEvents(this, hr);
   }
 }
 
 export class Dropdown extends Component {
+  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
   //text: string;
   options: string[];
   required: boolean;
@@ -279,6 +266,7 @@ export class Dropdown extends Component {
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
     //editor.addTextLabel(this);
+    /*
     editor.addInput(this, editorDiv, 
         "Options (comma separated)",
         this.options.join(","),
@@ -286,12 +274,13 @@ export class Dropdown extends Component {
           this.options = val.split(",");
           app.renderPreview();
         }
-    );
-    editor.addGroupSection(this);
+    );*/
+    //editor.addGroupSection(this);
 
+    /*
     editor.addInput(this, editorDiv, "Required?", this.required, (val: any) => {
       this.required = val.checked;
-    }, "checkbox");
+    }, "checkbox");*/
 
     editor.addTextEditor(this, false, this.options.toString());
     editor.addLayoutStyleSection(this);
@@ -341,17 +330,15 @@ export class Dropdown extends Component {
     applyLayoutStlyes(div, this.style);
     applyTextStyles(select, this.style);
     applyBorderStyles(select, this.style);
+    events.applyComponentEvents(this, select);
   }
 }
 
 export class Checkbox extends Component {
- // checked: boolean;
-  //text: string;
+  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.borderStyleTypes, style.scale, style.checkboxColor, style.checkboxCheckedColor];
 
   constructor() {
     super ("checkbox");
-   // this.checked = false;
-   // this.text = "New Checkbox";
   }
 
   addEditorFeatures() {
@@ -359,7 +346,7 @@ export class Checkbox extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    editor.addEventSelection(this);
+    //editor.addEventSelection(this);
 
     //checkbox features
     editorDiv.appendChild(document.createElement("hr"));
@@ -368,20 +355,9 @@ export class Checkbox extends Component {
     editorDiv.appendChild(label);
     editorDiv.appendChild(document.createElement("br"));
 
-    editor.addInput(this, editorDiv, "Size (px)", this.style.scale || 0, (val: any) => {
-      this.style.scale = val || 0;
-      app.renderPreview();
-    }, "number");
-
-    editor.addInput(this, editorDiv, "Default Color", this.style.checkboxColor || "#FFFFFF", (val: any) => {
-        this.style.checkboxColor = val || "#FFFFFF";
-        app.renderPreview();
-    }, "color");
-
-    editor.addInput(this, editorDiv, "Checked Color", this.style.checkboxCheckedColor || "#FF3333", (val: any) => {
-        this.style.checkboxCheckedColor = val || "#FF3333";
-        app.renderPreview();
-    }, "color");
+    editor.addInput(this, editorDiv, style.scale.displayName, style.scale);
+    editor.addInput(this, editorDiv, style.checkboxColor.displayName, style.checkboxColor);
+    editor.addInput(this, editorDiv, style.checkboxCheckedColor.displayName, style.checkboxCheckedColor);
 
     editor.addLayoutStyleSection(this);
     editor.addBorderSection(this);
@@ -394,7 +370,6 @@ export class Checkbox extends Component {
 
     checkbox.onchange = (e) => {
       e.stopPropagation();
-      //this.checked = checkbox.checked;
 
       if (!app.isRuntimeMode()) return;
 
@@ -417,15 +392,16 @@ export class Checkbox extends Component {
     checkbox.style.height = this.style.scale ? (this.style.scale == 0 ? "auto" : this.style.scale + "px") : "auto";
     checkbox.style.backgroundColor = this.style.checkboxColor || "#FFFFFF";
     checkbox.style.accentColor = this.style.checkboxCheckedColor || "#FF3333";
+
+    events.applyComponentEvents(this, checkbox);
   }
 }
 
 export class Layout extends Component {
-  direction: string;
+  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.borderStyleTypes];
 
   constructor() {
     super("layout");
-    this.direction = "vertical";
   }
 
   addEditorFeatures() {
@@ -433,10 +409,8 @@ export class Layout extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    editor.addSelect(this, editorDiv, "Direction", this.direction, ["vertical", "horizontal"], (val: any) => {
-        this.direction = val;
-        app.renderPreview();
-    });
+    editor.addSelect(this, editorDiv, style.direction.displayName, style.direction);
+
     editor.addLayoutStyleSection(this);
     editor.addBorderSection(this);
   }
@@ -444,16 +418,20 @@ export class Layout extends Component {
   render(div: HTMLDivElement) {
     div.classList.add("container");
 
-    if (this.type === "layout" && this.direction === "horizontal") {
+    if (this.type === "layout" && this.style.direction === "horizontal") {
       div.classList.add("horizontal");
     }
 
     applyLayoutStlyes(div, this.style);
     applyBorderStyles(div, this.style);
+
+    events.applyComponentEvents(this, div);
   }
 }
 
 export class TeamNum extends Component {
+  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
+
   constructor() {
     super("teamnum");
   }
@@ -470,7 +448,6 @@ export class TeamNum extends Component {
 
     team.onchange = (e) => {
       matchdata.getCurrentMatch().teamNumber = parseInt(team.value);
-      console.log(matchdata.getCurrentMatch());
     }
 
     team.valueAsNumber = matchdata.getCurrentMatch().teamNumber;
@@ -485,17 +462,18 @@ export class TeamNum extends Component {
     team.style.marginBottom = "0px";
     applyTextStyles(team, this.style);
     applyBorderStyles(team, this.style);
+
+    events.applyComponentEvents(this, team);
   }
 }
 
 export class TextBox extends Component {
+  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
 
-  //content: string;
   key: string;
 
   constructor() {
     super("textbox");
-   // this.content = "";
     this.key = "";
   }
 
@@ -504,10 +482,11 @@ export class TextBox extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
+    /*
     editor.addInput(this, editorDiv, "Textbox ID (event name)", this.key, (val: any) => {
           this.key = val;
           app.renderPreview();
-        }, "text");
+        }, "text");*/
       
     editor.addLayoutStyleSection(this);
     editor.addTextEditor(this, false, matchdata.getCurrentMatch().getTextData(this.key));
@@ -523,11 +502,7 @@ export class TextBox extends Component {
       textbox.onchange = (e) => {
         e.stopPropagation();
 
-        //this.content = textbox.value;
-
         if (!app.isRuntimeMode()) return;
-
-        console.log(matchdata.getCurrentMatch().textData);//for testing this
 
         //handle setting the text data value
         matchdata.getCurrentMatch().setTextData(this.key, textbox.value);
@@ -543,10 +518,14 @@ export class TextBox extends Component {
       textbox.style.marginBottom = "0px";
       applyTextStyles(textbox, this.style);
       applyBorderStyles(textbox, this.style);
+
+      events.applyComponentEvents(this, textbox);
   }
 }
 
 export class Image extends Component {
+  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.borderStyleTypes];
+
   imageId: string;
 
   constructor() {
@@ -590,12 +569,15 @@ export class Image extends Component {
     image.style.height = "100%";
     applyLayoutStlyes(div, this.style);
     
-
     div.appendChild(image);
+
+    events.applyComponentEvents(this, image);
   }
 }
 
 export class MatchNum extends Component {
+  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
+
   constructor() {
     super("matchnum");
   }
@@ -612,7 +594,6 @@ export class MatchNum extends Component {
 
     match.onchange = (e) => {
       matchdata.getCurrentMatch().matchNumber = parseInt(match.value);
-      console.log(matchdata.getCurrentMatch());
     }
 
     match.valueAsNumber = matchdata.getCurrentMatch().matchNumber;
@@ -627,10 +608,14 @@ export class MatchNum extends Component {
     match.style.marginBottom = "0px";
     applyTextStyles(match, this.style);
     applyBorderStyles(match, this.style);
+
+    events.applyComponentEvents(this, match);
   }
 }
 
 export class MatchType extends Component {
+  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
+
   constructor() {
     super("matchtype");
   }
@@ -674,10 +659,14 @@ export class MatchType extends Component {
     select.style.marginBottom = "0px";
     applyTextStyles(select, this.style);
     applyBorderStyles(select, this.style);
+
+    events.applyComponentEvents(this, select);
   }
 }
 
 export class AllianceStation extends Component {
+  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
+
   constructor() {
     super("alliancestation");
   }
@@ -727,10 +716,14 @@ export class AllianceStation extends Component {
     select.style.marginBottom = "0px";
     applyTextStyles(select, this.style);
     applyBorderStyles(select, this.style);
+
+    events.applyComponentEvents(this, select);
   }
 }
 
 export class ResetButton extends Component {
+  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
+
   text: string;
 
   constructor() {
@@ -791,10 +784,14 @@ export class ResetButton extends Component {
     applyLayoutStlyes(div, this.style);
     applyTextStyles(button, this.style);
     applyBorderStyles(button, this.style);
+
+    events.applyComponentEvents(this, div);
   }
 }
 
 export class AnalyticsMatchesTable extends Component {
+  readonly styleTypes: style.Style[] = [];
+
 
 /*
 How analytics tables will work:
@@ -843,10 +840,11 @@ Different types:
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
+    /*
     editor.addInput(this, editorDiv, "Minimum Rows", this.minRows, (val: any) => {
       this.minRows = val;
       app.renderPreview();
-    }, "number");
+    }, "number");*/
 
     editor.addLayoutStyleSection(this);
   }
@@ -916,6 +914,8 @@ Different types:
 }
 
 export class AnalyticsMatchesTableColumn extends Component {
+  readonly styleTypes: style.Style[] = [];
+
   value: any;
 
   header: string;
@@ -938,27 +938,30 @@ export class AnalyticsMatchesTableColumn extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
+    /*
     editor.addInput(this, editorDiv, "Header", this.header, (val: any) => {
       this.header = val;
       app.renderPreview();
-    }, "text");
+    }, "text");*/
 
     //columns have selection to select if it's an event, group, header info, etc
+    /*
     editor.addSelect(this, editorDiv, "Data Type", this.dataType, ["Event Count", "Group", "Textbox", "Match Number", "Team Number", "Alliance Station", "Match Type", "Event Code"], (val: any) => {
       this.dataType = val;
       app.renderPreview();
       app.renderEditor();
-    });
+    });*/
 
     if (this.dataType == "Event Count") {
-      editor.addEventSelection(this);
+      //editor.addEventSelection(this);
     } else if (this.dataType == "Group") {
-      editor.addGroupSection(this);
+      //editor.addGroupSection(this);
     } else if (this.dataType == "Textbox") {
+      /*
         editor.addInput(this, editorDiv, "Textbox ID", this.textboxKey, (val: any) => {
           this.textboxKey = val;
           app.renderPreview();
-        }, "text");
+        }, "text");*/
     }
 
     editor.addTextEditor(this, false);
@@ -1097,7 +1100,7 @@ export class AnalyticsMatchesTableColumn extends Component {
 /**
 * Updates all event counter components because event counts change all the time
 */
-function updateCounters(type?: string) {
+export function updateCounters(type?: string) {
   for (const counter of Counter.counters) {
     if (type) {
       if (counter.eventType === type) counter.update();
@@ -1126,12 +1129,12 @@ function applyLayoutStlyes(node: HTMLElement, style: Record<string, any>) {
   node.style.marginTop = (style.marginTop == "0" ? 0 : (style.marginTop || 6)) + (style.marginTopType || "px");
   node.style.marginBottom = (style.marginBottom == "0" ? 0 : (style.marginBottom || 6)) + (style.marginBottomType || "px");
 
-  if (style.allignment === "right") {
+  if (style.alignment == "right") {
     node.style.marginRight = (style.marginRight == "0" ? 0 : (style.marginRight || 0)) + (style.marginRightType || "px");
     node.classList.remove("center-align");
     node.classList.remove("left-align");
     node.classList.add("right-align");
-  } else if (style.allignment === "center") {
+  } else if (style.alignment == "center") {
     node.classList.remove("right-align");
     node.classList.remove("left-align");
     node.classList.add("center-align");
@@ -1140,14 +1143,14 @@ function applyLayoutStlyes(node: HTMLElement, style: Record<string, any>) {
     node.classList.remove("center-align");
     node.classList.add("left-align");
     node.style.marginLeft = (style.marginLeft == "0" ? 0 : (style.marginLeft || 0)) + (style.marginLeftType || "px");
-  }  
+  }
 }
 
 /**
  * Apply CSS styles for text
  */
 export function applyTextStyles(node: HTMLElement, style: Record<string, any>) {
-  node.style.fontSize = (style.textSize || 14) + "px";
+  node.style.fontSize = (style.fontSize || 14) + "px";
   node.style.fontFamily = style.fontFamily || "Arial";
   node.style.fontWeight = style.bold ? "bold" : "normal";
   node.style.fontStyle = style.fontStyle || ""

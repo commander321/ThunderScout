@@ -266,6 +266,7 @@
 .editor-width-height-input {
     border: none;
     margin-bottom: 0;
+    font-size: 14px;
 }
 
 .image-selection {
@@ -356,9 +357,13 @@
     padding-bottom: 15px;
 }
 
-.editor-event-label {
-    background-color: #eeeeee;
-    border-color: #b0b0b0;
+.editor-event-div {
+    padding-bottom: 50px;
+}
+
+.editor-event-trigger-label {
+    background-color: #d9d9d9;
+    border-color: #aeaeae;
     border-width: 2px;
     border-style: solid;
     border-radius: 4px;
@@ -368,9 +373,9 @@
     padding:8px;
 }
 
-.editor-event-add {
-    background-color: #eeeeee;
-    border-color: #b0b0b0;
+.editor-event-trigger-add {
+    background-color: #d9d9d9;
+    border-color: #aeaeae;
     border-width: 2px;
     border-style: solid;
     border-radius: 6px;
@@ -378,7 +383,8 @@
     font-size: 16px;
     cursor: pointer;
     padding:8px;
-    width: 50%;
+    width: 30%;
+    margin-top: 5%;
 }
 
 .editor-event-content {
@@ -387,4 +393,137 @@
     justify-self: center;
     padding-top: 20px;
     flex-direction: column;
+}
+
+.event-trigger-dropdown {
+    display: block;
+    position: absolute;
+    background-color: #ffffff;
+    width: 30%;
+    z-index: 1;
+    margin-top: 4px;
+    overflow: hidden;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+}
+
+.event-trigger-dropdown-button {
+    color: #111111;
+    padding: 12px;
+    display: block;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background-color: #ffffff;
+}
+
+.event-trigger-dropdown-button:hover {
+    background-color: #e0e0e0;
+}
+
+.editor-event-action-add {
+    background-color: #d9d9d9;
+    border-color: #aeaeae;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    color: #111111;
+    font-size: 24px;
+    cursor: pointer;
+    padding:5px;
+    margin-top: 25px;
+    text-align: center;
+    align-content: center;
+}
+
+.editor-event-action-div {
+    width: 50%;
+}
+
+.editor-event-action-label {
+    background-color: #d9d9d9;
+    border-color: #aeaeae;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 4px;
+    color: #111111;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 6px;
+    margin-top: 25px;
+}
+
+.editor-event-action-properties {
+    background: #fafafa;
+    border: 2px solid #d9d9d9;
+    border-radius: 4px;
+    height: 200px;
+    padding:8px;
+}
+
+.editor-event-action-properties input {
+    border: 2px solid #bbbbbb;
+    border-radius: 4px;
+    padding: 6px;
+    padding-left: 8px;
+    background: #ffffff;
+    font-size: 14px;
+    width: 30%;
+    margin-left: 10%;
+}
+
+.editor-event-tree {
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    padding: 10px;
+}
+
+.editor-event-tree ul {
+    list-style: none;
+    padding-left: 20px;
+    margin: 0;
+    position: relative;
+}
+
+.editor-event-tree > ul { 
+    padding-left: 5px; 
+}
+
+.editor-event-tree li {
+    position: relative;
+    padding-left: 15px;
+}
+
+.editor-event-tree ul li::before {
+    content: "";
+    position: absolute;
+    left: -5px;
+    bottom:0;
+    height: var(--editor-tree-before-height, 100%);
+    border-left: 2px solid #999999;
+}
+
+.editor-event-tree ul li::after {
+    content: "";
+    position: absolute;
+    left: -5px;
+    top: 50%;
+    width: 15px;
+    border-top: 2px solid #999999;
+}
+
+.editor-event-tree ul li:last-child::before {
+    height: calc(var(--editor-tree-before-height, 100%) - 19px);
+    bottom: 50%;
+}
+
+.modal-events-content {
+    overflow-y: auto;
+    height: 100%;
 }

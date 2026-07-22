@@ -8,6 +8,7 @@ import * as matchdata from "./matchdata.js";
 import * as bluetooth from "./bluetooth.js";
 import * as actions from "./action.js";
 import * as storage from "./storage.js";
+import * as editor from "./editor.js";
 import { v4 as uuid } from 'uuid';
 
 let appName: string = "";
@@ -318,8 +319,12 @@ function closeModal() {
 let overlay = document.getElementById("overlay")
 if (overlay) overlay.onclick = closeModal;
 
+//close any modals when you hit escape
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") closeModal();
+  if (e.key === "Escape") {
+    closeModal();
+    editor.closeEventsModal();
+  }
 });
 
 
@@ -450,12 +455,12 @@ export function loadComponent(data: any, newUUID?: boolean): components.Componen
   component.eventGroup = data.eventGroup;
   
   if (component instanceof components.Layout) {
-    component.direction = data.direction;
+    //component.direction = data.direction;
   } else if (component instanceof components.Label) {
     component.text = data.text;
   } else if (component instanceof components.Button) {
     component.text = data.text;
-    component.decrease = data.decrease;
+    //component.decrease = data.decrease;
   } else if (component instanceof components.Dropdown) {
     component.options = data.options;
     component.required = data.required;
@@ -924,7 +929,9 @@ function saveLocalState() {
   localStorage.setItem("event_code", JSON.stringify(matchdata.getCurrentMatch().eventCode));
   localStorage.setItem("events", JSON.stringify(events.getEventTypes()));
   localStorage.setItem("groups", JSON.stringify(events.getEventGroups()));
-  localStorage.setItem("app", JSON.stringify(root));
+  localStorage.setItem("app", JSON.stringify(root, (key, val) => {
+    return (key == "styleTypes" || key == "componentEvents") ? undefined : val;
+  }));
   localStorage.setItem("unsaved_matches", JSON.stringify(matchdata.getUnsavedMatches()));
   localStorage.setItem("app_name", JSON.stringify(appName));
 }
@@ -973,6 +980,9 @@ setupEditorButtons();
 
 //load all saved image files (only do this when loading the page)
 storage.loadImages();
+
+//initialize HTML components that get reused
+editor.initEventSelection();
 
 //Get the saved state and load either the editor or runtime mode
 loadLocalState();
