@@ -107,6 +107,7 @@ function renderNode(node: components.Component, container: HTMLDivElement) {
 
   //applyStyles(div, node);
   node.render(div);
+  node.applyStyles();
   //renderComponentContent(div, node);
 
   container.appendChild(div);
@@ -423,7 +424,9 @@ export function saveToJSON() {
     app: root
   }
 
-  let json = JSON.stringify(data, null, 2);
+  let json = JSON.stringify(data, (key, val) => {
+    return (key == "styleTypes" || key == "divElement" || key == "component") ? undefined : val;
+  }, 2);
   let blob = new Blob([json], { type: "application/json" });
   let url = URL.createObjectURL(blob);
 
@@ -930,7 +933,7 @@ function saveLocalState() {
   localStorage.setItem("events", JSON.stringify(events.getEventTypes()));
   localStorage.setItem("groups", JSON.stringify(events.getEventGroups()));
   localStorage.setItem("app", JSON.stringify(root, (key, val) => {
-    return (key == "styleTypes" || key == "componentEvents") ? undefined : val;
+    return (key == "styleTypes" || key == "componentEvents" || key == "divElement" || key == "component") ? undefined : val;
   }));
   localStorage.setItem("unsaved_matches", JSON.stringify(matchdata.getUnsavedMatches()));
   localStorage.setItem("app_name", JSON.stringify(appName));

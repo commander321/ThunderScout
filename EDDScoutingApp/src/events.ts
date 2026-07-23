@@ -18,7 +18,6 @@ export class Event {
      * Runs the event when it is triggered
      */
     run(): void {
-        console.log("run");
         if (!app.isRuntimeMode()) return;
         for (const action of this.actions) {
             action.onTrigger();
@@ -136,6 +135,7 @@ export class ActionTriggerEvent extends EventAction {
 export class ActionStyleChange extends EventAction {
 
     component: components.Component | undefined;
+    element: HTMLElement | undefined;
     styles: Record<string, any>;
 
     constructor() {
@@ -145,15 +145,11 @@ export class ActionStyleChange extends EventAction {
     }
 
     onTrigger(): void {
-        if (!this.component) return;
-        for (const [style, value] of Object.entries(this.styles)) {
-            this.component.style[style] = value;
+        if (!this.element || !this.component) return;
+        for (const styleType of this.component.styleTypes) {
+            if (!(styleType.style in this.styles)) continue;
+            styleType.applyToNode(this.element, this.styles);
         }
-
-        //probably find a better way to force reload the app
-        app.openDesigner();
-        app.renderPreview();
-        app.closeDesigner();
     }
 
     addProperties(div: HTMLDivElement): void {
@@ -161,12 +157,12 @@ export class ActionStyleChange extends EventAction {
         content.style.overflowY = "auto";
         content.style.height = "100%";
 
-        if (!this.component) return;
         let idDiv = document.createElement("div");
         idDiv.innerHTML = "Component:"
         let idInput = document.createElement("input");
         idInput.type = "text";
         idInput.value = this.component?.id || "";
+        idInput.classList.add("editor-event-action-properties-input");
         idDiv.appendChild(idInput);
         content.appendChild(idDiv);
 
@@ -174,19 +170,37 @@ export class ActionStyleChange extends EventAction {
         content.appendChild(hr);
 
         //add all styles
+        if (!this.component) return;
         for (const styleType of this.component.styleTypes) {
             if (style.actionPropertiesExclude.includes(styleType)) continue;
 
             let styleDiv = document.createElement("div");
             styleDiv.innerHTML = styleType.displayName;
+            styleDiv.style.display = "flex";
 
             if (styleType.options) {
                 //dropdowns
-                editor.addSelect(this.component, styleDiv, "", styleType);
+                let select = document.createElement("select");
+                select.style.width = "30%";
+                select.style.marginLeft = "10%";
+                styleType.options.forEach(opt => {
+                    let option = document.createElement("option");
+                    option.value = opt;
+                    option.textContent = opt;
+                    select.appendChild(option);
+                });
+                select.value = this.styles[styleType.style] || styleType.defaultValue;
+                select.onchange = () => {
+                    this.styles[styleType.style] = select.value;
+                }
+
+                styleDiv.appendChild(select);
             } else if (style.pixelPercentTypes.includes(styleType)) {
                 //pixel and percent inputs like width and height
                 let div = document.createElement("div");
                 div.classList.add("editor-width-height");
+                div.style.width = "30%";
+                div.style.marginLeft = "10%";
             
                 let numberInput = document.createElement("input");
                 numberInput.classList.add("editor-width-height-input");
@@ -230,6 +244,8 @@ export class ActionStyleChange extends EventAction {
                 //normal inputs
                 let input = document.createElement("input");
                 input.type = styleType.inputType;
+                input.style.width = "30%";
+                input.style.marginLeft = "10%";
                 input.value = this.styles[styleType.style] || styleType.defaultValue;
                 input.onchange = () => {
                     this.styles[styleType.style] = input.value;
@@ -241,17 +257,38 @@ export class ActionStyleChange extends EventAction {
         }
 
         div.appendChild(content);
-
-        /*for (const [style, value] of Object.entries(this.styles)) {
-            let styleDiv = document.createElement("div");
-            styleDiv.innerHTML = style;
-
-            let input = document.createElement("input");
-            editor.addInput(this.component, true, "");
-        }*/
-
-        //add button
     }
+}
+
+//add this later
+export class ActionTextChange extends EventAction {
+
+    component: components.Component | undefined;
+    element: HTMLElement | undefined;
+    styles: Record<string, any>;
+    text: string;
+
+    constructor() {
+        super("Change component text");
+        this.styles = {};
+        this.text = "";
+
+        if (!this.element || !this.component) return;
+    }
+
+    onTrigger(): void {
+
+    }
+
+    addProperties(div: HTMLDivElement): void {
+        let content = document.createElement("div");
+        content.style.overflowY = "auto";
+        content.style.height = "100%";
+
+        //add text editor
+        
+    }
+    
 }
 
 
@@ -264,6 +301,7 @@ export const eventActionTypeRegistry = {
     matchEvent: ActionRecordMatchEvent,
     triggerEvent: ActionTriggerEvent,
     styleChange: ActionStyleChange,
+    textChange: ActionTextChange,
 } as const;
 
 export type EventActionType = keyof typeof eventActionTypeRegistry;
@@ -273,6 +311,7 @@ export const EVENT_ACTION_TYPES: string[][] = [
   ["matchEvent", "Add match event", ""],
   ["triggerEvent", "Trigger an event", ""],
   ["styleChange", "Change component style", ""],
+  ["textChange", "Change component text", ""],
 ];
 
 
@@ -296,6 +335,11 @@ export function applyComponentEvents(component: components.Component, element: H
                 }
             default:
                 break;
+        }
+        
+        //set any necessary properties for actions
+        for (const action of event.actions) {
+            if (action instanceof ActionStyleChange) action.element = element;
         }
     }
 }

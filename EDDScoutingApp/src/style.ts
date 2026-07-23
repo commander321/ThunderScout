@@ -1,3 +1,16 @@
+/*
+New idea to make styles even better:
+
+components have a seperate apply styles method that applies their styles
+it has an optional argument to override the default style list if applicable
+the component's parent div is stored inside the component object (this will make lots of things easier)
+this gets called when component styles are modified or when the component is rendered
+you won't have to render every single time the component is modified in the editor so that's good
+it can use firstchild for most inside element I think
+
+*/
+
+
 type InputStyle = {
     style: string;
     inputType: "number" | "text" | "color" | "checkbox";
@@ -5,6 +18,7 @@ type InputStyle = {
     description: string;
     defaultValue: any;
     options?: undefined;
+    applyToNode: (node: HTMLElement, style: Record<string, any>) => void;
 }
 
 type OptionStyle = {
@@ -14,6 +28,7 @@ type OptionStyle = {
     description: string;
     defaultValue: any;
     options: string[];
+    applyToNode: (node: HTMLElement, style: Record<string, any>) => void;
 }
 
 export type Style = InputStyle | OptionStyle;
@@ -27,7 +42,8 @@ export const width: Style = {
     inputType: "number",
     displayName: "Width",
     description: "Width of the component",
-    defaultValue: "0"
+    defaultValue: "0",
+    applyToNode(node, style) {node.style.width = style.width ? (style.width == 0 ? "fit-content" : style.width + (style.widthType || "px")) : "fit-content"}
 }
 
 export const widthType: Style = {
@@ -35,15 +51,17 @@ export const widthType: Style = {
     displayName: "",
     description: "",
     options: ["px", "%"],
-    defaultValue: "px"
+    defaultValue: "px",
+    applyToNode(node, style) {}
 }
 
 export const height: Style = {
     style: "height",
     inputType: "number",
-    displayName: "Hidth",
-    description: "Hidth of the component",
-    defaultValue: "0"
+    displayName: "Height",
+    description: "Height of the component",
+    defaultValue: "0",
+    applyToNode(node, style) {node.style.height = style.height ? (style.height == 0 ? "auto" : style.height + (style.heightType || "px")) : "auto"}
 }
 
 export const heightType: Style = {
@@ -51,7 +69,8 @@ export const heightType: Style = {
     displayName: "",
     description: "",
     options: ["px", "%"],
-    defaultValue: "px"
+    defaultValue: "px",
+    applyToNode(node, style) {}
 }
 
 export const background: Style = {
@@ -59,7 +78,8 @@ export const background: Style = {
     inputType: "color",
     displayName: "Background Color",
     description: "",
-    defaultValue: "#ffffff"
+    defaultValue: "#ffffff",
+    applyToNode(node, style) {node.style.background = style.background || ""}
 }
 
 export const paddingLeft: Style = {
@@ -67,7 +87,8 @@ export const paddingLeft: Style = {
     inputType: "number",
     displayName: "Padding Left",
     description: "",
-    defaultValue: "0"
+    defaultValue: "0",
+    applyToNode(node, style) {node.style.paddingLeft = (style.paddingLeft == "0" ? 0 : (style.paddingLeft || 5)) + (style.paddingLeftType || "px")}
 }
 
 export const paddingLeftType: Style = {
@@ -75,7 +96,8 @@ export const paddingLeftType: Style = {
     displayName: "",
     description: "",
     options: ["px", "%"],
-    defaultValue: "px"
+    defaultValue: "px",
+    applyToNode(node, style) {}
 }
 
 export const paddingRight: Style = {
@@ -83,7 +105,8 @@ export const paddingRight: Style = {
     inputType: "number",
     displayName: "Padding Right",
     description: "",
-    defaultValue: "0"
+    defaultValue: "0",
+    applyToNode(node, style) {node.style.paddingRight = (style.paddingRight == "0" ? 0 : (style.paddingRight || 5)) + (style.paddingRightType || "px")}
 }
 
 export const paddingRightType: Style = {
@@ -91,7 +114,8 @@ export const paddingRightType: Style = {
     displayName: "",
     description: "",
     options: ["px", "%"],
-    defaultValue: "px"
+    defaultValue: "px",
+    applyToNode(node, style) {}
 }
 
 export const paddingTop: Style = {
@@ -99,7 +123,8 @@ export const paddingTop: Style = {
     inputType: "number",
     displayName: "Padding Top",
     description: "",
-    defaultValue: "0"
+    defaultValue: "0",
+    applyToNode(node, style) {node.style.paddingTop = (style.paddingTop == "0" ? 0 : (style.paddingTop || 5)) + (style.paddingTopType || "px")}
 }
 
 export const paddingTopType: Style = {
@@ -107,7 +132,8 @@ export const paddingTopType: Style = {
     displayName: "",
     description: "",
     options: ["px", "%"],
-    defaultValue: "px"
+    defaultValue: "px",
+    applyToNode(node, style) {}
 }
 
 export const paddingBottom: Style = {
@@ -115,7 +141,8 @@ export const paddingBottom: Style = {
     inputType: "number",
     displayName: "Padding Bottom",
     description: "",
-    defaultValue: "0"
+    defaultValue: "0",
+    applyToNode(node, style) {node.style.paddingBottom = (style.paddingBottom == "0" ? 0 : (style.paddingBottom || 5)) + (style.paddingBottomType || "px")}
 }
 
 export const paddingBottomType: Style = {
@@ -123,7 +150,8 @@ export const paddingBottomType: Style = {
     displayName: "",
     description: "",
     options: ["px", "%"],
-    defaultValue: "px"
+    defaultValue: "px",
+    applyToNode(node, style) {}
 }
 
 export const marginLeft: Style = {
@@ -131,7 +159,8 @@ export const marginLeft: Style = {
     inputType: "number",
     displayName: "Margin Left",
     description: "",
-    defaultValue: "0"
+    defaultValue: "0",
+    applyToNode(node, style) {/*Handled by layout alignment */}
 }
 
 export const marginLeftType: Style = {
@@ -139,7 +168,8 @@ export const marginLeftType: Style = {
     displayName: "",
     description: "",
     options: ["px", "%"],
-    defaultValue: "px"
+    defaultValue: "px",
+    applyToNode(node, style) {}
 }
 
 export const marginRight: Style = {
@@ -147,7 +177,8 @@ export const marginRight: Style = {
     inputType: "number",
     displayName: "Margin Right",
     description: "",
-    defaultValue: "0"
+    defaultValue: "0",
+    applyToNode(node, style) {/*Handled by layout alignment */}
 }
 
 export const marginRightType: Style = {
@@ -155,7 +186,8 @@ export const marginRightType: Style = {
     displayName: "",
     description: "",
     options: ["px", "%"],
-    defaultValue: "px"
+    defaultValue: "px",
+    applyToNode(node, style) {}
 }
 
 export const marginTop: Style = {
@@ -163,7 +195,8 @@ export const marginTop: Style = {
     inputType: "number",
     displayName: "Margin Top",
     description: "",
-    defaultValue: "0"
+    defaultValue: "0",
+    applyToNode(node, style) {node.style.marginTop = (style.marginTop == "0" ? 0 : (style.marginTop || 6)) + (style.marginTopType || "px")}
 }
 
 export const marginTopType: Style = {
@@ -171,7 +204,8 @@ export const marginTopType: Style = {
     displayName: "",
     description: "",
     options: ["px", "%"],
-    defaultValue: "px"
+    defaultValue: "px",
+    applyToNode(node, style) {}
 }
 
 export const marginBottom: Style = {
@@ -179,7 +213,8 @@ export const marginBottom: Style = {
     inputType: "number",
     displayName: "Margin Bottom",
     description: "",
-    defaultValue: "0"
+    defaultValue: "0",
+    applyToNode(node, style) {  node.style.marginBottom = (style.marginBottom == "0" ? 0 : (style.marginBottom || 6)) + (style.marginBottomType || "px")}
 }
 
 export const marginBottomType: Style = {
@@ -187,7 +222,8 @@ export const marginBottomType: Style = {
     displayName: "",
     description: "",
     options: ["px", "%"],
-    defaultValue: "px"
+    defaultValue: "px",
+    applyToNode(node, style) {}
 }
 
 export const alignment: Style = {
@@ -195,7 +231,24 @@ export const alignment: Style = {
     displayName: "Alignment",
     description: "",
     options: ["left", "center", "right"],
-    defaultValue: "left"
+    defaultValue: "left",
+    applyToNode(node, style) {
+        if (style.alignment == "right") {
+            node.style.marginRight = (style.marginRight == "0" ? 0 : (style.marginRight || 0)) + (style.marginRightType || "px");
+            node.classList.remove("center-align");
+            node.classList.remove("left-align");
+            node.classList.add("right-align");
+        } else if (style.alignment == "center") {
+            node.classList.remove("right-align");
+            node.classList.remove("left-align");
+            node.classList.add("center-align");
+        } else {
+            node.classList.remove("right-align");
+            node.classList.remove("center-align");
+            node.classList.add("left-align");
+            node.style.marginLeft = (style.marginLeft == "0" ? 0 : (style.marginLeft || 0)) + (style.marginLeftType || "px");
+        }
+    }
 }
 
 export const fontSize: Style = {
@@ -203,7 +256,8 @@ export const fontSize: Style = {
     displayName: "Font Size",
     description: "",
     inputType: "number",
-    defaultValue: "14"
+    defaultValue: "14",
+    applyToNode(node, style) {node.style.fontSize = (style.fontSize || 14) + "px"}
 }
 
 export const bold: Style = {
@@ -211,7 +265,8 @@ export const bold: Style = {
     displayName: "Bold",
     description: "",
     inputType: "checkbox",
-    defaultValue: false
+    defaultValue: false,
+    applyToNode(node, style) {node.style.fontWeight = style.bold ? "bold" : "normal"}
 }
 
 export const italic: Style = {
@@ -219,7 +274,8 @@ export const italic: Style = {
     displayName: "Italic",
     description: "",
     inputType: "checkbox",
-    defaultValue: false
+    defaultValue: false,
+    applyToNode(node, style) {node.style.fontStyle = style.fontStyle || ""}
 }
 
 export const underline: Style = {
@@ -227,7 +283,8 @@ export const underline: Style = {
     displayName: "Underline",
     description: "",
     inputType: "checkbox",
-    defaultValue: false
+    defaultValue: false,
+    applyToNode(node, style) {node.style.textDecoration = style.textDecoration || ""}
 }
 
 export const textAlign: Style = {
@@ -235,7 +292,8 @@ export const textAlign: Style = {
     displayName: "Text Align",
     description: "",
     options: ["left", "center", "right"],
-    defaultValue: "left"
+    defaultValue: "left",
+    applyToNode(node, style) {node.style.textAlign = style.textAlign || "left"}
 }
 
 export const fontColor: Style = {
@@ -243,7 +301,8 @@ export const fontColor: Style = {
     displayName: "Text Color",
     description: "",
     inputType: "color",
-    defaultValue: "#000000"
+    defaultValue: "#000000",
+    applyToNode(node, style) {node.style.color = style.color || "#000000"}
 }
 
 export const fontFamily: Style = {
@@ -251,7 +310,8 @@ export const fontFamily: Style = {
     displayName: "Font",
     description: "",
     options: ["Arial", "Verdana", "Tahoma", "Trebuchet MS", "Times New Roman", "Georgia", "Garamond", "Courier New", "Brush Script MT"],
-    defaultValue: "Arial"
+    defaultValue: "Arial",
+    applyToNode(node, style) {node.style.fontFamily = style.fontFamily || "Arial"}
 }
 
 export const borderRadius: Style = {
@@ -259,7 +319,8 @@ export const borderRadius: Style = {
     displayName: "Border Radius",
     description: "",
     inputType: "number",
-    defaultValue: "0"
+    defaultValue: "0",
+    applyToNode(node, style) {node.style.borderRadius = (style.borderRadius || 0) + "px"}
 }
 
 export const borderWidth: Style = {
@@ -267,7 +328,11 @@ export const borderWidth: Style = {
     displayName: "Border Width",
     description: "",
     inputType: "number",
-    defaultValue: "1"
+    defaultValue: "1",
+    applyToNode(node, style) {
+        if (!style.borderStyle || style.borderStyle == "none") return;
+        node.style.borderWidth = (style.borderWidth || 0) + "px"
+    }
 }
 
 export const borderColor: Style = {
@@ -275,7 +340,11 @@ export const borderColor: Style = {
     displayName: "Border Color",
     description: "",
     inputType: "color",
-    defaultValue: "#000000"
+    defaultValue: "#000000",
+    applyToNode(node, style) {
+        if (!style.borderStyle || style.borderStyle == "none") return;
+        node.style.borderColor = style.borderColor || "#000000"
+    }
 }
 
 export const borderStyle: Style = {
@@ -283,7 +352,11 @@ export const borderStyle: Style = {
     displayName: "Border Style",
     description: "",
     options: ["none", "solid", "dotted", "dashed", "double", "groove", "ridge", "inset", "outset"],
-    defaultValue: "none"
+    defaultValue: "none",
+    applyToNode(node, style) {
+        if (!style.borderStyle || style.borderStyle == "none") return;
+        node.style.borderStyle = style.borderStyle || "none"
+    }
 }
 
 export const buttonColor: Style = {
@@ -291,7 +364,8 @@ export const buttonColor: Style = {
     displayName: "Button Color",
     description: "",
     inputType: "color",
-    defaultValue: "#F0F0F0"
+    defaultValue: "#F0F0F0",
+    applyToNode(node, style) {/*Handled by button rendering and mouse over events */}
 }
 
 export const buttonHoverColor: Style = {
@@ -299,7 +373,8 @@ export const buttonHoverColor: Style = {
     displayName: "Button Hover Color",
     description: "",
     inputType: "color",
-    defaultValue: "#E0E0E0"
+    defaultValue: "#E0E0E0",
+    applyToNode(node, style) {/*Handled by button rendering and mouse over events */}
 }
 
 export const thickness: Style = {
@@ -307,7 +382,8 @@ export const thickness: Style = {
     inputType: "number",
     displayName: "Thickness",
     description: "",
-    defaultValue: "2"
+    defaultValue: "2",
+    applyToNode(node, style) {node.style.height = (style.thickness || 2) + "px";}
 }
 
 export const scale: Style = {
@@ -315,7 +391,11 @@ export const scale: Style = {
     inputType: "number",
     displayName: "Size",
     description: "",
-    defaultValue: "2"
+    defaultValue: "2",
+    applyToNode(node, style) {
+        node.style.width = style.scale ? (style.scale == 0 ? "auto" : style.scale + "px") : "auto";
+        node.style.height = style.scale ? (style.scale == 0 ? "auto" : style.scale + "px") : "auto";
+    }
 }
 
 export const checkboxColor: Style = {
@@ -323,7 +403,8 @@ export const checkboxColor: Style = {
     displayName: "Checkbox Color",
     description: "",
     inputType: "color",
-    defaultValue: "#FFFFFF"
+    defaultValue: "#FFFFFF",
+    applyToNode(node, style) {node.style.backgroundColor = style.checkboxColor || "#FFFFFF";}
 }
 
 export const checkboxCheckedColor: Style = {
@@ -331,7 +412,8 @@ export const checkboxCheckedColor: Style = {
     displayName: "Checked Color",
     description: "",
     inputType: "color",
-    defaultValue: "#FF3333"
+    defaultValue: "#FF3333",
+    applyToNode(node, style) {node.style.accentColor = style.checkboxCheckedColor || "#FF3333";}
 }
 
 export const direction: Style = {
@@ -339,7 +421,8 @@ export const direction: Style = {
     displayName: "Direction",
     description: "Orientation of the layout",
     options: ["vertical", "horizontal"],
-    defaultValue: "vertical"
+    defaultValue: "vertical",
+    applyToNode(node, style) {if (style.direction == "horizontal") node.classList.add("horizontal")}
 }
 
 //=======================

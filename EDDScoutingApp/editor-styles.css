@@ -465,7 +465,7 @@
     padding:8px;
 }
 
-.editor-event-action-properties input {
+.editor-event-action-properties-input {
     border: 2px solid #bbbbbb;
     border-radius: 4px;
     padding: 6px;
@@ -513,7 +513,7 @@
     content: "";
     position: absolute;
     left: -5px;
-    top: 50%;
+    top: 16px;
     width: 15px;
     border-top: 2px solid #999999;
 }

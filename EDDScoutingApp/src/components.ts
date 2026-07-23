@@ -15,10 +15,10 @@ export abstract class Component {
   eventType: string;
   eventGroup: string;
   componentEvents: events.Event[];
+  divElement: HTMLDivElement | undefined;
   abstract readonly styleTypes: style.Style[];
 
   constructor(type: string) {
-    //this.id = ""//crypto.randomUUID();
     this.id = uuid();
     this.type = type;
     this.style = {};
@@ -34,9 +34,14 @@ export abstract class Component {
   abstract addEditorFeatures(): void;
 
   /**
-   * Renders the component for either editor mode or runtime mode
+   * Renders the component for either editor mode or runtime mode and sets its current div
    */
   abstract render(div: HTMLDivElement): void;
+
+  /**
+   * Applies the components styles to its HTML element
+   */
+  abstract applyStyles(overridenStyles?: Record<string, any>): void;
 }
 
 export class Root extends Component {
@@ -53,6 +58,10 @@ export class Root extends Component {
   render(div: HTMLDivElement) {
 
   }
+
+  applyStyles(overridenStyles?: Record<string, any>): void {
+      
+  }
 }
 
 export class Label extends Component {
@@ -68,19 +77,23 @@ export class Label extends Component {
     editor.addTextEditor(this, true);
     //editor.addTextLabel(this);
     editor.addLayoutStyleSection(this);
-    //editor.addTextSection(this);
-    //editor.addTextSectionNew(this);
     editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement) {
+    this.divElement = div;
+
     div.textContent = this.text;
 
-    applyLayoutStlyes(div, this.style);
-    applyTextStyles(div, this.style);
-    applyBorderStyles(div, this.style);
-
     events.applyComponentEvents(this, div);
+  }
+
+  applyStyles(overridenStyles?: Record<string, any>): void {
+    if (!this.divElement) return;
+
+    for (const styleType of this.styleTypes) {
+      styleType.applyToNode(this.divElement, getCorrectStyles(styleType, this.style, overridenStyles));
+    }
   }
 }
 
@@ -103,17 +116,23 @@ export class Counter extends Component {
   }
 
   render(div: HTMLDivElement) {
+    this.divElement = div;
+
     let label: HTMLDivElement = document.createElement("div");
     label.id = this.id;
     label.textContent = matchdata.getCurrentMatch().getEventCount(this.eventType, this.eventGroup).toString();
 
     div.appendChild(label);
 
-    applyLayoutStlyes(div, this.style);
-    applyTextStyles(label, this.style);
-    applyBorderStyles(label, this.style);
-
     events.applyComponentEvents(this, label);
+  }
+
+  applyStyles(overridenStyles?: Record<string, any>): void {
+      if (!this.divElement) return;
+
+      for (const styleType of this.styleTypes) {
+        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+      }
   }
 
   update() {
@@ -156,6 +175,8 @@ export class Button extends Component {
   }
 
   render(div: HTMLDivElement) {
+    this.divElement = div;
+
     let button: HTMLButtonElement = document.createElement("button");
     button.textContent = this.text;
 
@@ -189,15 +210,25 @@ export class Button extends Component {
 
     div.appendChild(button);
 
-    applyLayoutStlyes(div, this.style);
-    applyLayoutStlyes(button, this.style);
-    //apply button background
     button.style.backgroundColor = this.style.buttonColor || "#F0F0F0";
-    applyTextStyles(button, this.style);
-    applyBorderStyles(button, this.style);
 
     events.applyComponentEvents(this, button);
   }
+
+  applyStyles(overridenStyles?: Record<string, any>): void {
+      if (!this.divElement) return;
+      
+      let button = this.divElement.firstChild;
+      if (!(button instanceof HTMLElement)) return;
+
+      for (const styleType of this.styleTypes) {
+        if (style.layoutStyleTypes.includes(styleType)) {
+          styleType.applyToNode(this.divElement, getCorrectStyles(styleType, this.style, overridenStyles));
+        }
+        styleType.applyToNode(button, getCorrectStyles(styleType, this.style, overridenStyles));
+      }
+  }
+
 }
 
 export class Section extends Component {
@@ -222,6 +253,8 @@ export class Section extends Component {
   }
 
   render(div: HTMLDivElement) {
+    this.divElement = div;
+
     let hr: HTMLHRElement = document.createElement("hr");
 
     hr.style.border = "none";
@@ -229,7 +262,6 @@ export class Section extends Component {
 
     div.appendChild(hr);
 
-    applyLayoutStlyes(div, this.style);
     div.style.margin = "0px";
     div.style.padding = "0px";
     hr.style.margin = "0px";
@@ -243,6 +275,14 @@ export class Section extends Component {
 
     events.applyComponentEvents(this, hr);
   }
+
+  applyStyles(overridenStyles?: Record<string, any>): void {
+      if (!this.divElement) return;
+      for (const styleType of this.styleTypes) {
+        styleType.applyToNode(this.divElement, getCorrectStyles(styleType, this.style, overridenStyles));
+      }
+  }
+
 }
 
 export class Dropdown extends Component {
@@ -289,6 +329,8 @@ export class Dropdown extends Component {
   }
 
   render(div: HTMLDivElement) {
+    this.divElement = div;
+
     //if (!node.selected) node.selected = node.options[0];
 
     //let label: HTMLDivElement = document.createElement("div");
@@ -324,14 +366,18 @@ export class Dropdown extends Component {
       //node.selected = e.target.value;
     };
 
-    //div.appendChild(label);
     div.appendChild(select);
 
-    applyLayoutStlyes(div, this.style);
-    applyTextStyles(select, this.style);
-    applyBorderStyles(select, this.style);
     events.applyComponentEvents(this, select);
   }
+
+  applyStyles(overridenStyles?: Record<string, any>): void {
+      if (!this.divElement) return;
+      for (const styleType of this.styleTypes) {
+        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+      }
+  }
+
 }
 
 export class Checkbox extends Component {
@@ -364,6 +410,8 @@ export class Checkbox extends Component {
   }
 
   render(div: HTMLDivElement) {
+    this.divElement = div;
+
     let checkbox: HTMLInputElement = document.createElement("input");
     checkbox.checked = matchdata.getCurrentMatch().getEventCount(this.eventType) > 0;
     checkbox.type = "checkbox";
@@ -386,15 +434,17 @@ export class Checkbox extends Component {
 
     div.appendChild(checkbox);
 
-    applyLayoutStlyes(div, this.style);
-    applyBorderStyles(checkbox, this.style);
-    checkbox.style.width = this.style.scale ? (this.style.scale == 0 ? "auto" : this.style.scale + "px") : "auto";
-    checkbox.style.height = this.style.scale ? (this.style.scale == 0 ? "auto" : this.style.scale + "px") : "auto";
-    checkbox.style.backgroundColor = this.style.checkboxColor || "#FFFFFF";
-    checkbox.style.accentColor = this.style.checkboxCheckedColor || "#FF3333";
-
     events.applyComponentEvents(this, checkbox);
   }
+
+  applyStyles(overridenStyles?: Record<string, any>): void {
+      if (!this.divElement) return;
+
+      for (const styleType of this.styleTypes) {
+        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+      }
+  }
+
 }
 
 export class Layout extends Component {
@@ -416,17 +466,25 @@ export class Layout extends Component {
   }
 
   render(div: HTMLDivElement) {
+    this.divElement = div;
+
     div.classList.add("container");
 
     if (this.type === "layout" && this.style.direction === "horizontal") {
       div.classList.add("horizontal");
     }
 
-    applyLayoutStlyes(div, this.style);
-    applyBorderStyles(div, this.style);
-
     events.applyComponentEvents(this, div);
   }
+
+  applyStyles(overridenStyles?: Record<string, any>): void {
+      if (!this.divElement) return;
+
+      for (const styleType of this.styleTypes) {
+        styleType.applyToNode(this.divElement, getCorrectStyles(styleType, this.style, overridenStyles));
+      }
+  }
+
 }
 
 export class TeamNum extends Component {
@@ -443,6 +501,8 @@ export class TeamNum extends Component {
   }
 
   render(div: HTMLDivElement): void {
+    this.divElement = div;
+
     let team: HTMLInputElement = document.createElement("input");
     team.type = "number";
 
@@ -454,17 +514,25 @@ export class TeamNum extends Component {
 
     div.appendChild(team);
 
-    applyLayoutStlyes(div, this.style);
     div.style.width = "fit-content";
     div.style.height = "auto";
     team.style.width = this.style.width ? (this.style.width == 0 ? "fit-content" : this.style.width + "px") : "fit-content";
     team.style.height = this.style.height ? (this.style.height == 0 ? "auto" : this.style.height + "px") : "auto";
     team.style.marginBottom = "0px";
-    applyTextStyles(team, this.style);
-    applyBorderStyles(team, this.style);
 
     events.applyComponentEvents(this, team);
   }
+
+  applyStyles(overridenStyles?: Record<string, any>): void {
+      if (!this.divElement) return;
+
+      for (const styleType of this.styleTypes) {
+        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+      }
+
+      forceMatchInputStyles(this.divElement, this.style, overridenStyles);
+  }
+
 }
 
 export class TextBox extends Component {
@@ -494,6 +562,8 @@ export class TextBox extends Component {
   }
 
   render(div: HTMLDivElement): void {
+      this.divElement = div;
+
       let textbox = document.createElement("input");
       textbox.type = "text";
 
@@ -510,17 +580,19 @@ export class TextBox extends Component {
 
       div.appendChild(textbox);
 
-      applyLayoutStlyes(div, this.style);
-      div.style.width = "fit-content";
-      div.style.height = "auto";
-      textbox.style.width = this.style.width ? (this.style.width == 0 ? "fit-content" : this.style.width + "px") : "fit-content";
-      textbox.style.height = this.style.height ? (this.style.height == 0 ? "auto" : this.style.height + "px") : "auto";
-      textbox.style.marginBottom = "0px";
-      applyTextStyles(textbox, this.style);
-      applyBorderStyles(textbox, this.style);
-
       events.applyComponentEvents(this, textbox);
   }
+
+  applyStyles(overridenStyles?: Record<string, any>): void {
+      if (!this.divElement) return;
+  
+      for (const styleType of this.styleTypes) {
+        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+      }
+
+      forceMatchInputStyles(this.divElement, this.style, overridenStyles);
+  }
+
 }
 
 export class Image extends Component {
@@ -562,17 +634,27 @@ export class Image extends Component {
   }
 
   render(div: HTMLDivElement) {
+    this.divElement = div;
+
     let image = document.createElement("img");
 
     image.src = storage.getImageURL(this.imageId);
     image.style.width = "100%";
     image.style.height = "100%";
-    applyLayoutStlyes(div, this.style);
     
     div.appendChild(image);
 
     events.applyComponentEvents(this, image);
   }
+
+  applyStyles(overridenStyles?: Record<string, any>): void {
+      if (!this.divElement) return;
+
+      for (const styleType of this.styleTypes) {
+        styleType.applyToNode(this.divElement, getCorrectStyles(styleType, this.style, overridenStyles));
+      }
+  }
+
 }
 
 export class MatchNum extends Component {
@@ -589,6 +671,8 @@ export class MatchNum extends Component {
   }
 
   render(div: HTMLDivElement): void {
+    this.divElement = div;
+
     let match: HTMLInputElement = document.createElement("input");
     match.type = "number";
 
@@ -600,17 +684,19 @@ export class MatchNum extends Component {
 
     div.appendChild(match);
 
-    applyLayoutStlyes(div, this.style);
-    div.style.width = "fit-content";
-    div.style.height = "auto";
-    match.style.width = this.style.width ? (this.style.width == 0 ? "fit-content" : this.style.width + "px") : "fit-content";
-    match.style.height = this.style.height ? (this.style.height == 0 ? "auto" : this.style.height + "px") : "auto";
-    match.style.marginBottom = "0px";
-    applyTextStyles(match, this.style);
-    applyBorderStyles(match, this.style);
-
     events.applyComponentEvents(this, match);
   }
+
+  applyStyles(overridenStyles?: Record<string, any>): void {
+      if (!this.divElement) return;
+
+      for (const styleType of this.styleTypes) {
+        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+      }
+
+      forceMatchInputStyles(this.divElement, this.style, overridenStyles);
+  }
+
 }
 
 export class MatchType extends Component {
@@ -627,6 +713,8 @@ export class MatchType extends Component {
   }
 
   render(div: HTMLDivElement): void {
+    this.divElement = div;
+
     let select: HTMLSelectElement = document.createElement("select");
 
     let practice: HTMLOptionElement = document.createElement("option");
@@ -651,17 +739,19 @@ export class MatchType extends Component {
 
     div.appendChild(select);
 
-    applyLayoutStlyes(div, this.style);
-    div.style.width = "fit-content";
-    div.style.height = "auto";
-    select.style.width = this.style.width ? (this.style.width == 0 ? "fit-content" : this.style.width + "px") : "fit-content";
-    select.style.height = this.style.height ? (this.style.height == 0 ? "auto" : this.style.height + "px") : "auto";
-    select.style.marginBottom = "0px";
-    applyTextStyles(select, this.style);
-    applyBorderStyles(select, this.style);
-
     events.applyComponentEvents(this, select);
   }
+
+  applyStyles(overridenStyles?: Record<string, any>): void {
+      if (!this.divElement) return;
+
+      for (const styleType of this.styleTypes) {
+        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+      }
+
+      forceMatchInputStyles(this.divElement, this.style, overridenStyles);
+  }
+
 }
 
 export class AllianceStation extends Component {
@@ -678,6 +768,8 @@ export class AllianceStation extends Component {
   }
 
   render(div: HTMLDivElement): void {
+    this.divElement = div;
+
     let select: HTMLSelectElement = document.createElement("select");
 
     let r1: HTMLOptionElement = document.createElement("option");
@@ -708,17 +800,19 @@ export class AllianceStation extends Component {
 
     div.appendChild(select);
 
-    applyLayoutStlyes(div, this.style);
-    div.style.width = "fit-content";
-    div.style.height = "auto";
-    select.style.width = this.style.width ? (this.style.width == 0 ? "fit-content" : this.style.width + "px") : "fit-content";
-    select.style.height = this.style.height ? (this.style.height == 0 ? "auto" : this.style.height + "px") : "auto";
-    select.style.marginBottom = "0px";
-    applyTextStyles(select, this.style);
-    applyBorderStyles(select, this.style);
-
     events.applyComponentEvents(this, select);
   }
+
+  applyStyles(overridenStyles?: Record<string, any>): void {
+      if (!this.divElement) return;
+
+      for (const styleType of this.styleTypes) {
+        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+      }
+
+      forceMatchInputStyles(this.divElement, this.style, overridenStyles);
+  }
+
 }
 
 export class ResetButton extends Component {
@@ -739,6 +833,8 @@ export class ResetButton extends Component {
   }
 
   render(div: HTMLDivElement): void {
+    this.divElement = div;
+
     let button: HTMLButtonElement = document.createElement("button");
     button.textContent = this.text;
 
@@ -781,12 +877,17 @@ export class ResetButton extends Component {
 
     div.appendChild(button);
 
-    applyLayoutStlyes(div, this.style);
-    applyTextStyles(button, this.style);
-    applyBorderStyles(button, this.style);
-
     events.applyComponentEvents(this, div);
   }
+
+  applyStyles(overridenStyles?: Record<string, any>): void {
+      if (!this.divElement) return;
+
+      for (const styleType of this.styleTypes) {
+        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+      }
+  }
+
 }
 
 export class AnalyticsMatchesTable extends Component {
@@ -850,6 +951,8 @@ Different types:
   }
 
   render(div: HTMLDivElement): void {
+    this.divElement = div;
+
     let table = document.createElement("table");
 
     //DEFAULT BORDER STYLES
@@ -911,6 +1014,13 @@ Different types:
     div.appendChild(table);
   }
 
+  applyStyles(overridenStyles?: Record<string, any>): void {
+      if (!this.divElement) return;
+
+      for (const styleType of this.styleTypes) {
+        styleType.applyToNode(this.divElement, getCorrectStyles(styleType, this.style, overridenStyles));
+      }
+  }
 }
 
 export class AnalyticsMatchesTableColumn extends Component {
@@ -970,6 +1080,7 @@ export class AnalyticsMatchesTableColumn extends Component {
   render(div: HTMLDivElement): void {
     return;
   }
+  
 
   //adds the component selection events because these aren't "real" components
   //stolen from the render node method in app.ts
@@ -1008,6 +1119,7 @@ export class AnalyticsMatchesTableColumn extends Component {
    * Apply styles to the column/cells
    */
   applyStyles(element: HTMLElement) {
+    if (!this.divElement) return;
     //default borders
     
     if (app.getSelectedID() == this.id) {
@@ -1111,62 +1223,31 @@ export function updateCounters(type?: string) {
 }
 
 /**
- * Applies styles to a component based on it's styles list. 
- * This is where it makes the actual CSS of the components
+ * Gets the element that styles should be applied to (the parent or first child)
  */
-function applyLayoutStlyes(node: HTMLElement, style: Record<string, any>) {
-  if (!style) return;
-
-  node.style.background = style.background || "";
-  node.style.width = style.width ? (style.width == 0 ? "fit-content" : style.width + (style.widthType || "px")) : "fit-content";
-  node.style.height = style.height ? (style.height == 0 ? "auto" : style.height + (style.heightType || "px")) : "auto";
-
-  node.style.paddingLeft = (style.paddingLeft == "0" ? 0 : (style.paddingLeft || 5)) + (style.paddingLeftType || "px");
-  node.style.paddingRight = (style.paddingRight == "0" ? 0 : (style.paddingRight || 5)) + (style.paddingRightType || "px");
-  node.style.paddingTop = (style.paddingTop == "0" ? 0 : (style.paddingTop || 5)) + (style.paddingTopType || "px");
-  node.style.paddingBottom = (style.paddingBottom == "0" ? 0 : (style.paddingBottom || 5)) + (style.paddingBottomType || "px");
-
-  node.style.marginTop = (style.marginTop == "0" ? 0 : (style.marginTop || 6)) + (style.marginTopType || "px");
-  node.style.marginBottom = (style.marginBottom == "0" ? 0 : (style.marginBottom || 6)) + (style.marginBottomType || "px");
-
-  if (style.alignment == "right") {
-    node.style.marginRight = (style.marginRight == "0" ? 0 : (style.marginRight || 0)) + (style.marginRightType || "px");
-    node.classList.remove("center-align");
-    node.classList.remove("left-align");
-    node.classList.add("right-align");
-  } else if (style.alignment == "center") {
-    node.classList.remove("right-align");
-    node.classList.remove("left-align");
-    node.classList.add("center-align");
-  } else {
-    node.classList.remove("right-align");
-    node.classList.remove("center-align");
-    node.classList.add("left-align");
-    node.style.marginLeft = (style.marginLeft == "0" ? 0 : (style.marginLeft || 0)) + (style.marginLeftType || "px");
-  }
+function getCorrectStyleDiv(styleType: style.Style, applyToParent: style.Style[], div: HTMLElement): HTMLElement {
+  if (div.firstChild instanceof HTMLElement && !applyToParent.includes(styleType)) return div.firstChild; 
+  return div;
 }
 
 /**
- * Apply CSS styles for text
+ * Gets which styles list, normal or overriden, should be used to apply styles to an element
  */
-export function applyTextStyles(node: HTMLElement, style: Record<string, any>) {
-  node.style.fontSize = (style.fontSize || 14) + "px";
-  node.style.fontFamily = style.fontFamily || "Arial";
-  node.style.fontWeight = style.bold ? "bold" : "normal";
-  node.style.fontStyle = style.fontStyle || ""
-  node.style.textAlign = style.textAlign || "left";
-  node.style.textDecoration = style.textDecoration || ""
-  node.style.color = style.color || "#000000";
+function getCorrectStyles(styleType: style.Style, styles: Record<string, any>, overridenStyles: Record<string, any> | undefined): Record<string, any> {
+  if (overridenStyles && styleType.style in overridenStyles) return overridenStyles;
+  return styles;
 }
 
-function applyBorderStyles(node: HTMLElement, style: Record<string, any>) {
-  node.style.borderRadius = (style.borderRadius || 0) + "px";
-  if (!style.borderStyle) return;
-  if (style.borderStyle == "none") return;
-
-  node.style.borderWidth = (style.borderWidth || 0) + "px";
-  node.style.borderColor = style.borderColor || "#000000";
-  node.style.borderStyle = style.borderStyle || "none";
+/**
+ * The inputs for match info (teamnum, matchnum, etc) have specific properties they need to work right
+ */
+function forceMatchInputStyles(div: HTMLElement, styles: Record<string, any>, overridenStyles: Record<string, any> | undefined): void {
+  div.style.width = "fit-content";
+  div.style.height = "auto";
+  if (!(div.firstChild instanceof HTMLElement)) return;
+  style.width.applyToNode(div.firstChild, getCorrectStyles(style.width, styles, overridenStyles));
+  style.height.applyToNode(div.firstChild, getCorrectStyles(style.height, styles, overridenStyles));
+  div.firstChild.style.marginBottom = "0px";
 }
 
 /**

@@ -347,13 +347,17 @@ export function addTextEditor(node: components.Component, editable: boolean, tex
   }
   
   //set styles (using the same method the component uses)
-  components.applyTextStyles(textbox, node.style);
+  for (const styleType of node.styleTypes) {
+    if (style.textStyleTypes.includes(styleType)) styleType.applyToNode(textbox, node.style);
+  }
+  //components.applyTextStyles(textbox, node.style);
 
   //font selection
   let fontSelection = document.getElementById("textbox-editor-font");
   if (fontSelection && fontSelection instanceof HTMLSelectElement) {
     addSelect(node, textboxStyleBar, "", style.fontFamily, fontSelection, (val: any) => {
-      components.applyTextStyles(textbox, node.style);
+      style.fontFamily.applyToNode(textbox, node.style);
+      //components.applyTextStyles(textbox, node.style);
     });
   }
 
@@ -361,7 +365,7 @@ export function addTextEditor(node: components.Component, editable: boolean, tex
   let fontSize = document.getElementById("textbox-editor-font-size");
   if (fontSize && fontSize instanceof HTMLInputElement) {
     addInput(node, textboxStyleBar, "", style.fontSize, fontSize, (val: any) => {
-      components.applyTextStyles(textbox, node.style);
+      style.fontSize.applyToNode(textbox, node.style);
     });
   }
 
@@ -375,7 +379,7 @@ export function addTextEditor(node: components.Component, editable: boolean, tex
       boldButton.classList.toggle("textbox-editor-button-selected");
       node.style.bold = !node.style.bold;
       app.renderPreview();
-      components.applyTextStyles(textbox, node.style);
+      style.bold.applyToNode(textbox, node.style);
     }
   }
 
@@ -389,7 +393,7 @@ export function addTextEditor(node: components.Component, editable: boolean, tex
       italicButton.classList.toggle("textbox-editor-button-selected");
       node.style.fontStyle = (node.style.fontStyle === "italic") ? "" : "italic";
       app.renderPreview();
-      components.applyTextStyles(textbox, node.style);
+      style.italic.applyToNode(textbox, node.style);
     }
   }
 
@@ -403,7 +407,7 @@ export function addTextEditor(node: components.Component, editable: boolean, tex
       underlineButton.classList.toggle("textbox-editor-button-selected");
       node.style.textDecoration = (node.style.textDecoration === "underline") ? "" : "underline";
       app.renderPreview();
-      components.applyTextStyles(textbox, node.style);
+      style.underline.applyToNode(textbox, node.style);
     }
   }
 
@@ -789,6 +793,7 @@ export function openNewEventsModal(node: components.Component) {
         document.querySelectorAll(".editor-event-tree ul li").forEach((e) => {
           if (e instanceof HTMLElement && e.firstChild instanceof HTMLElement) {
             e.style.setProperty("--editor-tree-before-height", (e.firstChild.offsetHeight + 30) + "px");
+            //e.style.setProperty("--editor-tree-after-height", e.firstChild.offsetHeight / 2 + "px");
           }
         });
       }
@@ -799,8 +804,26 @@ export function openNewEventsModal(node: components.Component) {
     }
 
     //add the button to add an action to the list
+    let addActionButtonContainer = document.createElement("div");
+  
+    let addActionButton = document.createElement("div");
+    addActionButton.classList.add("editor-event", "editor-event-action-add");
+    addActionButton.innerHTML = "+";
+    addActionButtonContainer.appendChild(addActionButton);
+
+    addActionButton.onclick = (e) => {
+      e.stopPropagation();
+      currentComponent = node;
+      currentEvent = event;
+      addActionButtonContainer.appendChild(addEventActionDropdown);
+      addEventActionDropdown.classList.toggle("hidden");
+      addEventActionDropdown.classList.toggle("event-trigger-dropdown");
+
+      addActionButtonContainer.appendChild(addEventActionDropdown);
+    }
+
     let li = document.createElement("li");
-    li.appendChild(addEventActionButton);
+    li.appendChild(addActionButtonContainer);
     ul.appendChild(li);
     
     //add list to tree
@@ -823,6 +846,7 @@ export function openNewEventsModal(node: components.Component) {
   document.querySelectorAll(".editor-event-tree ul li").forEach((e) => {
     if (e instanceof HTMLElement && e.firstChild instanceof HTMLElement) {
       e.style.setProperty("--editor-tree-before-height", (e.firstChild.offsetHeight + 30) + "px");
+      //e.style.setProperty("--editor-tree-after-height", "16px");
     }
   });
 
@@ -853,7 +877,8 @@ export function createSection(title: string, parent: HTMLElement): HTMLDivElemen
 }
 
 let addEventTriggerButton: HTMLDivElement;
-let addEventActionButton: HTMLDivElement;
+//let addEventActionButton: HTMLDivElement;
+let addEventActionDropdown: HTMLElement;
 let currentComponent: components.Component;
 let currentEvent: events.Event;
 
@@ -903,18 +928,7 @@ export function initEventSelection() {
 
   //====================================================================
 
-  let addActionButtonContainer = document.createElement("div");
-  
-  //add action button (with dropdown)
-  let addActionButton = document.createElement("div");
-  addActionButton.classList.add("editor-event");
-
-  addActionButton = addActionButton;
-  addActionButton.classList.add("editor-event-action-add");
-  addActionButton.innerHTML = "+";
-  addActionButtonContainer.appendChild(addActionButton);
-
-  //dropdown that's hidden initially
+  //action dropdown that's hidden initially
   let addActionDropdown = document.createElement("div");
   addActionDropdown.classList.add("hidden");
   //add each action type
@@ -936,14 +950,6 @@ export function initEventSelection() {
     addActionDropdown.appendChild(addButton);
   }
 
-  addActionButton.onclick = (e) => {
-    e.stopPropagation();
-    addActionDropdown.classList.toggle("hidden");
-    addActionDropdown.classList.toggle("event-trigger-dropdown");
-
-    addActionButtonContainer.appendChild(addActionDropdown);
-  }
-
   //close the dropdown menus when you click off of them
   window.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -953,7 +959,7 @@ export function initEventSelection() {
       addActionDropdown.classList.remove("event-trigger-dropdown");
   });
 
-  addEventActionButton = addActionButtonContainer
+  addEventActionDropdown = addActionDropdown;
 }
 
 /**
