@@ -42,7 +42,8 @@ export function addInput(node: components.Component, parent: HTMLElement, labelT
     input.onchange = () => {
       actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
       node.style[style.style] = input.checked;
-      app.renderPreview();
+      //app.renderPreview();
+      node.applyStyles();
       if (onChange) onChange(input);
     }
   } else {
@@ -50,7 +51,8 @@ export function addInput(node: components.Component, parent: HTMLElement, labelT
     input.oninput = () => {
       if (style.inputType != "color") actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
       node.style[style.style] = input.value;
-      app.renderPreview();
+      //app.renderPreview();
+      node.applyStyles();
       if (onChange) onChange(input);
     }
   }
@@ -87,7 +89,8 @@ export function addSelect(node: components.Component, parent: HTMLElement, label
     actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
     node.style[style.style] = select.value;
     if (onChange) onChange(select);
-    app.renderPreview();
+    //app.renderPreview();
+    node.applyStyles();
   }
 
   if (!selectElement) parent.appendChild(select);
@@ -378,7 +381,8 @@ export function addTextEditor(node: components.Component, editable: boolean, tex
       actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
       boldButton.classList.toggle("textbox-editor-button-selected");
       node.style.bold = !node.style.bold;
-      app.renderPreview();
+      //app.renderPreview();
+      node.applyStyles();
       style.bold.applyToNode(textbox, node.style);
     }
   }
@@ -392,7 +396,8 @@ export function addTextEditor(node: components.Component, editable: boolean, tex
       actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
       italicButton.classList.toggle("textbox-editor-button-selected");
       node.style.fontStyle = (node.style.fontStyle === "italic") ? "" : "italic";
-      app.renderPreview();
+      //app.renderPreview();
+      node.applyStyles();
       style.italic.applyToNode(textbox, node.style);
     }
   }
@@ -406,7 +411,8 @@ export function addTextEditor(node: components.Component, editable: boolean, tex
       actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
       underlineButton.classList.toggle("textbox-editor-button-selected");
       node.style.textDecoration = (node.style.textDecoration === "underline") ? "" : "underline";
-      app.renderPreview();
+      //app.renderPreview();
+      node.applyStyles();
       style.underline.applyToNode(textbox, node.style);
     }
   }
@@ -430,7 +436,8 @@ export function addTextEditor(node: components.Component, editable: boolean, tex
       if (node.style.textAlign == align) return;
       actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
       node.style.textAlign = align;
-      app.renderPreview();
+      //app.renderPreview();
+      node.applyStyles();
       app.renderEditor(); //render editor to deselect the other buttons
     };
   }
@@ -676,12 +683,69 @@ export function addNewEventSection(node: components.Component) {
     let eventLabel = document.createElement("div");
     eventLabel.classList.add("editor-event-trigger-label");
     eventLabel.innerHTML = event.trigger;
+    eventLabel.onclick = (e) => {
+      e.stopPropagation();
+      openNewEventsModal(node);
+    }
     eventDiv.appendChild(eventLabel);
+
+    //tree that contains actions
+    let tree = document.createElement("div");
+    tree.classList.add("editor-event-tree");
+
+    //main list inside the tree
+    let ul = document.createElement("ul");
 
     for (const action of event.actions) {
       //add action
+      let li = document.createElement("li");
+
+      //div that contains the action content
+      let actionDiv = document.createElement("div");
+      actionDiv.classList.add("editor-event-action-div");
+      actionDiv.style.width = "100%";
+
+      //action label
+      let actionLabelDiv = document.createElement("div");
+      actionLabelDiv.classList.add("editor-event-action-label");
+      let actionLabelText = document.createElement("div");
+      for (const type of events.EVENT_ACTION_TYPES) {
+        if (type[0] == action.type && type[1]) actionLabelText.innerHTML = type[1];
+      }
+      actionLabelDiv.onclick = (e) => {
+        action.open = true;
+        e.stopPropagation();
+        openNewEventsModal(node);
+      }
       
+      actionLabelDiv.appendChild(actionLabelText);
+      actionDiv.appendChild(actionLabelDiv);
+
+      li.appendChild(actionDiv);
+      ul.appendChild(li);
     }
+
+    //add the button to add an action to the list
+    let addActionButtonContainer = document.createElement("div");
+  
+    let addActionButton = document.createElement("div");
+    addActionButton.classList.add("editor-event", "editor-event-action-add");
+    addActionButton.innerHTML = "+";
+    addActionButton.onclick = (e) => {
+      e.stopPropagation();
+      openNewEventsModal(node);
+    }
+    addActionButtonContainer.appendChild(addActionButton);
+
+    let li = document.createElement("li");
+    li.appendChild(addActionButtonContainer);
+    ul.appendChild(li);
+    
+    //add list to tree
+    tree.appendChild(ul);
+
+    //add tree to the div containing the event
+    eventDiv.appendChild(tree);
 
     contentDiv.appendChild(eventDiv);
   }
@@ -727,8 +791,17 @@ export function openNewEventsModal(node: components.Component) {
   let content = document.createElement("div");
   content.classList.add("modal-events-content");
 
+  //get name of component type
   let title = document.createElement("div");
-  title.innerHTML = "Events: " + node.type;
+  title.innerHTML = "Events: ";
+  title.style.fontSize = "20px";
+  title.style.fontWeight = "bold";
+  for (const component of components.COMPONENT_TYPES) {
+    if (node.constructor.name.toLowerCase() === component[0] && component[1]) {
+      title.innerHTML += component[1];
+      break;
+    }
+  }
   content.appendChild(title);
 
   let hr = document.createElement("hr");
@@ -736,15 +809,6 @@ export function openNewEventsModal(node: components.Component) {
 
   for (const event of node.componentEvents) {
     currentEvent = event;
-
-    /*  _____________ 
-        |___________|  <-- div
-          | (UL) 
-          |_ Li (contains div)
-          |
-          |_ Li
-           
-    */
     
     //div that contains the whole event
     let eventDiv = document.createElement("div");
@@ -765,7 +829,7 @@ export function openNewEventsModal(node: components.Component) {
     
     //add a li for each action
     for (const action of event.actions) {
-      if (action instanceof events.ActionStyleChange) action.component = node;
+      if (action instanceof events.ActionStyleChange && action.componentID.length == 0) action.componentID = node.id;
       let li = document.createElement("li");
 
       //div that contains the action content
@@ -773,35 +837,57 @@ export function openNewEventsModal(node: components.Component) {
       actionDiv.classList.add("editor-event-action-div");
 
       //action label
-      let actionLabel = document.createElement("div");
-      actionLabel.classList.add("editor-event-action-label");
-      actionLabel.innerHTML = action.name;
-      actionDiv.appendChild(actionLabel);
+      let actionLabelDiv = document.createElement("div");
+      actionLabelDiv.classList.add("editor-event-action-label");
+
+      let actionLabelIconDiv = document.createElement("div");
+      actionLabelIconDiv.classList.add("editor-event-action-label-icon");
+      let actionLabelIcon = document.createElement("i");
+      actionLabelIconDiv.appendChild(actionLabelIcon);
+
+      let actionLabelText = document.createElement("div");
+      for (const type of events.EVENT_ACTION_TYPES) {
+        if (type[0] != action.type) continue;
+        if (type[1]) actionLabelText.innerHTML = type[1];
+        if (type[3]) actionLabelIcon.classList.add("fa", type[3]);
+      }
+      let actionLabelCollapse = document.createElement("div");
+      actionLabelCollapse.classList.add("editor-event-action-label-collapse");
+      let collapseIcon = document.createElement("i");
+      collapseIcon.classList.add("fa", "fa-plus");
+      actionLabelCollapse.appendChild(collapseIcon);
+
+      actionLabelDiv.appendChild(actionLabelIconDiv);
+      actionLabelDiv.appendChild(actionLabelText);
+      actionLabelDiv.appendChild(actionLabelCollapse);
+      actionDiv.appendChild(actionLabelDiv);
 
       //dropdown that opens on click that has settings and things
       let actionProperties = document.createElement("div");
       actionProperties.classList.add("hidden");
-      actionLabel.onclick = (e) => {
+      actionLabelDiv.onclick = (e) => {
         e.stopPropagation();
+        action.open = !action.open;
         actionProperties.classList.toggle("hidden");
-        actionProperties.classList.toggle("editor-event-action-properties")
+        actionProperties.classList.toggle("editor-event-action-properties");
+
+        collapseIcon.classList.toggle("fa-plus");
+        collapseIcon.classList.toggle("fa-minus");
 
         actionProperties.replaceChildren();
         action.addProperties(actionProperties);
-
-        //set height of tree bars
-        document.querySelectorAll(".editor-event-tree ul li").forEach((e) => {
-          if (e instanceof HTMLElement && e.firstChild instanceof HTMLElement) {
-            e.style.setProperty("--editor-tree-before-height", (e.firstChild.offsetHeight + 30) + "px");
-            //e.style.setProperty("--editor-tree-after-height", e.firstChild.offsetHeight / 2 + "px");
-          }
-        });
+      }
+      if (action.open) {
+        actionLabelDiv.click();
+        action.open = true;
       }
       actionDiv.appendChild(actionProperties);
 
       li.appendChild(actionDiv);
       ul.appendChild(li);
     }
+
+    
 
     //add the button to add an action to the list
     let addActionButtonContainer = document.createElement("div");
@@ -841,14 +927,6 @@ export function openNewEventsModal(node: components.Component) {
 
   //put the content in the modal
   modal.appendChild(content);
-
-  //set height of tree bars
-  document.querySelectorAll(".editor-event-tree ul li").forEach((e) => {
-    if (e instanceof HTMLElement && e.firstChild instanceof HTMLElement) {
-      e.style.setProperty("--editor-tree-before-height", (e.firstChild.offsetHeight + 30) + "px");
-      //e.style.setProperty("--editor-tree-after-height", "16px");
-    }
-  });
 
   //close any dropdown menus that may still be open
   document.querySelectorAll(".event-trigger-dropdown").forEach((e) => {

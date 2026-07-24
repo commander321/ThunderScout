@@ -1,14 +1,11 @@
-// =======================
-// STATE
-// =======================
-
 import * as components from "./components.js";
-import * as events from "./matchevents.js";
+import * as matchevents from "./matchevents.js";
 import * as matchdata from "./matchdata.js";
 import * as bluetooth from "./bluetooth.js";
 import * as actions from "./action.js";
 import * as storage from "./storage.js";
 import * as editor from "./editor.js";
+import * as events from "./events.js";
 import { v4 as uuid } from 'uuid';
 
 let appName: string = "";
@@ -22,14 +19,13 @@ let cutting: boolean = false;
 let runtime_mode = false;
 let editor_enabled = true;
 
-// =======================
-// UTILITIES
-// =======================
-
 function isContainer(node: components.Component) {
   return node.type === "layout" || node.type === "root";
 }
 
+/**
+ * Get a component from its ID
+ */
 export function find(id: string, node: components.Component = root, parent: any = null) {
   if (node.id === id) return { node, parent };
 
@@ -43,10 +39,9 @@ export function find(id: string, node: components.Component = root, parent: any 
   return null;
 }
 
-// =======================
-// RENDER PREVIEW
-// =======================
-
+/**
+ * Renders the app
+ */
 export function renderPreview() {
   if (runtime_mode) return;
   const app = document.getElementById("app");
@@ -56,7 +51,7 @@ export function renderPreview() {
 
   app.onclick = (e) => {
     //e.stopPropagation();
-    selectedId = null;
+    setSelectedID(null);
     renderPreview();
     renderEditor();
   }
@@ -81,7 +76,7 @@ function renderNode(node: components.Component, container: HTMLDivElement) {
   div.onclick = e => {
     if (runtime_mode) return;
     e.stopPropagation();
-    selectedId = node.id;
+    setSelectedID(node.id);
     renderPreview();
     renderEditor();
   };
@@ -325,6 +320,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     closeModal();
     editor.closeEventsModal();
+    setSelectedID(selectedId); //use this to close component select modal too
   }
 });
 
@@ -419,8 +415,8 @@ export function saveToJSON() {
   //get the data that needs to be saved to JSON
   let data = {
     name: appName,
-    events: events.getEventTypes(),
-    groups: events.getEventGroups(),
+    events: matchevents.getEventTypes(),
+    groups: matchevents.getEventGroups(),
     app: root
   }
 
@@ -457,6 +453,7 @@ export function loadComponent(data: any, newUUID?: boolean): components.Componen
   component.eventType = data.eventType;
   component.eventGroup = data.eventGroup;
   
+  //Load specific attributes for components
   if (component instanceof components.Layout) {
     //component.direction = data.direction;
   } else if (component instanceof components.Label) {
@@ -484,6 +481,27 @@ export function loadComponent(data: any, newUUID?: boolean): components.Componen
     component.value = data.value;
   } else if (component instanceof components.Image) {
     component.imageId = data.imageId;
+  }
+
+  //load component events
+  for (const eventData of data.componentEvents) {
+    let event = new events.Event(eventData.trigger);
+    for (const actionData of eventData.actions) {
+      let action = new events.eventActionTypeRegistry[actionData.type as events.EventActionType]();
+      if (action instanceof events.ActionRecordMatchEvent) {
+        action.matchEventType = actionData.matchEventType;
+        action.matchEventGroup = actionData.matchEventGroup;
+      } else if (action instanceof events.ActionStyleChange) {
+        action.styles = actionData.styles;
+        action.componentID = actionData.componentID;
+      } else if (action instanceof events.ActionTriggerEvent) {
+        //add later
+      } else if (action instanceof events.ActionTextChange) {
+        //add later
+      }
+      event.actions.push(action);
+    }
+    component.componentEvents.push(event);
   }
 
   for (const child of data.children) {
@@ -533,7 +551,7 @@ function pasteComponent() {
   //save the paste action in case you undo it
   actions.saveAction(new actions.Action(copiedComponent, pasteInto, actions.ActionType.COMPONENT_PASTE));
 
-  selectedId = copiedComponent.id;
+  setSelectedID(copiedComponent.id);
 
   //if cutting, remove the component from the clipboard. If not, make another copy in case you want to paste it again
   if (cutting) {
@@ -630,8 +648,8 @@ export function setupLoadButton() {
       document.title = appName;
 
       //set the event types and groups
-      events.setEventTypes(data.events);
-      events.setEventGroups(data.groups);
+      matchevents.setEventTypes(data.events);
+      matchevents.setEventGroups(data.groups);
 
       //loads the root component, which loads all other ones
       root = loadComponent(data.app);
@@ -911,10 +929,49 @@ export function setEditorEnabled(enabled: boolean) {
 
 //used by analytics tables because their columns are weird
 export function setSelectedID(id: any) {
+  if (onComponentChange) onComponentChange(id);
   selectedId = id;
 }
 export function getSelectedID(): any {
   return selectedId;
+}
+
+
+let onComponentChange: ((newID: any) => void) | undefined;
+/**
+ * Lets the user select a component and runs a function when a component is selected
+ */
+export function userSelectComponent(current: any, onSelect: (newID: any) => void): void {
+  //make the current selection look selected even if it isn't the selected component
+  const oldSelection = selectedId;
+  selectedId = current;
+  renderPreview();
+
+  //open the overlay
+  let overlay = document.getElementById("overlay-component-select")
+  if (!overlay) return;
+  overlay.classList.remove("hidden");
+  
+  //if the current component is changed, then return the new component
+  onComponentChange = (newID: any) => {
+    selectedId = oldSelection;
+    renderPreview();
+    overlay.classList.add("hidden");
+    onComponentChange = undefined;
+    window.onclick = null;
+    onSelect(newID);
+  }
+
+  //if you close out of the window, return the new component
+  window.onclick = () => {
+    selectedId = oldSelection;
+    renderPreview();
+    overlay.classList.add("hidden");
+    onComponentChange = undefined;
+    window.onclick = null;
+    onSelect(current);
+  }
+
 }
 
 //Manage service worker stuff for android
@@ -930,10 +987,10 @@ function saveLocalState() {
   localStorage.setItem("runtime_mode", JSON.stringify(runtime_mode));
   localStorage.setItem("editor_enabled", JSON.stringify(editor_enabled));
   localStorage.setItem("event_code", JSON.stringify(matchdata.getCurrentMatch().eventCode));
-  localStorage.setItem("events", JSON.stringify(events.getEventTypes()));
-  localStorage.setItem("groups", JSON.stringify(events.getEventGroups()));
+  localStorage.setItem("events", JSON.stringify(matchevents.getEventTypes()));
+  localStorage.setItem("groups", JSON.stringify(matchevents.getEventGroups()));
   localStorage.setItem("app", JSON.stringify(root, (key, val) => {
-    return (key == "styleTypes" || key == "componentEvents" || key == "divElement" || key == "component") ? undefined : val;
+    return (key == "styleTypes" || key == "divElement" || key == "component") ? undefined : val;
   }));
   localStorage.setItem("unsaved_matches", JSON.stringify(matchdata.getUnsavedMatches()));
   localStorage.setItem("app_name", JSON.stringify(appName));
@@ -955,10 +1012,10 @@ function loadLocalState() {
   if (saved_event_code) matchdata.getCurrentMatch().eventCode = JSON.parse(saved_event_code);
 
   const saved_events = localStorage.getItem("events");
-  if (saved_events) events.setEventTypes(JSON.parse(saved_events));
+  if (saved_events) matchevents.setEventTypes(JSON.parse(saved_events));
 
   const saved_groups = localStorage.getItem("groups");
-  if (saved_groups) events.setEventGroups(JSON.parse(saved_groups));
+  if (saved_groups) matchevents.setEventGroups(JSON.parse(saved_groups));
 
   const saved_app = localStorage.getItem("app");
   if (saved_app) root = loadComponent(JSON.parse(saved_app));
