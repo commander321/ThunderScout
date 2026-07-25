@@ -685,6 +685,7 @@ export function addNewEventSection(node: components.Component) {
     eventLabel.innerHTML = event.trigger;
     eventLabel.onclick = (e) => {
       e.stopPropagation();
+      event.open = true;
       openNewEventsModal(node);
     }
     eventDiv.appendChild(eventLabel);
@@ -708,13 +709,15 @@ export function addNewEventSection(node: components.Component) {
       //action label
       let actionLabelDiv = document.createElement("div");
       actionLabelDiv.classList.add("editor-event-action-label");
+      actionLabelDiv.style.marginTop = "18px";
       let actionLabelText = document.createElement("div");
       for (const type of events.EVENT_ACTION_TYPES) {
         if (type[0] == action.type && type[1]) actionLabelText.innerHTML = type[1];
       }
       actionLabelDiv.onclick = (e) => {
-        action.open = true;
         e.stopPropagation();
+        action.open = true;
+        event.open = true;
         openNewEventsModal(node);
       }
       
@@ -753,6 +756,7 @@ export function addNewEventSection(node: components.Component) {
   //add trigger button
   let addEventButton = document.createElement("div");
   addEventButton.classList.add("editor-event-trigger-add");
+  addEventButton.style.width = "30%";
   addEventButton.innerHTML = "Add Event";
   addEventButton.onclick = (e) => {
     e.stopPropagation();
@@ -814,15 +818,48 @@ export function openNewEventsModal(node: components.Component) {
     let eventDiv = document.createElement("div");
     eventDiv.classList.add("editor-event-div");
 
-    //add event label
+    //add event label with the event type and icon
     let eventLabel = document.createElement("div");
     eventLabel.classList.add("editor-event-trigger-label");
-    eventLabel.innerHTML = event.trigger;
+
+    let eventLabelText = document.createElement("div");
+    eventLabelText.innerHTML = event.trigger;
+
+    let eventLabelIconDiv = document.createElement("div");
+    eventLabelIconDiv.classList.add("editor-event-action-label-icon");
+    let eventLabelIcon = document.createElement("i");
+    if (event.trigger == events.EventTrigger.COMPONENT_CLICK) {
+      eventLabelIcon.classList.add("fa", "fa-mouse-pointer");
+    } else if (event.trigger == events.EventTrigger.COMPONENT_HOVER) {
+      eventLabelIcon.classList.add("fa", "fa-hand-pointer-o");
+    } else if (event.trigger == events.EventTrigger.OTHER_EVENT) {
+      eventLabelIcon.classList.add("fa", "fa-bolt");
+    }
+    eventLabelIconDiv.appendChild(eventLabelIcon);
+    let eventLabelCollapse = document.createElement("div");
+    eventLabelCollapse.classList.add("editor-event-action-label-collapse");
+    let eventCollapseIcon = document.createElement("i");
+    eventCollapseIcon.classList.add("fa", event.open ? "fa-minus" : "fa-plus");
+    eventLabelCollapse.appendChild(eventCollapseIcon);
+
+    eventLabel.appendChild(eventLabelIconDiv);
+    eventLabel.appendChild(eventLabelText);
+    eventLabel.appendChild(eventLabelCollapse);
     eventDiv.appendChild(eventLabel);
 
     //tree that contains actions
     let tree = document.createElement("div");
     tree.classList.add("editor-event-tree");
+
+    //make it so you can close the event div
+    if (!event.open) tree.classList.add("hidden");
+    eventLabel.onclick = (e) => {
+      e.stopPropagation();
+      event.open = !event.open;
+      eventCollapseIcon.classList.toggle("fa-plus");
+      eventCollapseIcon.classList.toggle("fa-minus");
+      tree.classList.toggle("hidden");
+    }
 
     //main list inside the tree
     let ul = document.createElement("ul");
@@ -891,6 +928,7 @@ export function openNewEventsModal(node: components.Component) {
 
     //add the button to add an action to the list
     let addActionButtonContainer = document.createElement("div");
+    addActionButtonContainer.style.position = "relative";
   
     let addActionButton = document.createElement("div");
     addActionButton.classList.add("editor-event", "editor-event-action-add");
@@ -968,8 +1006,13 @@ export function initEventSelection() {
 
   //add event trigger button (opens trigger select dropdown)
   let addEventButton = document.createElement("div");
+  let addEventButtonIcon = document.createElement("i");
+  let addEventButtonText = document.createElement("div");
   addEventButton.classList.add("editor-event-trigger-add");
-  addEventButton.innerHTML = "Add Event";
+  addEventButtonText.innerHTML = "Add Event";
+  addEventButtonIcon.classList.add("editor-event-action-label-icon", "fa", "fa-plus");
+  addEventButton.appendChild(addEventButtonIcon);
+  addEventButton.appendChild(addEventButtonText);
   addButtonContainer.appendChild(addEventButton);
 
   //dropdown that's hidden initially

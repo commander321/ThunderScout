@@ -59,10 +59,11 @@ body {
   font-size: 30px;
   width:90%;
   margin:auto;
+  background: #ffffff00;
 }
 
 .insert-bar:hover {
-  background: #eef6ff;
+  background: #eef6ffff;
 }
 
 input, select {

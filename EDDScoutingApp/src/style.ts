@@ -87,8 +87,8 @@ export const paddingLeft: Style = {
     inputType: "number",
     displayName: "Padding Left",
     description: "",
-    defaultValue: "0",
-    applyToNode(node, style) {node.style.paddingLeft = (style.paddingLeft == "0" ? 0 : (style.paddingLeft || 5)) + (style.paddingLeftType || "px")}
+    defaultValue: "5",
+    applyToNode(node, style) {node.style.paddingLeft = (style.paddingLeft == "0" ? 0 : (style.paddingLeft || this.defaultValue)) + (style.paddingLeftType || "px")}
 }
 
 export const paddingLeftType: Style = {
@@ -105,8 +105,8 @@ export const paddingRight: Style = {
     inputType: "number",
     displayName: "Padding Right",
     description: "",
-    defaultValue: "0",
-    applyToNode(node, style) {node.style.paddingRight = (style.paddingRight == "0" ? 0 : (style.paddingRight || 5)) + (style.paddingRightType || "px")}
+    defaultValue: "5",
+    applyToNode(node, style) {node.style.paddingRight = (style.paddingRight == "0" ? 0 : (style.paddingRight || this.defaultValue)) + (style.paddingRightType || "px")}
 }
 
 export const paddingRightType: Style = {
@@ -123,8 +123,8 @@ export const paddingTop: Style = {
     inputType: "number",
     displayName: "Padding Top",
     description: "",
-    defaultValue: "0",
-    applyToNode(node, style) {node.style.paddingTop = (style.paddingTop == "0" ? 0 : (style.paddingTop || 5)) + (style.paddingTopType || "px")}
+    defaultValue: "5",
+    applyToNode(node, style) {node.style.paddingTop = (style.paddingTop == "0" ? 0 : (style.paddingTop || this.defaultValue)) + (style.paddingTopType || "px")}
 }
 
 export const paddingTopType: Style = {
@@ -141,8 +141,8 @@ export const paddingBottom: Style = {
     inputType: "number",
     displayName: "Padding Bottom",
     description: "",
-    defaultValue: "0",
-    applyToNode(node, style) {node.style.paddingBottom = (style.paddingBottom == "0" ? 0 : (style.paddingBottom || 5)) + (style.paddingBottomType || "px")}
+    defaultValue: "5",
+    applyToNode(node, style) {node.style.paddingBottom = (style.paddingBottom == "0" ? 0 : (style.paddingBottom || this.defaultValue)) + (style.paddingBottomType || "px")}
 }
 
 export const paddingBottomType: Style = {
@@ -195,8 +195,8 @@ export const marginTop: Style = {
     inputType: "number",
     displayName: "Margin Top",
     description: "",
-    defaultValue: "0",
-    applyToNode(node, style) {node.style.marginTop = (style.marginTop == "0" ? 0 : (style.marginTop || 6)) + (style.marginTopType || "px")}
+    defaultValue: "6",
+    applyToNode(node, style) {node.style.marginTop = (style.marginTop == "0" ? 0 : (style.marginTop || this.defaultValue)) + (style.marginTopType || "px")}
 }
 
 export const marginTopType: Style = {
@@ -213,8 +213,8 @@ export const marginBottom: Style = {
     inputType: "number",
     displayName: "Margin Bottom",
     description: "",
-    defaultValue: "0",
-    applyToNode(node, style) {  node.style.marginBottom = (style.marginBottom == "0" ? 0 : (style.marginBottom || 6)) + (style.marginBottomType || "px")}
+    defaultValue: "6",
+    applyToNode(node, style) {  node.style.marginBottom = (style.marginBottom == "0" ? 0 : (style.marginBottom || this.defaultValue)) + (style.marginBottomType || "px")}
 }
 
 export const marginBottomType: Style = {
@@ -234,19 +234,23 @@ export const alignment: Style = {
     defaultValue: "left",
     applyToNode(node, style) {
         if (style.alignment == "right") {
-            node.style.marginRight = (style.marginRight == "0" ? 0 : (style.marginRight || 0)) + (style.marginRightType || "px");
+            node.style.marginRight = (style.marginRight == "0" ? 0 : (style.marginRight || marginRight.defaultValue)) + (style.marginRightType || "px");
             node.classList.remove("center-align");
             node.classList.remove("left-align");
             node.classList.add("right-align");
+            node.style.marginLeft = "auto";
         } else if (style.alignment == "center") {
             node.classList.remove("right-align");
             node.classList.remove("left-align");
             node.classList.add("center-align");
+            node.style.marginLeft = "auto";
+            node.style.marginRight = "auto";
         } else {
             node.classList.remove("right-align");
             node.classList.remove("center-align");
             node.classList.add("left-align");
-            node.style.marginLeft = (style.marginLeft == "0" ? 0 : (style.marginLeft || 0)) + (style.marginLeftType || "px");
+            node.style.marginLeft = (style.marginLeft == "0" ? 0 : (style.marginLeft || marginLeft.defaultValue)) + (style.marginLeftType || "px");
+            node.style.marginRight = "auto";
         }
     }
 }
@@ -257,7 +261,7 @@ export const fontSize: Style = {
     description: "",
     inputType: "number",
     defaultValue: "14",
-    applyToNode(node, style) {node.style.fontSize = (style.fontSize || 14) + "px"}
+    applyToNode(node, style) {node.style.fontSize = (style.fontSize || this.defaultValue) + "px"}
 }
 
 export const bold: Style = {
@@ -293,7 +297,7 @@ export const textAlign: Style = {
     description: "",
     options: ["left", "center", "right"],
     defaultValue: "left",
-    applyToNode(node, style) {node.style.textAlign = style.textAlign || "left"}
+    applyToNode(node, style) {node.style.textAlign = style.textAlign || this.defaultValue}
 }
 
 export const fontColor: Style = {
@@ -302,7 +306,7 @@ export const fontColor: Style = {
     description: "",
     inputType: "color",
     defaultValue: "#000000",
-    applyToNode(node, style) {node.style.color = style.color || "#000000"}
+    applyToNode(node, style) {node.style.color = style.color || this.defaultValue}
 }
 
 export const fontFamily: Style = {
@@ -311,7 +315,7 @@ export const fontFamily: Style = {
     description: "",
     options: ["Arial", "Verdana", "Tahoma", "Trebuchet MS", "Times New Roman", "Georgia", "Garamond", "Courier New", "Brush Script MT"],
     defaultValue: "Arial",
-    applyToNode(node, style) {node.style.fontFamily = style.fontFamily || "Arial"}
+    applyToNode(node, style) {node.style.fontFamily = style.fontFamily || this.defaultValue}
 }
 
 export const borderRadius: Style = {
@@ -320,7 +324,7 @@ export const borderRadius: Style = {
     description: "",
     inputType: "number",
     defaultValue: "0",
-    applyToNode(node, style) {node.style.borderRadius = (style.borderRadius || 0) + "px"}
+    applyToNode(node, style) {node.style.borderRadius = (style.borderRadius || this.defaultValue) + "px"}
 }
 
 export const borderWidth: Style = {
@@ -331,7 +335,7 @@ export const borderWidth: Style = {
     defaultValue: "1",
     applyToNode(node, style) {
         if (!style.borderStyle || style.borderStyle == "none") return;
-        node.style.borderWidth = (style.borderWidth || 0) + "px"
+        node.style.borderWidth = (style.borderWidth || this.defaultValue) + "px"
     }
 }
 
@@ -343,7 +347,7 @@ export const borderColor: Style = {
     defaultValue: "#000000",
     applyToNode(node, style) {
         if (!style.borderStyle || style.borderStyle == "none") return;
-        node.style.borderColor = style.borderColor || "#000000"
+        node.style.borderColor = style.borderColor || this.defaultValue
     }
 }
 
@@ -355,7 +359,7 @@ export const borderStyle: Style = {
     defaultValue: "none",
     applyToNode(node, style) {
         if (!style.borderStyle || style.borderStyle == "none") return;
-        node.style.borderStyle = style.borderStyle || "none"
+        node.style.borderStyle = style.borderStyle || this.defaultValue
     }
 }
 
@@ -383,7 +387,7 @@ export const thickness: Style = {
     displayName: "Thickness",
     description: "",
     defaultValue: "2",
-    applyToNode(node, style) {node.style.height = (style.thickness || 2) + "px";}
+    applyToNode(node, style) {node.style.height = (style.thickness || this.defaultValue) + "px";}
 }
 
 export const scale: Style = {
@@ -404,7 +408,7 @@ export const checkboxColor: Style = {
     description: "",
     inputType: "color",
     defaultValue: "#FFFFFF",
-    applyToNode(node, style) {node.style.backgroundColor = style.checkboxColor || "#FFFFFF";}
+    applyToNode(node, style) {node.style.backgroundColor = style.checkboxColor || this.defaultValue}
 }
 
 export const checkboxCheckedColor: Style = {
@@ -413,7 +417,7 @@ export const checkboxCheckedColor: Style = {
     description: "",
     inputType: "color",
     defaultValue: "#FF3333",
-    applyToNode(node, style) {node.style.accentColor = style.checkboxCheckedColor || "#FF3333";}
+    applyToNode(node, style) {node.style.accentColor = style.checkboxCheckedColor || this.defaultValue}
 }
 
 export const direction: Style = {

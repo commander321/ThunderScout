@@ -348,7 +348,7 @@ export function applyComponentEvents(component: components.Component, element: H
         switch (event.trigger) {
             case EventTrigger.COMPONENT_CLICK:
                 element.onclick = (e) => {
-                    e.stopPropagation();
+                    //e.stopPropagation();
                     event.run();
                 }
                 break;

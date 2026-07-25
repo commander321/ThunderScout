@@ -367,7 +367,7 @@
 }
 
 .editor-event-div {
-    padding-bottom: 50px;
+    padding-bottom: 0;
 }
 
 .editor-event-trigger-label {
@@ -382,6 +382,7 @@
     padding:8px;
     user-select: none;
     align-items: center;
+    display: flex;
 }
 
 .editor-event-trigger-label:hover {
@@ -393,13 +394,15 @@
     border-color: #aeaeae;
     border-width: 2px;
     border-style: solid;
-    border-radius: 6px;
+    border-radius: 8px;
     color: #111111;
     font-size: 16px;
     cursor: pointer;
     padding:8px;
-    width: 30%;
+    width: 15%;
     margin-top: 5%;
+    display: flex;
+    align-items: center;
 }
 
 .editor-event-trigger-add:hover {
@@ -416,10 +419,9 @@
 
 .event-trigger-dropdown {
     display: block;
-    position: absolute;
     background-color: #ffffff;
     width: 30%;
-    z-index: 1;
+    z-index: 10;
     margin-top: 4px;
     overflow: hidden;
     border: 1px solid #cccccc;

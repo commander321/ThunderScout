@@ -127,6 +127,43 @@ function renderInsertBar(container: HTMLDivElement, parentId: string, index: num
   bar.className = "insert-bar";
   bar.textContent = "+";
   bar.onclick = () => openModal(parentId, index);
+
+  //drag and drop things
+  bar.ondrop = (e) => {
+    if (runtime_mode || !draggedId) return;
+    e.preventDefault();
+    bar.style.background = "#ffffff00";
+
+    //move the dragged component to where it would go if it were added with the insert bar
+    let drag = find(draggedId);
+    let draggedComponent = drag.node;
+    let draggedParent = drag.parent;
+    let parent = find(parentId).node;
+    if (!(draggedComponent instanceof components.Component) || !(parent instanceof components.Component) || !(draggedParent instanceof components.Component)) return;
+    draggedParent.children = draggedParent.children.filter((c: components.Component) => c.id !== draggedComponent.id);
+    parent.children.splice(index, 0, draggedComponent);
+
+    renderPreview();
+  }
+
+  bar.ondragover = (e) => {
+    if (runtime_mode) return;
+    e.preventDefault();
+    bar.style.background = "#eef6ff";
+  }
+
+  bar.ondragleave = (e) => {
+    if (runtime_mode) return;
+    e.preventDefault();
+    bar.style.background = "#ffffff00";
+  }
+
+  bar.ondragend = (e) => {
+    if (runtime_mode) return;
+    e.preventDefault();
+    bar.style.background = "#ffffff00";
+  }
+
   container.appendChild(bar);
 }
 
