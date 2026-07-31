@@ -12,6 +12,9 @@ export class MatchEvent {
 
 }
 
+//types used by components and actions to make these pointers
+export type EventPointer = {type: "type" | "group", value: string};
+
 let eventTypes: string[] = ["None", "Test1", "Test2"];
 let eventGroups: string[] =["None", "TestGroup1", "TestGroup2"];
 

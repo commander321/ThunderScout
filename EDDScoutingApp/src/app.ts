@@ -1011,6 +1011,17 @@ export function userSelectComponent(current: any, onSelect: (newID: any) => void
 
 }
 
+/**
+ * Util function for easily creating an element.
+ */
+export function createElement(type: string, classList?: string[], parent?: HTMLElement): HTMLElement {
+    let element = document.createElement(type);
+    if (classList && classList.length != 0) element.classList.add(...classList);
+    if (parent) parent.appendChild(element);
+
+    return element;
+}
+
 //Manage service worker stuff for android
 /*
 if ("serviceWorker" in navigator) {

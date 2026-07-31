@@ -4,6 +4,7 @@ import * as matchevents from "./matchevents.js";
 import * as app from "./app.js";
 import * as editor from"./editor.js";
 import * as style from "./style.js";
+import {createElement} from "./app.js";
 
 export class Event {
     open: boolean;
@@ -68,54 +69,30 @@ export type EventTrigger = typeof EventTrigger[keyof typeof EventTrigger];
  * Records a match event of a specific type/group
  */
 export class ActionRecordMatchEvent extends EventAction {
-    matchEventType: string;
-    matchEventGroup: string;
+    matchEventType: matchevents.EventPointer;
+    matchEventGroup: matchevents.EventPointer;
 
     constructor() {
         super("matchEvent");
-        this.matchEventType = "";
-        this.matchEventGroup = "";        
+        this.matchEventType = {type: "type", value: "None"};
+        this.matchEventGroup = {type:"group", value: "None"};
     }
 
     onTrigger(): void {
-        matchdata.getCurrentMatch().addEvent(new matchevents.MatchEvent(this.matchEventType, this.matchEventGroup));
+        matchdata.getCurrentMatch().addEvent(new matchevents.MatchEvent(this.matchEventType.value, this.matchEventGroup.value));
         console.log(matchdata.getCurrentMatch().matchEvents);
-        components.updateCounters(this.matchEventType);
+        components.updateCounters(this.matchEventType.value);
     }
 
     addProperties(div: HTMLDivElement): void {
-        let typeDiv = document.createElement("div");
-        typeDiv.innerHTML = "Match Event:"
-        typeDiv.classList.add("editor-event-action-properties-div");
-        let typeInput = document.createElement("input");
-        typeInput.type = "text";
-        typeInput.classList.add("editor-event-action-properties-input");
-        typeInput.style.width = "50%";
-        typeInput.value = this.matchEventType || "";
-        typeInput.onchange = (e) => {
-            e.stopPropagation();
-            this.matchEventType = typeInput.value || "";
-            app.renderPreview();
-        }
-        typeDiv.appendChild(typeInput);
+        let typeDiv = createElement("div", ["editor-event-action-properties-div"], div);
+        typeDiv.innerHTML = "Event Type:";
+        editor.addMatchEventSelection(this.matchEventType, typeDiv);
 
-        let groupDiv = document.createElement("div");
-        groupDiv.innerHTML = "Match Event Group:"
-        groupDiv.classList.add("editor-event-action-properties-div");
-        let groupInput = document.createElement("input");
-        groupInput.type = "text";
-        groupInput.classList.add("editor-event-action-properties-input");
-        groupInput.style.width = "50%";
-        groupInput.value = this.matchEventGroup || "";
-        groupInput.onchange = (e) => {
-            e.stopPropagation();
-            this.matchEventGroup = groupInput.value || "";
-            app.renderPreview();
-        }
-        groupDiv.appendChild(groupInput);
+        let groupDiv = createElement("div", ["editor-event-action-properties-div"], div);
+        groupDiv.innerHTML = "Event Group:";
+        editor.addMatchEventSelection(this.matchEventGroup, groupDiv);
 
-        div.appendChild(typeDiv);
-        div.appendChild(groupDiv);
     }
 }
 

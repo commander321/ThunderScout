@@ -5,6 +5,7 @@ import * as actions from "./action.js"
 import * as storage from "./storage.js";
 import * as events from "./events.js";
 import * as style from "./style.js";
+import { createElement } from "./app.js";
 
 /**
  * Adds an input for a specific style property
@@ -97,61 +98,197 @@ export function addSelect(node: components.Component, parent: HTMLElement, label
 }
 
 /**
- * Adds the dropdown selection for all events
+ * Add the match event type selection dropdown
  */
-/*
-export function addEventSelection(node: components.Component) {
-    const editorDiv = document.getElementById("editor");
-    if (!editorDiv) return;
-    if (!(editorDiv instanceof HTMLDivElement)) return;
+export function addMatchEventSelection(matchEvent: matchevents.EventPointer, parent: HTMLElement) {
+  let content = createElement("div", ["event-selection-container"], parent);
 
-    addSelect(node, editorDiv, "Event", node.eventType, matchevents.getEventTypes(), (val: any) => { 
-      node.eventType = val;
-      app.renderPreview();
-    });
+  let mainInput = createElement("div", ["event-selection-input"], content); //button you click on to open dropdown
+  mainInput.style.display = "flex";
+  let mainInputText = createElement("div", [],  mainInput)
+  mainInputText.innerHTML = matchEvent.value;
+  let mainInputIconDiv = createElement("div", ["editor-event-action-label-collapse"], mainInput);
+  let mainInputIcon = createElement("i", ["fa", "fa-chevron-down"], mainInputIconDiv);
+  let dropdown = createElement("div", ["hidden"], content); //dropdown with all event types and an add button
+  let dropdownContent = createElement("div", ["event-selection-dropdown-scrollable"], dropdown);
 
-    addSelect(node, editorDiv, "Group", node.eventGroup, matchevents.getEventGroups(), (val: any) => {
-      node.eventGroup = val;
-      app.renderPreview();
-    });
+  for (const eventType of (matchEvent.type === "type" ? matchevents.getEventTypes() : matchevents.getEventGroups())) {
+      let eventTypeDiv = createElement("div", ["event-selection-dropdown-button"], dropdownContent);
+      let eventTypeText = createElement("div", ["event-selection-dropdown-button-text"], eventTypeDiv);
+      eventTypeText.innerHTML = eventType;
+      let eventTypeMenuIconDiv = createElement("div", ["event-selection-dropdown-button-delete"], eventTypeDiv);
+      let eventTypeMenuIcon = createElement("i", ["fa", "fa-times"], eventTypeMenuIconDiv);
 
-    let button: HTMLButtonElement = document.createElement("button");
-    button.textContent = "Edit Events";
-    button.onclick = (e) => {
-      e.stopPropagation();
+      //set the event type to the one you click on
+      eventTypeDiv.onclick = (e) => {
+        matchEvent.value = eventType;
+        mainInputText.innerHTML = eventType;
 
-      //Open the events list modal
-      openEventsModal();
+        dropdown.classList.add("hidden");
+        dropdown.classList.remove("event-selection-dropdown");
+        mainInputIcon.classList.add("fa-chevron-down");
+        mainInputIcon.classList.remove("fa-chevron-up");
+        app.renderPreview();
+      }
+
+      //delete button
+      eventTypeMenuIconDiv.onclick = (e) => {
+        e.stopPropagation();
+        if (matchEvent.type === "type") {
+          matchevents.removeEventType(eventType);
+        } else {
+          matchevents.removeEventGroup(eventType);
+        } 
+        eventTypeDiv.remove();
+      }
+  }
+
+  //button to add a new event type
+  let addButtonDiv = createElement("div", ["event-selection-dropdown-button"], dropdownContent);
+  let addButtonIconDiv = createElement("div", ["event-selection-dropdown-button-text"], addButtonDiv)
+  let addButtonIcon = createElement("i", ["fa", "fa-plus"], addButtonIconDiv);
+  let addButtonText = createElement("div", [], addButtonDiv);
+
+  //text to enter a new event type, hidden by default
+  let addEventDiv = createElement("div", ["hidden"], dropdownContent);
+  let addEventIconDiv = createElement("div", ["event-selection-add-remove"], addEventDiv);
+  let addEventIcon = createElement("i", ["fa", "fa-times"], addEventIconDiv);
+  let addEventDivText = createElement("input", ["event-selection-add-input"], addEventDiv);
+
+  //press enter to add a new event type
+  addEventDivText.addEventListener("keypress", (e) => {
+    if (e.key != "Enter") return;
+    e.preventDefault();
+
+    if (!(addEventDivText instanceof HTMLInputElement)) return;
+    const eventType = addEventDivText.value;
+
+    //add type/group if it doesn't exist
+    if (matchEvent.type === "type") {
+      if (matchevents.getEventTypes().includes(eventType)) return;
+      matchevents.addEventType(eventType);
+    } else {
+      if (matchevents.getEventGroups().includes(eventType)) return;
+      matchevents.addEventGroup(eventType);
     }
 
-    editorDiv.appendChild(button);
-}*/
+    //add to the dropdown (same code as above)
+    let eventTypeDiv = createElement("div", ["event-selection-dropdown-button"]);
+    let eventTypeText = createElement("div", ["event-selection-dropdown-button-text"], eventTypeDiv);
+    eventTypeText.innerHTML = eventType;
+    let eventTypeMenuIconDiv = createElement("div", ["event-selection-dropdown-button-delete"], eventTypeDiv);
+    let eventTypeMenuIcon = createElement("i", ["fa", "fa-times"], eventTypeMenuIconDiv);
+    eventTypeDiv.onclick = (e) => {
+      matchEvent.value = eventType;
+      mainInputText.innerHTML = eventType;
 
-/**
- * Adds just the event group selection (and the edit events button)
- */
-/*
-export function addGroupSection(node: components.Component) {
-    const editorDiv = document.getElementById("editor");
-    if (!editorDiv) return;
-    if (!(editorDiv instanceof HTMLDivElement)) return;
-
-    addSelect(node, editorDiv, "Group", node.eventGroup, matchevents.getEventGroups(), (val: any) => {
-      node.eventGroup = val;
+      dropdown.classList.add("hidden");
+      dropdown.classList.remove("event-selection-dropdown");
+      mainInputIcon.classList.add("fa-chevron-down");
+      mainInputIcon.classList.remove("fa-chevron-up");
       app.renderPreview();
+    }
+    //delete button
+    eventTypeMenuIconDiv.onclick = (e) => {
+      e.stopPropagation();
+      if (matchEvent.type === "type") {
+          matchevents.removeEventType(eventType);
+        } else {
+          matchevents.removeEventGroup(eventType);
+        } 
+      eventTypeDiv.remove();
+    }
+    dropdownContent.insertBefore(eventTypeDiv, dropdownContent.children[dropdownContent.children.length-2] || null);
+
+    //add the plus sign button again
+    addButtonDiv.classList.remove("hidden");
+    addButtonDiv.classList.add("event-selection-dropdown-button");
+    addEventDiv.classList.add("hidden");
+    addEventDiv.classList.remove("event-selection-add-input-button");
+
+    //clear the text input
+    addEventDivText.value = "";
+  })
+
+  //add a new row with a text field
+  addButtonDiv.onclick = (e) => {
+    e.stopPropagation();
+
+    addButtonDiv.classList.add("hidden");
+    addButtonDiv.classList.remove("event-selection-dropdown-button");
+    addEventDiv.classList.remove("hidden");
+    addEventDiv.classList.add("event-selection-add-input-button");
+
+    //select the textbox
+    addEventDivText.focus();
+    (addEventDivText as HTMLInputElement).select();
+  }
+
+  //prevent the text from closing the menu when clicked
+  addEventDiv.onclick = (e) => {e.stopPropagation();}
+
+  //x button to cancel the new event type input
+  addEventIconDiv.onclick = (e) => {
+    e.stopPropagation();
+
+    //add the plus sign button again
+    addButtonDiv.classList.remove("hidden");
+    addButtonDiv.classList.add("event-selection-dropdown-button");
+    addEventDiv.classList.add("hidden");
+    addEventDiv.classList.remove("event-selection-add-input-button");
+
+    //clear the text input
+    (addEventDivText as HTMLInputElement).value = "";
+  }
+
+  //open the menu when you click on it
+  mainInput.onclick = (e) => {
+    e.stopPropagation();
+
+    //close all other dropdowns
+    document.querySelectorAll(".event-selection-dropdown").forEach((d) => {
+      if (d === dropdown) return;
+      d.classList.add("hidden");
+      d.classList.remove("event-selection-dropdown");
     });
 
-    let button: HTMLButtonElement = document.createElement("button");
-    button.textContent = "Edit Events";
-    button.onclick = (e) => {
-      e.stopPropagation();
+    dropdown.classList.toggle("hidden");
+    dropdown.classList.toggle("event-selection-dropdown");
+    mainInputIcon.classList.toggle("fa-chevron-down");
+    mainInputIcon.classList.toggle("fa-chevron-up");
+  }
 
-      //Open the events list modal
-      openEventsModal();
-    }
+  //close the dropdown menus when you click off of them
+  window.addEventListener("click", (e) => {
 
-    editorDiv.appendChild(button);
-}*/
+    dropdown.classList.add("hidden");
+    dropdown.classList.remove("event-selection-dropdown");
+    addButtonDiv.classList.remove("hidden");
+    addButtonDiv.classList.add("event-selection-dropdown-button");
+    addEventDiv.classList.add("hidden");
+    addEventDiv.classList.remove("event-selection-add-input-button");
+    mainInputIcon.classList.add("fa-chevron-down");
+    mainInputIcon.classList.remove("fa-chevron-up");
+    (addEventDivText as HTMLInputElement).value = "";
+  });
+
+}
+
+export function addMatchEventSection(node: components.Component) {
+  const editorDiv = document.getElementById("editor");
+  if (!editorDiv) return;
+  if (!(editorDiv instanceof HTMLDivElement)) return;
+  
+  let eventSection = createSection("Match Event:", editorDiv);
+
+  let eventTypeDiv = createElement("div", [], eventSection);
+  eventTypeDiv.innerHTML = "Event Type:";
+  addMatchEventSelection(node.eventType, eventTypeDiv);
+
+  let eventGroupDiv = createElement("div", [], eventSection);
+  eventGroupDiv.innerHTML = "Event Group";
+  addMatchEventSelection(node.eventGroup, eventGroupDiv);
+}
 
 /**
  * Add a new section for styling the layout

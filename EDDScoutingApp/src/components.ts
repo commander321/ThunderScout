@@ -6,14 +6,15 @@ import * as storage from "./storage.js";
 import * as events from "./events.js"
 import * as style from "./style.js";
 import { v4 as uuid } from 'uuid';
+import { createElement } from "./app.js";
 
 export abstract class Component {
   id: string;
   type: string;
   style: Record<string, any>;
   children: Component[];
-  eventType: string;
-  eventGroup: string;
+  eventType: matchevents.EventPointer;
+  eventGroup: matchevents.EventPointer; 
   componentEvents: events.Event[];
   divElement: HTMLDivElement | undefined;
   abstract readonly styleTypes: style.Style[];
@@ -23,8 +24,8 @@ export abstract class Component {
     this.type = type;
     this.style = {};
     this.children = [];
-    this.eventType = "None";
-    this.eventGroup = "None";
+    this.eventType = {type: "type", value: "None"};
+    this.eventGroup = {type: "group", value: "None"};;
     this.componentEvents = [];
   }
 
@@ -109,8 +110,9 @@ export class Counter extends Component {
   }
 
   addEditorFeatures() {
-    //editor.addEventSelection(this);
-    editor.addTextEditor(this, false, matchdata.getCurrentMatch().getEventCount(this.eventType, this.eventGroup).toString());
+    
+    editor.addMatchEventSection(this);
+    editor.addTextEditor(this, false, matchdata.getCurrentMatch().getEventCount(this.eventType.value, this.eventGroup.value).toString());
     editor.addLayoutStyleSection(this);
     editor.addBorderSection(this);
   }
@@ -120,7 +122,7 @@ export class Counter extends Component {
 
     let label: HTMLDivElement = document.createElement("div");
     label.id = this.id;
-    label.textContent = matchdata.getCurrentMatch().getEventCount(this.eventType, this.eventGroup).toString();
+    label.textContent = matchdata.getCurrentMatch().getEventCount(this.eventType.value, this.eventGroup.value).toString();
 
     div.appendChild(label);
 
@@ -138,7 +140,7 @@ export class Counter extends Component {
   update() {
     let label = document.getElementById(this.id);
     if (!label) return;
-    label.textContent = matchdata.getCurrentMatch().getEventCount(this.eventType, this.eventGroup).toString();
+    label.textContent = matchdata.getCurrentMatch().getEventCount(this.eventType.value, this.eventGroup.value).toString();
   }
 }
 
@@ -352,10 +354,10 @@ export class Dropdown extends Component {
       //Handle events, remove all of the other options and add the selected one
       if (app.isRuntimeMode()) {
         this.options.forEach(t => {
-          matchdata.getCurrentMatch().removeType(t, this.eventGroup);
+          matchdata.getCurrentMatch().removeType(t, this.eventGroup.value);
         });
 
-        matchdata.getCurrentMatch().addEvent(new matchevents.MatchEvent(this.options[select.selectedIndex] || "null", this.eventGroup));
+        matchdata.getCurrentMatch().addEvent(new matchevents.MatchEvent(this.options[select.selectedIndex] || "null", this.eventGroup.value));
         updateCounters();
       }
 
@@ -392,7 +394,7 @@ export class Checkbox extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    //editor.addEventSelection(this);
+    editor.addMatchEventSection(this);
 
     //checkbox features
     editorDiv.appendChild(document.createElement("hr"));
@@ -413,7 +415,7 @@ export class Checkbox extends Component {
     this.divElement = div;
 
     let checkbox: HTMLInputElement = document.createElement("input");
-    checkbox.checked = matchdata.getCurrentMatch().getEventCount(this.eventType) > 0;
+    checkbox.checked = matchdata.getCurrentMatch().getEventCount(this.eventType.value) > 0;
     checkbox.type = "checkbox";
 
     checkbox.onchange = (e) => {
@@ -423,12 +425,12 @@ export class Checkbox extends Component {
 
       //Handle changing the event
       if (checkbox.checked) {
-        matchdata.getCurrentMatch().addEvent(new matchevents.MatchEvent(this.eventType, this.eventGroup));
+        matchdata.getCurrentMatch().addEvent(new matchevents.MatchEvent(this.eventType.value, this.eventGroup.value));
       } else {
-        matchdata.getCurrentMatch().removeType(this.eventType, this.eventGroup);
+        matchdata.getCurrentMatch().removeType(this.eventType.value, this.eventGroup.value);
       }
 
-      updateCounters(this.eventType);
+      updateCounters(this.eventType.value);
 
     }
 
@@ -1186,9 +1188,9 @@ export class AnalyticsMatchesTableColumn extends Component {
     this.applyStyles(cell);
 
     if (this.dataType == "Event Count") {
-      cell.textContent = match.getEventCount(this.eventType, this.eventGroup).toString();
+      cell.textContent = match.getEventCount(this.eventType.value, this.eventGroup.value).toString();
     } else if (this.dataType == "Group") {
-      cell.textContent = match.getEventsByGroup(this.eventGroup).toString();
+      cell.textContent = match.getEventsByGroup(this.eventGroup.value).toString();
     } else if (this.dataType == "Textbox") {
       cell.textContent = match.getTextData(this.textboxKey);
     } else if (this.dataType == "Match Number") {
@@ -1215,7 +1217,7 @@ export class AnalyticsMatchesTableColumn extends Component {
 export function updateCounters(type?: string) {
   for (const counter of Counter.counters) {
     if (type) {
-      if (counter.eventType === type) counter.update();
+      if (counter.eventType.value === type) counter.update();
     } else {
       counter.update();
     }
