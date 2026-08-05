@@ -1,0 +1,227 @@
+body {
+  margin: 0;
+  font-family: Arial;
+  display: flex;
+  overflow-y: hidden;
+}
+
+#sidebar {
+  width: 320px;
+  background: #f4f4f4;
+  padding: 15px;
+  height: calc(100vh - 50px);
+  overflow-y: auto;
+  border-right: 2px solid #ddd;
+}
+
+#preview {
+  flex: 1;
+  padding: 20px;
+  height: calc(100vh - 50px);
+  overflow-y: auto;
+}
+
+.component {
+  padding: 10px;
+  background: white;
+}
+
+.editor-component {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 6px 0px;
+  background: white;
+  cursor: pointer;
+}
+
+.editor-component:hover {
+  background: #eef6ff;
+  border-color: #007bff;
+}
+
+.selected {
+  outline: 2px solid #007bff;
+}
+
+.container {
+  border: 1px dashed #999;
+}
+
+.horizontal {
+  display: flex;
+  gap: 10px;
+}
+
+.insert-bar {
+  text-align: center;
+  cursor: pointer;
+  color: #007bff;
+  font-size: 30px;
+  width:90%;
+  margin:auto;
+  background: #ffffff00;
+}
+
+.insert-bar:hover {
+  background: #eef6ffff;
+}
+
+input, select {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 4px;
+}
+
+.number-input {
+  width: 15%;
+  margin-bottom: 8px;
+  padding: 4px;
+}
+
+.center-align {
+  margin: auto;
+}
+
+.right-align {
+  margin-left: auto;
+}
+
+.left-align {
+  margin-right: auto;
+}
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+}
+
+#overlay-component-select {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  pointer-events: none;
+}
+
+#modal {
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 20px;
+  border: 1px solid #cccccc;
+  overflow-y: auto;
+}
+
+.overlay-events {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+}
+
+.modal-events {
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f9f9f9;
+  padding: 20px;
+  border: 2px solid #cccccc;
+  border-radius: 4px;
+  width: 60%;
+  height: 70%;
+}
+
+#overlay-matches {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+}
+
+#modal-matches {
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 20px;
+  border: 1px solid #ccc;
+  width: 50%;
+  height: 70%;
+}
+
+#overlay-settings {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+}
+
+#modal-settings {
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  padding: 20px;
+  border: 2px solid #aaaaaa;
+  border-radius: 6px;
+  width: 30%;
+  height: 60%;
+}
+
+#overlay-schedule {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+}
+
+#modal-schedule {
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 20px;
+  border: 1px solid #ccc;
+  width: 60%;
+  height: 70%;
+}
+
+#bluetooth-status {
+  position: fixed;
+  top: 85%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: lightgray;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  width: 50%;
+  height: 5%;
+}
+
+.hidden {
+  display: none;
+}
+
+.italic {
+  font-style: "italic";
+}
+
+th, td {
+  padding: 5px;
+}
+
+.add-component-button {
+  width: 90%;
+  text-align: center;
+  font-size: 18px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.add-component-button:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  background-color: #e0e0e0;
+}

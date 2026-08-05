@@ -5,6 +5,7 @@ import * as app from "./app.js";
 import * as editor from"./editor.js";
 import * as style from "./style.js";
 import {createElement} from "./app.js";
+import { Action } from "./action.js";
 
 export class Event {
     open: boolean;
@@ -267,6 +268,55 @@ export class ActionStyleChange extends EventAction {
     }
 }
 
+/**
+ * Saves the current match and resets to the next one
+ */
+export class ActionSaveMatchData extends EventAction {
+    constructor() {
+        super("saveMatchData");
+    }
+
+    onTrigger(): void {
+        document.documentElement.scrollTop = 0;
+
+        matchdata.saveCurrentMatch();
+        console.log(matchdata.getCurrentMatch());
+
+        const editorEnabled: boolean = app.getEditorEnabled();
+        app.setEditorEnabled(true);
+        app.openDesigner();
+        app.renderPreview();
+        app.closeDesigner();
+        app.setEditorEnabled(editorEnabled);
+        if (editorEnabled) {
+            document.getElementById("edit")?.classList.remove("hidden")
+        } else {
+            document.getElementById("edit")?.classList.add("hidden")
+        }
+    }
+
+    addProperties(div: HTMLDivElement): void {
+        
+    }
+}
+
+/**
+ * Downloads all saved match data as a JSON file
+ */
+export class ActionDownloadMatchData extends EventAction {
+    constructor() {
+        super("downloadMatchData");
+    }
+
+    onTrigger(): void {
+        matchdata.exportMatchData();
+    }
+
+    addProperties(div: HTMLDivElement): void {
+        
+    }
+}
+
 //add this later
 export class ActionTextChange extends EventAction {
     component: components.Component | undefined;
@@ -304,6 +354,8 @@ export const eventActionTypeRegistry = {
     matchEvent: ActionRecordMatchEvent,
     triggerEvent: ActionTriggerEvent,
     styleChange: ActionStyleChange,
+    saveMatchData: ActionSaveMatchData,
+    downloadMatchData: ActionDownloadMatchData,
     textChange: ActionTextChange,
 } as const;
 
@@ -314,6 +366,8 @@ export const EVENT_ACTION_TYPES: string[][] = [
   ["matchEvent", "Add match event", "", "fa-bolt"],
   ["triggerEvent", "Trigger an event", "", "fa-bolt"],
   ["styleChange", "Change component style", "", "fa-paint-brush"],
+  ["saveMatchData", "Save match data", "", "fa-floppy-o"],
+  ["downloadMatchData", "Download match data", "", "fa-download"],
   ["textChange", "Change component text", "", "fa-font"],
 ];
 

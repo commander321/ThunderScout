@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>FRC Scouting Builder</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="editor-styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  <!-- <link rel="manifest" href="/manifest.json"> !-->
+  <meta name="theme-color" content="#0f766e">
+</head>
+<body>
+
+<!--
+<a href="analytics.html">Aaa</a>
+-->
+
+<div id="sidebar">
+  <button class="editor-button editor-button-tooltip" id="editor-button-close">
+        X
+        <span class="editor-button-tooltip-text" style="width:100px;margin-left:-50px">Close Editor</span>
+    </button>
+  <span class="editor-top-bar" style="padding-left:20px;padding-right:20px;left:0%;position: relative;">
+    <button class="editor-button editor-button-tooltip" id="editor-button-save">
+        <i class="fa fa-floppy-o"></i>
+        <span class="editor-button-tooltip-text">Save (Ctrl + S)</span>
+    </button>
+    <button class="editor-button editor-button-tooltip" id="editor-button-export">
+        <i class="fa fa-download"></i>
+        <span class="editor-button-tooltip-text" style="width:160px;margin-left:-80px;">Export App to JSON</span>
+    </button>
+    <button class="editor-button editor-button-tooltip" id="editor-button-upload">
+        <i class="fa fa-upload"></i>
+        <span class="editor-button-tooltip-text" style="width:170px;margin-left:-85px;">Load App from JSON</span>
+    </button>
+    <input id="load" type="file" accept="application/json" class="hidden"></button>
+  </span>
+  <h2 style="margin-top:10%;" id="editor-title">Select a Component</h2>
+  <div id="editor"></div>
+</div>
+
+<div id="preview">
+  <button id="edit">Edit</button>
+  <button id="export">Export Data</button>
+  <button id="matches">View Saved Matches</button>
+  <button id="settings">Settings</button>
+  <span id="preview-title">
+    <h1 style="display:inline;">Preview</h1>
+    <div class="editor-top-bar">
+      <button class="editor-button editor-button-tooltip" id="editor-button-undo">
+        <i class="fa fa-undo"></i>
+        <span class="editor-button-tooltip-text">Undo (Ctrl + Z)</span>
+      </button>
+      <button class="editor-button editor-button-tooltip" id="editor-button-redo">
+        <i class="fa fa-repeat"></i>
+        <span class="editor-button-tooltip-text">Redo (Ctrl + Y)</span>
+      </button>
+      <button class="editor-button editor-button-tooltip" id="editor-button-copy">
+        <i class="fa fa-files-o"></i>
+        <span class="editor-button-tooltip-text">Copy (Ctrl + C)</span>
+      </button>
+      <button class="editor-button editor-button-tooltip" id="editor-button-cut">
+        <i class="fa fa-scissors"></i>
+        <span class="editor-button-tooltip-text">Cut (Ctrl + X)</span>
+      </button>
+      <button class="editor-button editor-button-tooltip" id="editor-button-paste">
+        <i class="fa fa-clipboard"></i>
+        <span class="editor-button-tooltip-text">Paste (Ctrl + V)</span>
+      </button>
+      <button class="editor-button editor-button-tooltip" id="editor-button-delete">
+        <i class="fa fa-trash"></i>
+        <span class="editor-button-tooltip-text">Delete (Delete)</span>
+      </button>
+    </div>
+  </span>
+  
+  <div id="app"></div>
+</div>
+
+<div id="overlay-component-select" class="hidden"></div>
+
+<div id="overlay" class="hidden"></div>
+<div id="modal" class="hidden"></div>
+
+<div id="overlay-matches" class="hidden"></div>
+<div id="modal-matches" class="hidden"></div>
+
+<div id="overlay-settings" class="hidden"></div>
+<div id="modal-settings" class="hidden">
+  <div>
+    <h3>Settings</h3>
+
+    <div>
+      <label>App Name</label>
+      <input type="text" id="settings-app-name"></input>
+    </div>
+
+    <div>
+      <label> Event Code:</label> 
+      <input type="text" id="settings-event-code"></input>
+    </div>
+
+    <div style="display:inline-block">
+      <label>Edit Mode:</label> 
+      <input type="checkbox" id="settings-editor-enabled" style="scale:1.5"></input>
+    </div>
+
+    <div>
+      <button id="settings-reset-button">
+        Clear all match data
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div id="bluetooth-status" class="hidden"></div>
+
+<div class="hidden" id="textbox-editor">
+    <div class="textbox-style-bar" id ="textbox-style-bar">
+        <select class="textbox-editor-font" id="textbox-editor-font" style="margin-bottom: 0;"> </select>
+
+        <input type="number" class="textbox-editor-font-size" id="textbox-editor-font-size" min="1" max="500" style="margin-bottom: 0;">
+
+        <!--
+        <div class="textbox-editor-divider"></div>-->
+
+        <button class="textbox-editor-button" id="textbox-editor-bold" title="Bold">
+            <i class="fa fa-bold"></i>
+        </button>
+
+        <button class="textbox-editor-button" id="textbox-editor-italic" title="Italic">
+            <i class="fa fa-italic"></i>
+        </button>
+
+        <button class="textbox-editor-button" id="textbox-editor-underline" title="Underline">
+            <i class="fa fa-underline"></i>
+        </button>
+
+        <div class="textbox-editor-divider"></div>
+
+        <label class="textbox-editor-color">
+            <i class="fa fa-paint-brush" id="textbox-editor-text-color-icon"></i>
+
+            <input type="color" id="textbox-editor-text-color" value="#000000">
+        </label>
+
+        <div class="textbox-editor-divider"></div>
+
+        <button class="textbox-editor-button" id="textbox-editor-align-left" title="Align Left">
+            <i class="fa fa-align-left"></i>
+        </button>
+
+        <button class="textbox-editor-button" id="textbox-editor-align-center" title="Align Center">
+            <i class="fa fa-align-center"></i>
+        </button>
+
+        <button class="textbox-editor-button" id="textbox-editor-align-right" title="Align Right">
+            <i class="fa fa-align-right"></i>
+        </button>
+
+    </div>
+
+    <div class="textbox-editor-textbox" id="textbox-editor-textbox" contenteditable="true">
+    </div>
+
+</div>
+
+<!--
+<button id ="bluetooth">Bluetooth</button>
+-->
+
+<script type="module" src="/src/app.ts"></script>
+<!--<script src="./src/bluetooth/bluetooth.js"></script>
+<script type="module" src="./dist/app.js"></script>
+!-->
+
+</body>
+</html>

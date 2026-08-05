@@ -6,9 +6,10 @@ import * as actions from "./action.js";
 import * as storage from "./storage.js";
 import * as editor from "./editor.js";
 import * as events from "./events.js";
+import * as settings from "./settings.js";
 import { v4 as uuid } from 'uuid';
 
-let appName: string = "";
+//let appName: string = "";
 let root = components.createComponent("root");
 let selectedId: any = null;
 let insertContext: any = null;
@@ -44,7 +45,7 @@ export function find(id: string, node: components.Component = root, parent: any 
  */
 export function renderPreview() {
   if (runtime_mode) return;
-  const app = document.getElementById("app");
+  const app = document.getElementById("app-preview-content");
   if (!app) return;
   if (!(app instanceof HTMLDivElement)) return;
   app.innerHTML = "";
@@ -206,6 +207,14 @@ export function renderEditor() {
   const editorTitle = document.getElementById("editor-title");
   if (!editorTitle) return;
 
+  //set height of editor because it doesn't work otherwise for some reason
+  const appPreview = document.getElementById("app-preview");
+  if (!appPreview) return;
+  const editorContent = document.getElementById("editor-content");
+  if (!editorContent) return;
+  editorContent.style.maxHeight = appPreview.clientHeight.toString();
+
+
   let result = find(selectedId);
   if (!result) {
     editorTitle.innerHTML = "Select a Component";
@@ -356,6 +365,7 @@ if (overlay) overlay.onclick = closeModal;
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     closeModal();
+    settings.closeSettingsModal();
     editor.closeEventsModal();
     setSelectedID(selectedId); //use this to close component select modal too
   }
@@ -373,6 +383,10 @@ export function closeDesigner() {
 
   saveLocalState();
 
+  const editorContent = document.getElementById("editor-content");
+  editorContent?.classList.add("hidden");
+
+  /*
   let sidebar = document.getElementById("sidebar");
   sidebar?.classList.add("hidden");
 
@@ -385,7 +399,7 @@ export function closeDesigner() {
     edit?.classList.remove("hidden")
   } else {
     edit?.classList.add("hidden");
-  } 
+  } */
 
   document.getElementById("export")?.classList.remove("hidden");
   document.getElementById("matches")?.classList.remove("hidden");
@@ -423,6 +437,10 @@ export function openDesigner() {
 
   saveLocalState();
 
+  const editorContent = document.getElementById("editor-content");
+  editorContent?.classList.remove("hidden");
+
+  /*
   let sidebar = document.getElementById("sidebar");
   sidebar?.classList.remove("hidden");
 
@@ -430,7 +448,7 @@ export function openDesigner() {
   previewTitle?.classList.remove("hidden");
 
   let edit = document.getElementById("edit");
-  edit?.classList.add("hidden");
+  edit?.classList.add("hidden");*/
 
   document.getElementById("export")?.classList.add("hidden");
   document.getElementById("matches")?.classList.add("hidden");
@@ -451,7 +469,7 @@ export function saveToJSON() {
 
   //get the data that needs to be saved to JSON
   let data = {
-    name: appName,
+    name: settings.getAppName(),
     events: matchevents.getEventTypes(),
     groups: matchevents.getEventGroups(),
     app: root
@@ -491,23 +509,9 @@ export function loadComponent(data: any, newUUID?: boolean): components.Componen
   component.eventGroup = data.eventGroup;
   
   //Load specific attributes for components
-  if (component instanceof components.Layout) {
-    //component.direction = data.direction;
-  } else if (component instanceof components.Label) {
-    component.text = data.text;
-  } else if (component instanceof components.Button) {
-    component.text = data.text;
-    //component.decrease = data.decrease;
-  } else if (component instanceof components.Dropdown) {
+  if (component instanceof components.Dropdown) {
     component.options = data.options;
     component.required = data.required;
-  } else if (component instanceof components.TextBox) {
-    component.key = data.key;
-  } else if (component instanceof components.ResetButton) {
-    component.text = data.text;
-  } else if (component instanceof components.Section) {
-    component.color = data.color;
-    component.thickness = data.thickness;
   } else if (component instanceof components.AnalyticsMatchesTable) {
     component.minRows = data.minRows;
     component.children = [];
@@ -681,8 +685,8 @@ export function setupLoadButton() {
       console.log(data);
 
       //set the app/page name
-      appName = data.name;
-      document.title = appName;
+      settings.setAppName(data.name);
+      document.title = settings.getAppName();
 
       //set the event types and groups
       matchevents.setEventTypes(data.events);
@@ -768,7 +772,7 @@ function openMatchesModal() {
 
     btButton.onclick = (e) => {
       e.stopPropagation();
-      bluetooth.sendMatch(match);
+      //bluetooth.sendMatch(match);
     }
     btButton.innerHTML = "Resend Data"
 
@@ -808,89 +812,6 @@ function setupMatchesButton() {
   let overlay = document.getElementById("overlay-matches")
   if (overlay) overlay.onclick = closeMatchesModal;
 
-}
-
-function openSettingsModal() {
-  let overlay = document.getElementById("overlay-settings");
-  if (!overlay) return;
-  overlay.classList.remove("hidden");
-
-  let modal = document.getElementById("modal-settings");
-  if (!modal) return;
-  modal.classList.remove("hidden");
- 
-  let name = document.getElementById("settings-app-name");
-  if (name && name instanceof HTMLInputElement) {
-    name.value = appName;
-    name.onchange = (e) => {
-      e.stopPropagation();
-      appName = name.value;
-      document.title = appName;
-      localStorage.setItem("app_name", JSON.stringify(appName));
-    }
-  }
-
-  //event code
-  let eventCode = document.getElementById("settings-event-code");
-  if (eventCode && eventCode instanceof HTMLInputElement) {
-    eventCode.value = matchdata.getCurrentMatch().eventCode;
-    eventCode.onchange = (e) => {
-      e.stopPropagation();
-
-      matchdata.getCurrentMatch().eventCode = eventCode.value;
-
-      //save to the local storage
-      localStorage.setItem("event_code", JSON.stringify(matchdata.getCurrentMatch().eventCode));
-    }
-  }
-
-  //toggle editor
-  let toggleEditor = document.getElementById("settings-editor-enabled");
-  if (toggleEditor && toggleEditor instanceof HTMLInputElement) {
-    toggleEditor.checked = editor_enabled;
-    toggleEditor.onclick = (e) => {
-      e.stopPropagation();
-
-      editor_enabled = toggleEditor.checked;
-
-      if (editor_enabled) {
-        document.getElementById("edit")?.classList.remove("hidden")
-      } else {
-        document.getElementById("edit")?.classList.add("hidden");
-      }
-
-      //save the editor enabled option to local storage
-      localStorage.setItem("editor_enabled", JSON.stringify(editor_enabled));
-    }
-  }
-
-  //reset button
-  let resetButton = document.getElementById("settings-reset-button");
-  if (resetButton && resetButton instanceof HTMLButtonElement) {
-    resetButton.onclick = (e) => {
-      e.stopPropagation();
-
-      matchdata.clearAllMatches();
-    };
-  }
-}
-
-function closeSettingsModal() {
-  let overlay = document.getElementById("overlay-settings");
-  if (overlay) overlay.classList.add("hidden");
-
-  let modal = document.getElementById("modal-settings");
-  if (modal) modal.classList.add("hidden");
-}
-
-function setupSettingsButton() {
-  let settingsButton = document.getElementById("settings");
-  if (!settingsButton) return;
-  settingsButton.onclick = openSettingsModal;
-
-  //setup closing modal on click
-  let overlay = document.getElementById("overlay-settings")
-  if (overlay) overlay.onclick = closeSettingsModal;
 }
 
 function setupEditorButtons() {
@@ -948,10 +869,21 @@ function setupEditorButtons() {
     if (loadButton && loadButton instanceof HTMLInputElement) loadButton.click();
   }
 
-  const closeButton = document.getElementById("editor-button-close");
-  if (closeButton) closeButton.onclick = (e) => {
+  const settingsButton = document.getElementById("editor-button-settings");
+  if (settingsButton) settingsButton.onclick = (e) => {
     e.stopPropagation();
-    closeDesigner();
+    settings.openSettingsModal();
+  }
+
+  const editorModeSwitch = document.getElementById("edit-mode-toggle");
+  if (editorModeSwitch && editorModeSwitch instanceof HTMLInputElement) editorModeSwitch.onchange = (e) => {
+    e.stopPropagation();
+
+    if (editorModeSwitch.checked) {
+      openDesigner();
+    } else {
+      closeDesigner();
+    }
   }
 
 }
@@ -1041,7 +973,7 @@ function saveLocalState() {
     return (key == "styleTypes" || key == "divElement" || key == "component") ? undefined : val;
   }));
   localStorage.setItem("unsaved_matches", JSON.stringify(matchdata.getUnsavedMatches()));
-  localStorage.setItem("app_name", JSON.stringify(appName));
+  localStorage.setItem("app_name", JSON.stringify(settings.getAppName()));
 }
 
 /**
@@ -1073,7 +1005,7 @@ function loadLocalState() {
 
   const saved_app_name = localStorage.getItem("app_name");
   if (saved_app_name) {
-    appName = JSON.parse(saved_app_name);
+    settings.setAppName(JSON.parse(saved_app_name));
     document.title = JSON.parse(saved_app_name);
   }
 }
@@ -1083,7 +1015,6 @@ setupEditButton();
 setupLoadButton();
 setupExportButton();
 setupMatchesButton();
-setupSettingsButton();
 setupEditorButtons();
 
 //load all saved image files (only do this when loading the page)
@@ -1094,6 +1025,11 @@ editor.initEventSelection();
 
 //Get the saved state and load either the editor or runtime mode
 loadLocalState();
+
+const editModeToggle = document.getElementById("edit-mode-toggle");
+if (editModeToggle instanceof HTMLInputElement) {
+  editModeToggle.checked = !runtime_mode;
+}
 
 if (runtime_mode) {
   //idk if this is the best way to force load the render preview function but it works

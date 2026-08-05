@@ -1,5 +1,6 @@
 import * as matchdata from "./matchdata.js"
 
+/*
 async function bluetoothSend(json: string, match: matchdata.MatchData) {
 
   let device = null;
@@ -141,6 +142,7 @@ async function writeWithRetry(characteristic: any, data: any, retries = 5) {
 /**
  * Send the "START" request and returns true if it was successful 
  */
+/*
 async function startRequest(characteristic: any) {
   try {
     await characteristic.writeValue(new TextEncoder().encode("START"));
@@ -157,6 +159,7 @@ async function startRequest(characteristic: any) {
 /**
  * Sends the current match data over bluetooth. Also tries to send over unsaved matches.
  */
+/*
 export function sendCurrentMatch() {
   const data: matchdata.MatchData = matchdata.getCurrentMatch();
   const json: string = JSON.stringify(data, null, 2);
@@ -175,6 +178,7 @@ export function sendCurrentMatch() {
 /**
  * Sends a match over bluetooth
  */
+/*
 export function sendMatch(match: matchdata.MatchData) {
   const json: string = JSON.stringify(match, null, 2);
 
@@ -195,6 +199,7 @@ export function sendMatches(matches: matchdata.MatchData[]) {
 /**
  * Sets up the bluetooth test button (which just sends current match data)
  */
+/*
 function setupBluetoothButton() {
   let button = document.getElementById("bluetooth");
   if (!button) return;
@@ -204,6 +209,7 @@ function setupBluetoothButton() {
 /**
  * Sets the text of the bluetooth status message box
  */
+/*
 function bluetoothLog(message: string) {
   const bluetoothStatus = document.getElementById("bluetooth-status");
   if (!bluetoothStatus) return;
@@ -213,4 +219,4 @@ function bluetoothLog(message: string) {
   bluetoothStatus.classList.remove("hidden");
 }
 
-setupBluetoothButton();
+setupBluetoothButton();*/

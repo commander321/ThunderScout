@@ -282,10 +282,15 @@ export function addMatchEventSection(node: components.Component) {
   let eventSection = createSection("Match Event:", editorDiv);
 
   let eventTypeDiv = createElement("div", [], eventSection);
+  eventTypeDiv.style.display = "flex";
+  eventTypeDiv.style.alignItems = "center";
+  eventTypeDiv.style.marginBottom = "10px";
   eventTypeDiv.innerHTML = "Event Type:";
   addMatchEventSelection(node.eventType, eventTypeDiv);
 
   let eventGroupDiv = createElement("div", [], eventSection);
+  eventGroupDiv.style.display = "flex";
+  eventGroupDiv.style.alignItems = "center";
   eventGroupDiv.innerHTML = "Event Group";
   addMatchEventSelection(node.eventGroup, eventGroupDiv);
 }
@@ -476,12 +481,12 @@ export function addTextEditor(node: components.Component, editable: boolean, tex
   if (!textbox || !(textbox instanceof HTMLDivElement)) return;
   if (!editable) textbox.contentEditable = "false";
   if (textValue) textbox.textContent = textValue;
-  if (editable && 'text' in node && typeof node.text == 'string') {
-    textbox.textContent = node.text;
+  if (node.styleTypes.includes(style.text)) {
+    textbox.textContent = node.style.text || "";
     textbox.oninput = (e) => {
       e.stopPropagation();
       actions.saveAction(new actions.Action(app.loadComponent(node), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(node.style)));
-      node.text = textbox.textContent;
+      node.style.text = textbox.textContent;
       app.renderPreview();
     }
   }
@@ -684,117 +689,6 @@ export function addBorderSection(node: components.Component) {
   addInput(node, borderSection, style.borderColor.displayName, style.borderColor);
 }
 
-
-function openEventsModal() {
-  let overlay = document.getElementById("overlay-events");
-  if (!overlay) return;
-  overlay.classList.remove("hidden");
-
-  let modal = document.getElementById("modal-events");
-  if (!modal) return;
-  modal.classList.remove("hidden");
-  modal.innerHTML = "<h3>Event Types:</h3>";
-
-  let typesDiv = document.createElement("div");
-  typesDiv.style.overflowY = "auto";
-  typesDiv.style.height = "30%";
-
-  for (const type of matchevents.getEventTypes()) {
-    let text = document.createElement("div")
-    text.textContent = type;
-
-    //remove type button
-    let remove = document.createElement("button");
-    remove.textContent = "X";
-    remove.style.marginLeft = "25px";
-    remove.onclick = (e) => {
-      e.stopPropagation();
-      matchevents.removeEventType(type);
-      openEventsModal();
-    }
-    text.appendChild(remove);
-
-    typesDiv.appendChild(text);
-  }
-
-  modal.appendChild(typesDiv);
-
-  let addInput: HTMLInputElement = document.createElement("input");
-  addInput.type = "text";
-  addInput.style.marginTop = "20px";
-
-  //The add button adds a new event type if it doesn't exist
-  let addButton: HTMLButtonElement = document.createElement("button");
-  addButton.textContent = "+"
-  addButton.onclick = (e) => {
-    e.stopPropagation();
-    if (addInput.value.trim().length === 0) return;
-    if (matchevents.getEventTypes().includes(addInput.value)) return;
-
-    /*let text = document.createElement("div")
-    text.textContent = addInput.value;
-    typesDiv.appendChild(text);*/
-
-    matchevents.addEventType(addInput.value);
-    addInput.value = "";
-
-    openEventsModal();
-  }
-
-  modal.appendChild(addInput);
-  modal.appendChild(addButton);
-
-  //Event Groups (same thing just for event groups)
-  let groupsDiv = document.createElement("div");
-  groupsDiv.style.overflowY = "auto";
-  groupsDiv.style.height = "30%";
-
-  let title = document.createElement("h3");
-  title.innerHTML = "Event Groups:";
-  groupsDiv.appendChild(title);
-
-  for (const group of matchevents.getEventGroups()) {
-     let text = document.createElement("div")
-    text.textContent = group;
-
-    //remove group button
-    let remove = document.createElement("button");
-    remove.textContent = "X";
-    remove.style.marginLeft = "25px";
-    remove.onclick = (e) => {
-      e.stopPropagation();
-      matchevents.removeEventGroup(group);
-      openEventsModal();
-    }
-    text.appendChild(remove);
-
-    groupsDiv.appendChild(text);
-  }
-
-  modal.appendChild(groupsDiv);
-
-  let addGroupInput: HTMLInputElement = document.createElement("input");
-  addGroupInput.type = "text";
-  addGroupInput.style.marginTop = "20px";
-
-  let addGroupButton: HTMLButtonElement = document.createElement("button");
-  addGroupButton.textContent = "+"
-  addGroupButton.onclick = (e) => {
-    e.stopPropagation();
-    if (addGroupInput.value.trim().length === 0) return;
-    if (matchevents.getEventGroups().includes(addGroupInput.value)) return;
-
-    matchevents.addEventGroup(addGroupInput.value);
-    addGroupInput.value = "";
-
-    openEventsModal();
-  }
-
-  modal.appendChild(addGroupInput);
-  modal.appendChild(addGroupButton);
-
-}
-
 export function addNewEventSection(node: components.Component) {
   const editorDiv = document.getElementById("editor");
   if (!editorDiv) return;
@@ -916,18 +810,17 @@ export function openNewEventsModal(node: components.Component) {
   currentComponent = node;
   closeEventsModal();
 
-  let overlay = document.createElement("div");
-  overlay.classList.add("overlay-events");
-  document.body.appendChild(overlay);
+  const appContent = document.getElementById("content");
+  if (!appContent) return;
+
+  let overlay = createElement("div", ["overlay-events"], appContent);
 
   overlay.onclick = (e) => {
     e.stopPropagation();
     closeEventsModal();
   }
 
-  let modal = document.createElement("div");
-  modal.classList.add("modal-events");
-  document.body.appendChild(modal);
+  let modal = createElement("div", ["modal-events"], appContent);
 
   let content = document.createElement("div");
   content.classList.add("modal-events-content");

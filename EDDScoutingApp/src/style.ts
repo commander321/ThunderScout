@@ -37,6 +37,15 @@ export type Style = InputStyle | OptionStyle;
 // Component Style Types
 //=======================
 
+export const text: Style = {
+    style: "text",
+    inputType: "text",
+    displayName: "Text",
+    description: "Text of the component",
+    defaultValue: "",
+    applyToNode(node, style) {node.innerHTML = style.text || this.defaultValue}
+}
+
 export const width: Style = {
     style: "width",
     inputType: "number",
@@ -381,13 +390,13 @@ export const buttonHoverColor: Style = {
     applyToNode(node, style) {/*Handled by button rendering and mouse over events */}
 }
 
-export const thickness: Style = {
-    style: "thickness",
+export const sectionWidth: Style = {
+    style: "sectionWidth",
     inputType: "number",
-    displayName: "Thickness",
+    displayName: "Width",
     description: "",
-    defaultValue: "2",
-    applyToNode(node, style) {node.style.height = (style.thickness || this.defaultValue) + "px";}
+    defaultValue: "100%",
+    applyToNode(node, style) {node.style.width = style.sectionWidth ? (style.sectionWidth == 0 ? this.defaultValue : style.sectionWidth + (style.widthType || widthType.defaultValue)) : this.defaultValue}
 }
 
 export const scale: Style = {
@@ -429,11 +438,30 @@ export const direction: Style = {
     applyToNode(node, style) {if (style.direction == "horizontal") node.classList.add("horizontal")}
 }
 
+export const sectionColor: Style = {
+    style: "sectionColor",
+    displayName: "Section Color",
+    description: "",
+    defaultValue: "#000000",
+    inputType: "color",
+    applyToNode(node, style) {node.style.background = style.sectionColor || this.defaultValue}
+}
+
+export const textboxID: Style = {
+    style: "textboxID",
+    displayName: "Textbox ID",
+    description: "Give the textbox and ID so you can get it's value later",
+    defaultValue: "",
+    inputType: "text",
+    applyToNode(node, style) {}
+}
+
 //=======================
 // Style Types Lists
 //=======================
 
 export const textStyleTypes: Style[] = [
+    text,
     fontSize,
     fontFamily,
     bold,

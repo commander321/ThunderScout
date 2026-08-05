@@ -177,7 +177,7 @@ export function saveCurrentMatch() {
     let name: string = currentMatchData.getTextData("Scouter Name");
 
     //save with bluetooth
-    bluetooth.sendCurrentMatch();
+    //bluetooth.sendCurrentMatch();
 
     currentMatchData = new MatchData();
     currentMatchData.matchNumber = nextMatch;

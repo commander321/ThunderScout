@@ -67,11 +67,10 @@ export class Root extends Component {
 
 export class Label extends Component {
   readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
-  text: string;
 
   constructor() {
     super("label");
-    this.text = "New Label";
+    this.style.text = "New Label";
   }
 
   addEditorFeatures() {
@@ -84,7 +83,7 @@ export class Label extends Component {
   render(div: HTMLDivElement) {
     this.divElement = div;
 
-    div.textContent = this.text;
+    div.textContent = this.style.text || "";
 
     events.applyComponentEvents(this, div);
   }
@@ -146,11 +145,10 @@ export class Counter extends Component {
 
 export class Button extends Component {
   readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes, style.buttonColor, style.buttonHoverColor];
-  text: string;
 
   constructor() {
     super("button");
-    this.text = "New Button";
+    this.style.text = "New Button";
   }
 
   addEditorFeatures() {
@@ -180,7 +178,7 @@ export class Button extends Component {
     this.divElement = div;
 
     let button: HTMLButtonElement = document.createElement("button");
-    button.textContent = this.text;
+    button.textContent = this.style.text || "";
 
    /* button.onclick = (e) => {
       //e.stopPropagation();
@@ -234,14 +232,10 @@ export class Button extends Component {
 }
 
 export class Section extends Component {
-  readonly styleTypes: style.Style[] = [style.width, style.thickness, style.background];
-  thickness: number;
-  color: string;
+  readonly styleTypes: style.Style[] = [style.sectionWidth, style.widthType, style.height, style.heightType, style.sectionColor];
 
   constructor() {
     super("section");
-    this.thickness = 2;
-    this.color = "#000000";
   }
 
   addEditorFeatures() {
@@ -249,9 +243,11 @@ export class Section extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    editor.addInput(this, editorDiv, style.width.displayName, style.width);
-    editor.addInput(this, editorDiv, style.thickness.displayName, style.thickness);
-    editor.addInput(this, editorDiv, style.background.displayName, style.background);
+    //editor.addInput(this, editorDiv, style.width.displayName, style.width);
+    editor.addPixelPercentInput(this, style.sectionWidth, style.widthType, editorDiv);
+    editor.addPixelPercentInput(this, style.height, style.heightType, editorDiv);
+    //editor.addInput(this, editorDiv, style.thickness.displayName, style.thickness);
+    editor.addInput(this, editorDiv, style.sectionColor.displayName, style.sectionColor);
   }
 
   render(div: HTMLDivElement) {
@@ -260,7 +256,7 @@ export class Section extends Component {
     let hr: HTMLHRElement = document.createElement("hr");
 
     hr.style.border = "none";
-    hr.style.backgroundColor = this.style[style.background.style] || style.background.defaultValue;
+    style.sectionColor.applyToNode(hr, this.style);
 
     div.appendChild(hr);
 
@@ -269,11 +265,11 @@ export class Section extends Component {
     hr.style.margin = "0px";
     hr.style.padding = "0px";
 
-    div.style.width = this.style.width ? (this.style.width == 0 ? "auto" : this.style.width + "px") : "auto";
-    hr.style.width = this.style.width ? (this.style.width == 0 ? "auto" : this.style.width + "px") : "auto";
+    div.style.width = this.style.sectionWidth ? (this.style.sectionWidth == 0 ? "100%" : this.style.sectionWidth + (this.style.widthType || "px")) : "100%";
+    hr.style.width = this.style.sectionWidth ? (this.style.sectionWidth == 0 ? "100%" : this.style.sectionWidth + (this.style.widthType || "px")) : "100%";
 
-    div.style.height = (this.style.thickness || 2) + "px";
-    hr.style.height = (this.style.thickness || 2) + "px";
+    div.style.height = (this.style.height && this.style.height != 0) ? (this.style.height + (this.style.heightType || "px")) : "2px";
+    hr.style.height = (this.style.height && this.style.height != 0) ? (this.style.height + (this.style.heightType || "px")) : "2px";
 
     events.applyComponentEvents(this, hr);
   }
@@ -538,28 +534,20 @@ export class TeamNum extends Component {
 }
 
 export class TextBox extends Component {
-  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
-
-  key: string;
+  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes, style.textboxID];
 
   constructor() {
     super("textbox");
-    this.key = "";
   }
 
   addEditorFeatures(): void {
     const editorDiv = document.getElementById("editor");
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
-
-    /*
-    editor.addInput(this, editorDiv, "Textbox ID (event name)", this.key, (val: any) => {
-          this.key = val;
-          app.renderPreview();
-        }, "text");*/
       
+    editor.addInput(this, editorDiv, style.textboxID.displayName, style.textboxID);
     editor.addLayoutStyleSection(this);
-    editor.addTextEditor(this, false, matchdata.getCurrentMatch().getTextData(this.key));
+    editor.addTextEditor(this, false, matchdata.getCurrentMatch().getTextData(this.style.textboxID || ""));
     editor.addBorderSection(this);
   }
 
@@ -569,7 +557,7 @@ export class TextBox extends Component {
       let textbox = document.createElement("input");
       textbox.type = "text";
 
-      textbox.value = matchdata.getCurrentMatch().getTextData(this.key);
+      textbox.value = matchdata.getCurrentMatch().getTextData(this.style.textboxID || "");
 
       textbox.onchange = (e) => {
         e.stopPropagation();
@@ -577,7 +565,8 @@ export class TextBox extends Component {
         if (!app.isRuntimeMode()) return;
 
         //handle setting the text data value
-        matchdata.getCurrentMatch().setTextData(this.key, textbox.value);
+        if (!this.style.textboxID) return;
+        matchdata.getCurrentMatch().setTextData(this.style.textboxID, textbox.value);
       }
 
       div.appendChild(textbox);
@@ -820,12 +809,10 @@ export class AllianceStation extends Component {
 export class ResetButton extends Component {
   readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
 
-  text: string;
-
   constructor() {
     super("resetbutton");
 
-    this.text = "Next Match";
+    this.style.text = "Next Match";
   }
 
   addEditorFeatures(): void {
@@ -838,7 +825,7 @@ export class ResetButton extends Component {
     this.divElement = div;
 
     let button: HTMLButtonElement = document.createElement("button");
-    button.textContent = this.text;
+    button.textContent = this.style.text || "";
 
     button.onclick = (e) => {
       //e.stopPropagation();
@@ -863,7 +850,7 @@ export class ResetButton extends Component {
       document.documentElement.scrollTop = 0;
 
       matchdata.saveCurrentMatch();
-      console.log(matchdata.getCurrentMatch());
+      
       const editorEnabled: boolean = app.getEditorEnabled();
       app.setEditorEnabled(true);
       app.openDesigner();
