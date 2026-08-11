@@ -1,5 +1,7 @@
-import * as events from "./matchevents.js";
-import * as matchdata from "./matchdata.js";
+//old analytics page. No longer being used.
+
+import * as events from "../data/matchevents.js";
+import * as matchdata from "../data/matchdata.js";
 import * as bluetooth from "./bluetooth.js";
 import {Chart} from 'chart.js/auto';
 

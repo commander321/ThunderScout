@@ -1,9 +1,9 @@
 import * as components from "./components.js";
-import * as matchevents from "./matchevents.js";
-import * as matchdata from "./matchdata.js";
-import * as bluetooth from "./bluetooth.js";
+import * as matchevents from "./data/matchevents.js";
+import * as matchdata from "./data/matchdata.js";
+import * as bluetooth from "./old/bluetooth.js";
 import * as actions from "./action.js";
-import * as storage from "./storage.js";
+import * as storage from "./data/storage.js";
 import * as editor from "./editor.js";
 import * as events from "./events.js";
 import * as settings from "./settings.js";
@@ -101,14 +101,12 @@ function renderNode(node: components.Component, container: HTMLDivElement) {
     handleDrop(node.id);
   };
 
-  //applyStyles(div, node);
   node.render(div);
   node.applyStyles();
-  //renderComponentContent(div, node);
 
   container.appendChild(div);
 
-  //only containers render children and insert bars
+  //only containers render children
   if (isContainer(node)) {
     renderChildren(node, div);
   }
@@ -127,7 +125,7 @@ function renderInsertBar(container: HTMLDivElement, parentId: string, index: num
   let bar: HTMLDivElement = document.createElement("div");
   bar.className = "insert-bar";
   bar.textContent = "+";
-  bar.onclick = () => openModal(parentId, index);
+  bar.onclick = () => openAddComponentModal(parentId, index);
 
   //drag and drop things
   bar.ondrop = (e) => {
@@ -168,10 +166,9 @@ function renderInsertBar(container: HTMLDivElement, parentId: string, index: num
   container.appendChild(bar);
 }
 
-// =======================
-// DRAG & DROP
-// =======================
-
+/**
+ * Drag and drop
+ */
 function handleDrop(targetId: string) {
   if (!draggedId || draggedId === targetId) return;
 
@@ -195,10 +192,9 @@ function handleDrop(targetId: string) {
   renderPreview();
 }
 
-// =======================
-// EDITOR
-// =======================
-
+/**
+ * Renders the editor for the selected component
+ */
 export function renderEditor() {
   const editorDiv = document.getElementById("editor");
   if (!editorDiv) return;
@@ -238,11 +234,10 @@ export function renderEditor() {
   if (!node.style) node.style = {}
 }
 
-// =======================
-// MODAL
-// =======================
-
-function openModal(parentId: string, index: number) {
+/**
+ * Open the component selection modal
+ */
+function openAddComponentModal(parentId: string, index: number) {
   insertContext = { parentId, index };
 
   let overlay = document.getElementById("overlay");
@@ -343,7 +338,6 @@ function addComponent(type: string) {
   component.style.background = parent.node.style.background || "#FFFFFF";
 
   //Add to actions list
-  //savedActions.push([component, parent.parent]);
   actions.saveAction(new actions.Action(component, parent.parent, actions.ActionType.COMPONENT_PLACE));
 
   closeModal();
@@ -372,7 +366,7 @@ document.addEventListener("keydown", e => {
 });
 
 
-// Switch from designer to real-app
+// Switch from designer to app preview
 
 /**
  * Closes the designer and activates runtime mode
@@ -386,27 +380,9 @@ export function closeDesigner() {
   const editorContent = document.getElementById("editor-content");
   editorContent?.classList.add("hidden");
 
-  /*
-  let sidebar = document.getElementById("sidebar");
-  sidebar?.classList.add("hidden");
-
-  let previewTitle = document.getElementById("preview-title");
-  previewTitle?.classList.add("hidden");
-
-  let edit = document.getElementById("edit");
-  edit?.classList.remove("hidden");
-  if (editor_enabled) {
-    edit?.classList.remove("hidden")
-  } else {
-    edit?.classList.add("hidden");
-  } */
-
   document.getElementById("export")?.classList.remove("hidden");
   document.getElementById("matches")?.classList.remove("hidden");
   document.getElementById("settings")?.classList.remove("hidden");
-
-  //let previewDiv = document.getElementById("preview");
-  //if (previewDiv) previewDiv.style.overflowY = "unset";
 
   document.querySelectorAll(".insert-bar").forEach(element => {
     element.classList.add("hidden");
@@ -440,22 +416,9 @@ export function openDesigner() {
   const editorContent = document.getElementById("editor-content");
   editorContent?.classList.remove("hidden");
 
-  /*
-  let sidebar = document.getElementById("sidebar");
-  sidebar?.classList.remove("hidden");
-
-  let previewTitle = document.getElementById("preview-title");
-  previewTitle?.classList.remove("hidden");
-
-  let edit = document.getElementById("edit");
-  edit?.classList.add("hidden");*/
-
   document.getElementById("export")?.classList.add("hidden");
   document.getElementById("matches")?.classList.add("hidden");
   document.getElementById("settings")?.classList.add("hidden");
-
-  //let previewDiv = document.getElementById("preview");
-  //if (previewDiv) previewDiv.style.overflowY = "auto";
 
   renderPreview();
 }
@@ -944,7 +907,8 @@ export function userSelectComponent(current: any, onSelect: (newID: any) => void
 }
 
 /**
- * Util function for easily creating an element.
+ * Util function for easily creating an element. 
+ * Will make more thing use this soon because it's very useful.
  */
 export function createElement(type: string, classList?: string[], parent?: HTMLElement): HTMLElement {
     let element = document.createElement(type);
@@ -953,12 +917,6 @@ export function createElement(type: string, classList?: string[], parent?: HTMLE
 
     return element;
 }
-
-//Manage service worker stuff for android
-/*
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/service-worker.js");
-}*/
 
 /**
  * Save the state of the app to the local storage

@@ -1,4 +1,6 @@
-import * as matchdata from "./matchdata.js"
+//old vibecoded Bluetooth system that didn't work very well, will probably delete this
+
+import * as matchdata from "../data/matchdata.js"
 
 /*
 async function bluetoothSend(json: string, match: matchdata.MatchData) {

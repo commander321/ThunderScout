@@ -1,5 +1,5 @@
 import {MatchEvent} from "./matchevents.js";
-import * as bluetooth from "./bluetooth.js";
+//import * as bluetooth from "./bluetooth.js";
 
 export enum MatchType {
     Practice = "Practice",
@@ -149,7 +149,6 @@ export function getAllMatches(): MatchData[] {
 
 /**
  * Saves the current match and sets it to the next one
- * Also sends the match over bluetooth
  */
 export function saveCurrentMatch() {
     //add event counts (for analytics) based on the event list

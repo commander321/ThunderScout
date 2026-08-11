@@ -1,5 +1,6 @@
-import * as app from "./app.js";
+import * as app from "../app.js";
 //For managing local files storage (images, etc)
+//it's just images now, but I'll probably move the app from local storage to here
 
 interface Image {
   id: string;
@@ -9,6 +10,9 @@ interface Image {
 
 let images: Map<string, Image> = new Map<string, Image>();
 
+/**
+ * Gets the database for images
+ */
 const openImageDatabase = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open("ImageDB", 3);
@@ -32,6 +36,9 @@ const openImageDatabase = (): Promise<IDBDatabase> => {
   });
 };
 
+/**
+ * Add an image to the images database
+ */
 export const uploadImage = async (id: string, file: File): Promise<void> => {
   const db = await openImageDatabase();
   const reader = new FileReader();
@@ -56,6 +63,9 @@ export const uploadImage = async (id: string, file: File): Promise<void> => {
   };
 };
 
+/**
+ * Delete an image from the database based on its id
+ */
 export const deleteImage = async (id: string): Promise<void> => {
   const db = await openImageDatabase();
   const transaction = db.transaction(["images"], "readwrite");
@@ -72,10 +82,17 @@ export const deleteImage = async (id: string): Promise<void> => {
   }
 }
 
+/**
+ * Get the url of an image (to put in the src of an image element). 
+ * The url's change every time they are loaded.
+ */
 export function getImageURL(id: string): string {
   return images.get(id)?.tempURL || "";
 }
 
+/**
+ * Loads all saved images and creates url's for them. 
+ */
 export const loadImages = async (): Promise<void> => {
   const db = await openImageDatabase();
   const transaction = db.transaction(["images"], "readonly");
@@ -99,6 +116,9 @@ export const loadImages = async (): Promise<void> => {
   }
 }
 
+/**
+ * Gets all images that are loaded
+ */
 export function getImages(): Image[] {
   return [...images.values()];
 }

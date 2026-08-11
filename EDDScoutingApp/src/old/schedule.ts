@@ -1,4 +1,7 @@
-export class Schedule {
+//Schedule system that would have loaded match schedules, but I never finished making it.
+//Might add something similar again later
+
+/*export class Schedule {
     teams: number[] = []
     matches: number[][] = [];
 
@@ -19,4 +22,4 @@ export class Schedule {
     getTeams(matchnum: number): number[] {
         return this.matches[matchnum] || [];
     }
-}
+}*/

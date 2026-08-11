@@ -1,8 +1,8 @@
 import * as app from "./app.js";
 import * as components from "./components.js";
-import * as matchevents from "./matchevents.js";
+import * as matchevents from "./data/matchevents.js";
 import * as actions from "./action.js"
-import * as storage from "./storage.js";
+import * as storage from "./data/storage.js";
 import * as events from "./events.js";
 import * as style from "./style.js";
 import { createElement } from "./app.js";

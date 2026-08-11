@@ -1,8 +1,8 @@
 import * as editor from "./editor.js";
 import * as app from "./app.js";
-import * as matchdata from "./matchdata.js";
-import * as matchevents from "./matchevents.js";
-import * as storage from "./storage.js";
+import * as matchdata from "./data/matchdata.js";
+import * as matchevents from "./data/matchevents.js";
+import * as storage from "./data/storage.js";
 import * as events from "./events.js"
 import * as style from "./style.js";
 import { v4 as uuid } from 'uuid';

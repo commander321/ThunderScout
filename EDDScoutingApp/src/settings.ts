@@ -1,6 +1,6 @@
 import * as app from "./app.js";
-import * as matchevents from "./matchevents.js";
-import * as matchdata from "./matchdata.js";
+import * as matchevents from "./data/matchevents.js";
+import * as matchdata from "./data/matchdata.js";
 import { createElement } from "./app.js";
 
 let appName: string = "";

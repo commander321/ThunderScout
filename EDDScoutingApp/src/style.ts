@@ -1,16 +1,3 @@
-/*
-New idea to make styles even better:
-
-components have a seperate apply styles method that applies their styles
-it has an optional argument to override the default style list if applicable
-the component's parent div is stored inside the component object (this will make lots of things easier)
-this gets called when component styles are modified or when the component is rendered
-you won't have to render every single time the component is modified in the editor so that's good
-it can use firstchild for most inside element I think
-
-*/
-
-
 type InputStyle = {
     style: string;
     inputType: "number" | "text" | "color" | "checkbox";

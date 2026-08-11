@@ -1,11 +1,10 @@
 import * as components from "./components.js";
-import * as matchdata from "./matchdata.js"
-import * as matchevents from "./matchevents.js";
+import * as matchdata from "./data/matchdata.js"
+import * as matchevents from "./data/matchevents.js";
 import * as app from "./app.js";
 import * as editor from"./editor.js";
 import * as style from "./style.js";
 import {createElement} from "./app.js";
-import { Action } from "./action.js";
 
 export class Event {
     open: boolean;
