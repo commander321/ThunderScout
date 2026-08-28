@@ -48,7 +48,7 @@ if (savedActions.length == 0) return;
 
   //get the existing version of that component
   let actionComponent = lastAction.component;
-  let existingComponent = app.find(actionComponent.id);
+  let existingComponent = app.findComponent(actionComponent.id);
 
   switch (lastAction.type) {
     //If undoing a component delete, recreate the component
@@ -65,13 +65,13 @@ if (savedActions.length == 0) return;
 
     //If undoing a component place, delete the existing component
     case ActionType.COMPONENT_PLACE:
-        existingComponent.parent.children = existingComponent.parent.children.filter((c: components.Component) => c.id !== existingComponent.node.id);
+        existingComponent.parent.children = existingComponent.parent.children.filter((c: components.Component) => c.id !== existingComponent.component.id);
         break;
 
     //If undoing a component style change, revert the existing components style to the saved one
     case ActionType.COMPONENT_STYLE_CHANGE:
         if (lastAction.style) {
-          existingComponent.node.style = lastAction.style;
+          existingComponent.component.style = lastAction.style;
         }
         break;
 
@@ -90,9 +90,8 @@ if (savedActions.length == 0) return;
     
     //If undoing a paste, delete the component (but don't clear the clipboard)
     case ActionType.COMPONENT_PASTE:
-        existingComponent.parent.children = existingComponent.parent.children.filter((c: components.Component) => c.id !== existingComponent.node.id);
+        existingComponent.parent.children = existingComponent.parent.children.filter((c: components.Component) => c.id !== existingComponent.component.id);
         break;
-
   }
 
   //render the updated app

@@ -7,8 +7,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'ThunderScout App Builder',
-        short_name: 'ThunderScout2',
+        name: 'ThunderScout',
+        short_name: 'ThunderScout',
         display: 'standalone',
         background_color: '#121212',
         theme_color: '#0f766e',

@@ -20,20 +20,17 @@ let cutting: boolean = false;
 let runtime_mode = false;
 let editor_enabled = true;
 
-function isContainer(node: components.Component) {
-  return node.type === "layout" || node.type === "root";
-}
-
 /**
- * Get a component from its ID
+ * Get a component from its ID. 
+ * Returns the component and its parent
  */
-export function find(id: string, node: components.Component = root, parent: any = null) {
-  if (node.id === id) return { node, parent };
+export function findComponent(id: string, component: components.Component = root, parent: components.Component|null = null) {
+  if (component.id === id) return { component, parent };
 
-  if (!node.children) return null;
+  if (!component.children) return null;
 
-  for (let child of node.children) {
-    let result: any = find(id, child, node);
+  for (const child of component.children) {
+    let result: any = findComponent(id, child, component);
     if (result) return result;
   }
 
@@ -41,7 +38,7 @@ export function find(id: string, node: components.Component = root, parent: any 
 }
 
 /**
- * Renders the app
+ * Renders the preview of the app for edit mode
  */
 export function renderPreview() {
   if (runtime_mode) return;
@@ -57,27 +54,30 @@ export function renderPreview() {
     renderEditor();
   }
 
-  renderNode(root, app);
+  renderComponent(root, app);
 }
 
-function renderNode(node: components.Component, container: HTMLDivElement) {
+/**
+ * Renders a component and all of it's children
+ */
+function renderComponent(component: components.Component, container: HTMLDivElement) {
   //handle the root
-  if (node.type === "root") {
-    renderChildren(node, container);
+  if (component instanceof components.Root) {
+    renderChildren(component, container);
     return;
   }
 
   let div: HTMLDivElement = document.createElement("div");
   div.className = "editor-component";
 
-  if (node.id === selectedId) {
+  if (component.id === selectedId) {
     div.classList.add("selected");
   }
 
   div.onclick = e => {
     if (runtime_mode) return;
     e.stopPropagation();
-    setSelectedID(node.id);
+    setSelectedID(component.id);
     renderPreview();
     renderEditor();
   };
@@ -87,7 +87,7 @@ function renderNode(node: components.Component, container: HTMLDivElement) {
   div.ondragstart = e => {
     if (runtime_mode) return;
     e.stopPropagation();
-    draggedId = node.id;
+    draggedId = component.id;
   };
 
   div.ondragover = e => {
@@ -98,27 +98,27 @@ function renderNode(node: components.Component, container: HTMLDivElement) {
   div.ondrop = e => {
     if (runtime_mode) return;
     e.stopPropagation();
-    handleDrop(node.id);
+    handleDrop(component.id);
   };
 
-  node.render(div);
-  node.applyStyles();
+  component.render(div);
+  component.applyStyles();
 
   container.appendChild(div);
 
   //only containers render children
-  if (isContainer(node)) {
-    renderChildren(node, div);
+  if (component.type === "layout" || component.type === "root") {
+    renderChildren(component, div);
   }
 }
 
-function renderChildren(node: components.Component, container: HTMLDivElement) {
-  node.children.forEach((child: components.Component, index: number) => {
-    renderInsertBar(container, node.id, index);
-    renderNode(child, container);
+function renderChildren(component: components.Component, container: HTMLDivElement) {
+  component.children.forEach((child: components.Component, index: number) => {
+    renderInsertBar(container, component.id, index);
+    renderComponent(child, container);
   });
 
-  renderInsertBar(container, node.id, node.children.length);
+  renderInsertBar(container, component.id, component.children.length);
 }
 
 function renderInsertBar(container: HTMLDivElement, parentId: string, index: number) {
@@ -134,10 +134,10 @@ function renderInsertBar(container: HTMLDivElement, parentId: string, index: num
     bar.style.background = "#ffffff00";
 
     //move the dragged component to where it would go if it were added with the insert bar
-    let drag = find(draggedId);
-    let draggedComponent = drag.node;
+    let drag = findComponent(draggedId);
+    let draggedComponent = drag.component;
     let draggedParent = drag.parent;
-    let parent = find(parentId).node;
+    let parent = findComponent(parentId).parent;
     if (!(draggedComponent instanceof components.Component) || !(parent instanceof components.Component) || !(draggedParent instanceof components.Component)) return;
     draggedParent.children = draggedParent.children.filter((c: components.Component) => c.id !== draggedComponent.id);
     parent.children.splice(index, 0, draggedComponent);
@@ -172,8 +172,8 @@ function renderInsertBar(container: HTMLDivElement, parentId: string, index: num
 function handleDrop(targetId: string) {
   if (!draggedId || draggedId === targetId) return;
 
-  let drag = find(draggedId);
-  let target = find(targetId);
+  let drag = findComponent(draggedId);
+  let target = findComponent(targetId);
 
   // Remove from old parent
   drag.parent.children =
@@ -183,10 +183,10 @@ function handleDrop(targetId: string) {
   let targetIndex =
     target.parent.children.findIndex((c: components.Component) => c.id === targetId);
 
-  if (target.node instanceof components.Layout) {
-    target.node.children.splice(targetIndex, 0, drag.node);
+  if (target.component instanceof components.Layout) {
+    target.component.children.splice(targetIndex, 0, drag.component);
   } else {
-    target.parent.children.splice(targetIndex, 0, drag.node);
+    target.parent.children.splice(targetIndex, 0, drag.component);
   }
 
   renderPreview();
@@ -211,17 +211,17 @@ export function renderEditor() {
   editorContent.style.maxHeight = appPreview.clientHeight.toString();
 
 
-  let result = find(selectedId);
+  let result = findComponent(selectedId);
   if (!result) {
     editorTitle.innerHTML = "Select a Component";
     return;
   }
 
-  let node = result.node;
+  let component = result.component;
 
   let title = "Component"
   for (const component of components.COMPONENT_TYPES) {
-    if (node.constructor.name.toLowerCase() === component[0] && component[1]) {
+    if (component.constructor.name.toLowerCase() === component[0] && component[1]) {
       title = component[1];
       break;
     }
@@ -229,9 +229,9 @@ export function renderEditor() {
   editorTitle.innerHTML = title;
 
   //Editor features specific to the type of component
-  node.addEditorFeatures();
+  component.addEditorFeatures();
 
-  if (!node.style) node.style = {}
+  if (!component.style) component.style = {}
 }
 
 /**
@@ -328,45 +328,49 @@ function openAddComponentModal(parentId: string, index: number) {
 }
 
 function addComponent(type: string) {
-  let parent = find(insertContext.parentId);
+  let parent = findComponent(insertContext.parentId);
 
   //Add component
   let component = components.createComponent(type as components.ComponentType)
-  parent.node.children.splice(insertContext.index, 0, component);
+  parent.component.children.splice(insertContext.index, 0, component);
 
   //set background to parent so it looks right when adding new components in a layout
-  component.style.background = parent.node.style.background || "#FFFFFF";
+  component.style.background = parent.component.style.background || "#FFFFFF";
 
   //Add to actions list
   actions.saveAction(new actions.Action(component, parent.parent, actions.ActionType.COMPONENT_PLACE));
 
-  closeModal();
+  closeModals();
   renderPreview();
 }
 
-function closeModal() {
+/**
+ * Closes any modals that are open
+ */
+function closeModals() {
   let overlay = document.getElementById("overlay");
   if (overlay) overlay.classList.add("hidden");
 
+  //close add component modal
   let modal = document.getElementById("modal");
   if (modal) modal.classList.add("hidden");
+
+  //close any other modals
+  settings.closeSettingsModal();
+  editor.closeEventsModal();
+
+  setSelectedID(selectedId); //use this to close component select modal too
 }
 
 let overlay = document.getElementById("overlay")
-if (overlay) overlay.onclick = closeModal;
+if (overlay) overlay.onclick = closeModals;
 
 //close any modals when you hit escape
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
-    closeModal();
-    settings.closeSettingsModal();
-    editor.closeEventsModal();
-    setSelectedID(selectedId); //use this to close component select modal too
+    closeModals();
   }
 });
-
-
-// Switch from designer to app preview
 
 /**
  * Closes the designer and activates runtime mode
@@ -520,18 +524,18 @@ export function loadComponent(data: any, newUUID?: boolean): components.Componen
  */
 function copyComponent() {
   if (!selectedId || selectedId == null) return;
-  let found = find(selectedId);
+  let found = findComponent(selectedId);
   if (!found) return;
-  if (found.node == null) return;
+  if (found.component == null) return;
 
   //make a copy of the component and change the id
-  copiedComponent = loadComponent(found.node, true);
+  copiedComponent = loadComponent(found.component, true);
   //copiedComponent.id = uuid();
 
   //delete the component if cutting it (and save action in case you undo the cut)
   if (cutting) {
-    actions.saveAction(new actions.Action(found.node, found.parent, actions.ActionType.COMPONENT_CUT));
-    found.parent.children = found.parent.children.filter((c: components.Component) => c.id !== found.node.id);
+    actions.saveAction(new actions.Action(found.component, found.parent, actions.ActionType.COMPONENT_CUT));
+    found.parent.children = found.parent.children.filter((c: components.Component) => c.id !== found.component.id);
   }
 
   renderPreview();
@@ -544,8 +548,8 @@ function copyComponent() {
 function pasteComponent() {
   if (!copiedComponent || copiedComponent == null) return;
 
-  let selected = find(selectedId);
-  let pasteInto = selected ? (selected.node instanceof components.Layout ? selected.node : selected.parent) : root;
+  let selected = findComponent(selectedId);
+  let pasteInto = selected ? (selected.component instanceof components.Layout ? selected.component : selected.parent) : root;
 
   let insertIndex = pasteInto.children.findIndex((c: components.Component) => c.id === selectedId);
 
@@ -619,12 +623,12 @@ document.addEventListener("keydown", (e) => {
  */
 function deleteSelectedComponent() {
   if (!selectedId || selectedId == null) return;
-  let found = find(selectedId);
+  let found = findComponent(selectedId);
   if (!found) return;
-  if (found.node == null) return;
+  if (found.component == null) return;
 
-  actions.saveAction(new actions.Action(found.node, found.parent, actions.ActionType.COMPONENT_DELETE));
-  found.parent.children = found.parent.children.filter((c: components.Component) => c.id !== found.node.id);
+  actions.saveAction(new actions.Action(found.component, found.parent, actions.ActionType.COMPONENT_DELETE));
+  found.parent.children = found.parent.children.filter((c: components.Component) => c.id !== found.component.id);
  
   renderPreview();
   renderEditor();

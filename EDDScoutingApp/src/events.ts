@@ -132,7 +132,7 @@ export class ActionStyleChange extends EventAction {
 
     onTrigger(): void {
         if (!this.componentID || this.componentID.length == 0) return;
-        const component = app.find(this.componentID).node;
+        const component = app.findComponent(this.componentID).component;
         if (!component || !(component instanceof components.Component)) return;
 
         component.applyStyles(this.styles);
@@ -179,7 +179,7 @@ export class ActionStyleChange extends EventAction {
 
         //add all styles
         if (!this.componentID || this.componentID.length == 0) return;
-        const component = app.find(this.componentID).node;
+        const component = app.findComponent(this.componentID).component;
         if (!component || !(component instanceof components.Component)) return;
     
         for (const styleType of component.styleTypes) {
