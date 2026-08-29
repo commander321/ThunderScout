@@ -69,72 +69,29 @@ export function openAddComponentModal(parentId: string, index: number) {
   let modal = document.getElementById("modal");
   if (!modal) return;
   modal.classList.remove("hidden");
-  modal.style.width = "60%";
-  modal.style.height = "75%";
-  modal.style.borderStyle = "solid";
-  modal.style.borderWidth = "2px";
-  modal.style.borderColor = "#bbbbbb";
-  modal.style.borderRadius = "5px";
+  modal.classList.add("component-modal");
   modal.innerHTML = "<h2>Select a component to add</h2>";
 
-  let grid = document.createElement("div");
-  grid.style.display = "grid";
-  //grid.style.height = "80%";
-  grid.style.gridTemplateColumns = "33% 33% 33%";
-  grid.style.placeItems = "center";
+  let grid = createElement("div", ["component-modal-grid"]);
 
   Components.COMPONENT_TYPES.forEach(type => {
     if (type[0] && type[1] && type[2] && type[0] != "root") {
-      let componentDiv: HTMLDivElement = document.createElement("div");
-      componentDiv.style.width = "80%";
-      componentDiv.style.height = "350px";
-      componentDiv.style.marginTop = "10%";
-      componentDiv.style.borderWidth = "1px";
-      componentDiv.style.borderStyle = "solid";
-      componentDiv.style.justifyContent = "center";
-      componentDiv.style.padding = "5px";
-      componentDiv.style.borderRadius = "5px";
+      let componentDiv = createElement("div", ["component-modal-component"]);
 
-      let componentName = document.createElement("strong");
+      let componentName = createElement("strong", ["component-modal-name"]);
       componentName.textContent = type[1];
-      componentName.style.width = "100%";
-      componentName.style.display = "flex";
-      componentName.style.justifyContent = "center";
-      componentName.style.textAlign = "center";
-      componentName.style.fontSize = "22px";
 
-      let description = document.createElement("p");
+      let description = createElement("p", ["component-modal-description"]);
       description.textContent = type[2];
-      description.style.display = "flex";
-      description.style.justifyContent = "center";
-      description.style.textAlign = "center";
-      description.style.font = "16px";
-      description.style.marginTop = "5px";
-      description.style.height = "100px";
 
-      let pictureDiv = document.createElement("div");
+      let pictureDiv = createElement("div", ["component-modal-picture"]);
       let picture = document.createElement("img");
-      pictureDiv.style.width = "90%";
-      pictureDiv.style.height = "200px";
-      pictureDiv.style.marginTop = "-20%";
-      pictureDiv.style.marginLeft = "auto";
-      pictureDiv.style.marginRight = "auto";
-      pictureDiv.style.display = "flex";
-      pictureDiv.style.justifyContent = "center";
       picture.src = "/src/assets/components/" + type[0] + ".png";
-      picture.style.objectFit = "contain";
-      picture.style.width = "100%";
-      picture.style.height = "100%";
-      picture.style.textAlign = "center";
       pictureDiv.appendChild(picture);
 
-      let buttonDiv = document.createElement("div");
-      let addButton: HTMLButtonElement = document.createElement("button");
-      buttonDiv.style.display = "flex";
-      buttonDiv.style.justifyContent = "center";
-      buttonDiv.style.marginTop = "25px";
+      let buttonDiv = createElement("div", ["component-modal-add-button"])
+      let addButton = document.createElement("button");
       addButton.textContent = "+";
-      addButton.classList.add("add-component-button");
       addButton.onclick = () => addComponent(type[0] || "null");
       buttonDiv.appendChild(addButton);
 
@@ -175,7 +132,10 @@ function closeModals() {
 
   //close add component modal
   let modal = document.getElementById("modal");
-  if (modal) modal.classList.add("hidden");
+  if (modal) {
+    modal.classList.add("hidden");
+    modal.classList.remove("component-modal");
+  }
 
   //close any other modals
   Settings.closeSettingsModal();
@@ -308,6 +268,7 @@ export function loadComponent(data: any, newUUID?: boolean): Components.Componen
   }
 
   //load component events
+  component.componentEvents = [];
   for (const eventData of data.componentEvents) {
     let event = new Events.Event(eventData.trigger);
     for (const actionData of eventData.actions) {

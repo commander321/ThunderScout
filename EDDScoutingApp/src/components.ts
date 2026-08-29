@@ -149,12 +149,48 @@ export class Button extends Component {
   constructor() {
     super("button");
     this.style.text = "New Button";
+
+    //default button event (add a match event)
+    let addEvent = new Events.Event(Events.EventTrigger.COMPONENT_CLICK);
+    let addEventAction = new Events.ActionRecordMatchEvent();
+    addEvent.actions.push(addEventAction);
+    this.componentEvents.push(addEvent);
   }
 
   addEditorFeatures() {
     const editorDiv = document.getElementById("editor");
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
+
+    //not sure if this is the best way to do this, but since there will always be a button click event, you can get the pointer to the match event data
+    let addEvent = this.componentEvents.find(e => e.trigger == Events.EventTrigger.COMPONENT_CLICK)
+    if (!addEvent) {
+      console.log("no click event");
+      console.log(this.componentEvents);
+      addEvent = new Events.Event(Events.EventTrigger.COMPONENT_CLICK);
+    }
+    let addEventAction = addEvent?.actions.find(e => e instanceof Events.ActionRecordMatchEvent);
+    if (!addEventAction) {
+      console.log("no match event action");
+      addEventAction = new Events.ActionRecordMatchEvent();
+      addEvent.actions.push(addEventAction);
+    }
+    if (!(addEventAction instanceof Events.ActionRecordMatchEvent)) return;
+
+    //this code is copied from editor, should probably make this a css class at some point
+    let matchEventSection = Editor.createSection("Match Event", editorDiv);
+    let eventTypeDiv = createElement("div", [], matchEventSection);
+    eventTypeDiv.style.display = "flex";
+    eventTypeDiv.style.alignItems = "center";
+    eventTypeDiv.style.marginBottom = "10px";
+    eventTypeDiv.innerHTML = "Event Type:";
+    Editor.addMatchEventSelection(addEventAction.matchEventType, eventTypeDiv);
+    let eventGroupDiv = createElement("div", [], matchEventSection);
+    eventGroupDiv.style.display = "flex";
+    eventGroupDiv.style.alignItems = "center";
+    eventGroupDiv.style.marginBottom = "20px";
+    eventGroupDiv.innerHTML = "Event Group:";
+    Editor.addMatchEventSelection(addEventAction.matchEventGroup, eventGroupDiv);
 
     Editor.addNewEventSection(this);
 
@@ -180,37 +216,24 @@ export class Button extends Component {
     let button: HTMLButtonElement = document.createElement("button");
     button.textContent = this.style.text || "";
 
-   /* button.onclick = (e) => {
-      //e.stopPropagation();
-      if (app.isRuntimeMode()) {
-        if (this.decrease) {
-          matchdata.getCurrentMatch().removeLatestEvent(this.eventType, this.eventGroup);
-        } else {
-          matchdata.getCurrentMatch().addEvent(new matchevents.MatchEvent(this.eventType, this.eventGroup));
-        }
-        updateCounters(this.eventType);
-        //console.log(matchdata.getCurrentMatch().matchEvents); //for testing, might remove later (or not, doesn't really matter)
-      }
-      app.renderPreview();
-    };*/
-
-    button.onmouseover = (e) => {
+    button.addEventListener("mouseover", (e) => {
       e.stopPropagation();
       button.style.backgroundColor = this.style.buttonHoverColor || "#E0E0E0";
       if (App.isPreviewMode()) {
         button.style.cursor = "pointer";
       }
-    }
+    })
 
-    button.onmouseout = (e) => {
+    button.addEventListener("mouseout", (e) => {
       e.stopPropagation();
       button.style.backgroundColor = this.style.buttonColor || "#F0F0F0";
       button.style.cursor = "auto";
-    }
-
+    })
+  
     div.appendChild(button);
 
     button.style.backgroundColor = this.style.buttonColor || "#F0F0F0";
+    console.log(this.style.buttonColor);
 
     Events.applyComponentEvents(this, button);
   }

@@ -377,16 +377,26 @@ export function applyComponentEvents(component: Components.Component, element: H
     for (const event of component.componentEvents) {
         switch (event.trigger) {
             case EventTrigger.COMPONENT_CLICK:
+                element.addEventListener("click", (e) => {
+                    event.run();
+                })
+                /*
                 element.onclick = (e) => {
                     //e.stopPropagation();
                     event.run();
-                }
+                }*/
                 break;
             case EventTrigger.COMPONENT_HOVER:
+                element.addEventListener("mouseover", (e) => {
+                    e.stopPropagation();
+                    event.run();
+                })
+                /*
                 element.onmouseover = (e) => {
                     e.stopPropagation();
                     event.run();
-                }
+                }*/
+                break;
             default:
                 break;
         }

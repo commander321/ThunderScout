@@ -365,7 +365,7 @@ export const buttonColor: Style = {
     description: "",
     inputType: "color",
     defaultValue: "#F0F0F0",
-    applyToNode(node, style) {/*Handled by button rendering and mouse over events */}
+    applyToNode(node, style) {node.style.backgroundColor = style.buttonColor || this.defaultValue}
 }
 
 export const buttonHoverColor: Style = {

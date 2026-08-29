@@ -7,7 +7,6 @@ let draggedId: any = null;
  * When a component gets dropped, move it to the right spot
  */
 export function onDrop(targetId: string) {
-    console.log("Aaaaa");
     if (!draggedId || draggedId === targetId) return;
 
     let drag = App.findComponent(draggedId);

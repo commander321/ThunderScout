@@ -291,7 +291,7 @@ export function addMatchEventSection(component: Components.Component) {
   let eventGroupDiv = createElement("div", [], eventSection);
   eventGroupDiv.style.display = "flex";
   eventGroupDiv.style.alignItems = "center";
-  eventGroupDiv.innerHTML = "Event Group";
+  eventGroupDiv.innerHTML = "Event Group:";
   addMatchEventSelection(component.eventGroup, eventGroupDiv);
 }
 
