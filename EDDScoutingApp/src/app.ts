@@ -1,31 +1,30 @@
-import * as components from "./components.js";
-import * as matchevents from "./data/matchevents.js";
-import * as matchdata from "./data/matchdata.js";
-import * as bluetooth from "./old/bluetooth.js";
-import * as actions from "./action.js";
-import * as storage from "./data/storage.js";
-import * as editor from "./editor.js";
-import * as events from "./events.js";
-import * as settings from "./settings.js";
-import * as Renderer from "./renderer.js"
-import { v4 as uuid } from 'uuid';
+import * as Components from "./components.js";
+import * as MatchEvents from "./data/matchevents.js";
+import * as MatchData from "./data/matchdata.js";
+import * as Actions from "./action.js";
+import * as LocalStorage from "./storage/localstorage.js";
+import * as Editor from "./editor.js";
+import * as Events from "./events.js";
+import * as Settings from "./settings.js";
+import * as Renderer from "./renderer.js";
+import * as ImageStore from "./storage/imagestore.js";
+import * as MatchDataStore from "./storage/matchdatastore.js";
+import * as Clipboard from "./clipboard.js";
+import { v4 as uuid } from "uuid";
 
 //let appName: string = "";
-let root = components.createComponent("root");
+let root = Components.createComponent("root");
 let selectedId: any = null;
 let insertContext: any = null;
-let draggedId: any = null;
-let copiedComponent: any = null;
-let cutting: boolean = false;
 
-let runtime_mode = false;
-let editor_enabled = true;
+let preview_mode: boolean = false;
+let editor_enabled: boolean = true;
 
 /**
  * Get a component from its ID. 
  * Returns the component and its parent
  */
-export function findComponent(id: string, component: components.Component = root, parent: components.Component|null = null) {
+export function findComponent(id: string, component: Components.Component = root, parent: Components.Component|null = null) {
   if (component.id === id) return { component, parent };
 
   if (!component.children) return null;
@@ -38,39 +37,23 @@ export function findComponent(id: string, component: components.Component = root
   return null;
 }
 
+/**
+ * Gets the root component (all other components are it's children)
+ */
+export function getRoot(): Components.Root {
+  return root;
+}
+
+export function setRoot(component: Components.Root) {
+  root = component;
+}
+
 export function renderPreview() {
   Renderer.renderAppPreview();
 }
 
 export function renderEditor() {
   Renderer.renderEditor();
-}
-
-
-/**
- * Drag and drop
- */
-function handleDrop(targetId: string) {
-  if (!draggedId || draggedId === targetId) return;
-
-  let drag = findComponent(draggedId);
-  let target = findComponent(targetId);
-
-  // Remove from old parent
-  drag.parent.children =
-    drag.parent.children.filter((c: components.Component) => c.id !== draggedId);
-
-  // Insert before target
-  let targetIndex =
-    target.parent.children.findIndex((c: components.Component) => c.id === targetId);
-
-  if (target.component instanceof components.Layout) {
-    target.component.children.splice(targetIndex, 0, drag.component);
-  } else {
-    target.parent.children.splice(targetIndex, 0, drag.component);
-  }
-
-  renderPreview();
 }
 
 /**
@@ -100,7 +83,7 @@ export function openAddComponentModal(parentId: string, index: number) {
   grid.style.gridTemplateColumns = "33% 33% 33%";
   grid.style.placeItems = "center";
 
-  components.COMPONENT_TYPES.forEach(type => {
+  Components.COMPONENT_TYPES.forEach(type => {
     if (type[0] && type[1] && type[2] && type[0] != "root") {
       let componentDiv: HTMLDivElement = document.createElement("div");
       componentDiv.style.width = "80%";
@@ -170,14 +153,14 @@ function addComponent(type: string) {
   let parent = findComponent(insertContext.parentId);
 
   //Add component
-  let component = components.createComponent(type as components.ComponentType)
+  let component = Components.createComponent(type as Components.ComponentType)
   parent.component.children.splice(insertContext.index, 0, component);
 
   //set background to parent so it looks right when adding new components in a layout
   component.style.background = parent.component.style.background || "#FFFFFF";
 
   //Add to actions list
-  actions.saveAction(new actions.Action(component, parent.parent, actions.ActionType.COMPONENT_PLACE));
+  Actions.saveAction(new Actions.Action(component, parent.parent, Actions.ActionType.COMPONENT_PLACE));
 
   closeModals();
   renderPreview();
@@ -195,8 +178,8 @@ function closeModals() {
   if (modal) modal.classList.add("hidden");
 
   //close any other modals
-  settings.closeSettingsModal();
-  editor.closeEventsModal();
+  Settings.closeSettingsModal();
+  Editor.closeEventsModal();
 
   setSelectedID(selectedId); //use this to close component select modal too
 }
@@ -212,13 +195,13 @@ document.addEventListener("keydown", e => {
 });
 
 /**
- * Closes the designer and activates runtime mode
+ * Closes the editor and activates preview mode
  */
-export function closeDesigner() {
+export function openPreviewMode() {
   //save the app
-  runtime_mode = true;
+  preview_mode = true;
 
-  saveLocalState();
+  LocalStorage.saveLocalState();
 
   const editorContent = document.getElementById("editor-content");
   editorContent?.classList.add("hidden");
@@ -243,18 +226,18 @@ export function closeDesigner() {
 }
 
 /**
- * Opens the designer from runtime mode
+ * Opens the editor and closes preview mode
  */
-export function openDesigner() {
-  //force runtime mode if the editor is disabled
+export function openEditMode() {
+  //force preview mode if the editor is disabled
   if (!editor_enabled) {
-    closeDesigner();
+    openPreviewMode();
     return;
   }
 
-  runtime_mode = false;
+  preview_mode = false;
 
-  saveLocalState();
+  LocalStorage.saveLocalState();
 
   const editorContent = document.getElementById("editor-content");
   editorContent?.classList.remove("hidden");
@@ -271,13 +254,13 @@ export function openDesigner() {
  */
 export function saveToJSON() {
   //save the local state of the app first
-  saveLocalState();
+  LocalStorage.saveLocalState();
 
   //get the data that needs to be saved to JSON
   let data = {
-    name: settings.getAppName(),
-    events: matchevents.getEventTypes(),
-    groups: matchevents.getEventGroups(),
+    name: Settings.getAppName(),
+    events: MatchEvents.getEventTypes(),
+    groups: MatchEvents.getEventGroups(),
     app: root
   }
 
@@ -298,52 +281,46 @@ export function saveToJSON() {
   URL.revokeObjectURL(url);
 }
 
-export function setupEditButton() {
-  let openDesignerButton = document.getElementById("edit");
-  if (!openDesignerButton) return;
-  openDesignerButton.onclick = openDesigner;
-}
-
 /**
  * Creates a component (and all it's children) from a JSON string. Used for loading from files.
  */
-export function loadComponent(data: any, newUUID?: boolean): components.Component {
-  let component = components.createComponent(data.type);
+export function loadComponent(data: any, newUUID?: boolean): Components.Component {
+  let component = Components.createComponent(data.type);
   component.id = newUUID ? uuid() : data.id;
   component.style = data.style;
   component.eventType = data.eventType;
   component.eventGroup = data.eventGroup;
   
   //Load specific attributes for components
-  if (component instanceof components.Dropdown) {
+  if (component instanceof Components.Dropdown) {
     component.options = data.options;
     component.required = data.required;
-  } else if (component instanceof components.AnalyticsMatchesTable) {
+  } else if (component instanceof Components.AnalyticsMatchesTable) {
     component.minRows = data.minRows;
     component.children = [];
-  } else if (component instanceof components.AnalyticsMatchesTableColumn) {
+  } else if (component instanceof Components.AnalyticsMatchesTableColumn) {
     component.dataType = data.dataType;
     component.header = data.header;
     component.textboxKey = data.textboxKey;
     component.value = data.value;
-  } else if (component instanceof components.Image) {
+  } else if (component instanceof Components.Image) {
     component.imageId = data.imageId;
   }
 
   //load component events
   for (const eventData of data.componentEvents) {
-    let event = new events.Event(eventData.trigger);
+    let event = new Events.Event(eventData.trigger);
     for (const actionData of eventData.actions) {
-      let action = new events.eventActionTypeRegistry[actionData.type as events.EventActionType]();
-      if (action instanceof events.ActionRecordMatchEvent) {
+      let action = new Events.eventActionTypeRegistry[actionData.type as Events.EventActionType]();
+      if (action instanceof Events.ActionRecordMatchEvent) {
         action.matchEventType = actionData.matchEventType;
         action.matchEventGroup = actionData.matchEventGroup;
-      } else if (action instanceof events.ActionStyleChange) {
+      } else if (action instanceof Events.ActionStyleChange) {
         action.styles = actionData.styles;
         action.componentID = actionData.componentID;
-      } else if (action instanceof events.ActionTriggerEvent) {
+      } else if (action instanceof Events.ActionTriggerEvent) {
         //add later
-      } else if (action instanceof events.ActionTextChange) {
+      } else if (action instanceof Events.ActionTextChange) {
         //add later
       }
       event.actions.push(action);
@@ -358,91 +335,12 @@ export function loadComponent(data: any, newUUID?: boolean): components.Componen
   return component;
 }
 
-/**
- * Copy the selected component to the clipboard
- */
-function copyComponent() {
-  if (!selectedId || selectedId == null) return;
-  let found = findComponent(selectedId);
-  if (!found) return;
-  if (found.component == null) return;
 
-  //make a copy of the component and change the id
-  copiedComponent = loadComponent(found.component, true);
-  //copiedComponent.id = uuid();
-
-  //delete the component if cutting it (and save action in case you undo the cut)
-  if (cutting) {
-    actions.saveAction(new actions.Action(found.component, found.parent, actions.ActionType.COMPONENT_CUT));
-    found.parent.children = found.parent.children.filter((c: components.Component) => c.id !== found.component.id);
-  }
-
-  renderPreview();
-}
-
-/**
- * Paste a copy of the copied component into the specified component (or it's parent if it isn't a layout)
- * If it's from a cut, then remove from clipboard afterwards
- */
-function pasteComponent() {
-  if (!copiedComponent || copiedComponent == null) return;
-
-  let selected = findComponent(selectedId);
-  let pasteInto = selected ? (selected.component instanceof components.Layout ? selected.component : selected.parent) : root;
-
-  let insertIndex = pasteInto.children.findIndex((c: components.Component) => c.id === selectedId);
-
-  //paste the component to selected id
-  pasteInto.children.splice(insertIndex+1, 0, copiedComponent);
-
-  //save the paste action in case you undo it
-  actions.saveAction(new actions.Action(copiedComponent, pasteInto, actions.ActionType.COMPONENT_PASTE));
-
-  setSelectedID(copiedComponent.id);
-
-  //if cutting, remove the component from the clipboard. If not, make another copy in case you want to paste it again
-  if (cutting) {
-    copiedComponent = null;
-  } else {
-    let nextComponent = loadComponent(copiedComponent);
-    nextComponent.id = uuid();
-    copiedComponent = nextComponent;
-  }
-  cutting = false;
-
-  renderPreview();
-}
-
-/**
- * Clears the copied component. Used when undoing a component cut
- */
-export function clearClipboard() {
-  cutting = false;
-  copiedComponent = null;
-}
 
 //add listener for ctrl + z
 document.addEventListener("keydown", (e) => {
   if (!e.ctrlKey || e.key.toLowerCase() != 'z') return;
-  actions.undoLastAction();
-});
-
-//keybinds for copy, cut, and paste
-document.addEventListener("keydown", (e) => {
-  if (!e.ctrlKey || e.key.toLowerCase() != 'c') return;
-  cutting = false;
-  copyComponent();
-});
-
-document.addEventListener("keydown", (e) => {
-  if (!e.ctrlKey || e.key.toLowerCase() != 'v') return;
-  pasteComponent();
-});
-
-document.addEventListener("keydown", (e) => {
-  if (!e.ctrlKey || e.key.toLowerCase() != 'x') return;
-  cutting = true;
-  copyComponent();
+  Actions.undoLastAction();
 });
 
 document.addEventListener("keydown", (e) => {
@@ -453,7 +351,7 @@ document.addEventListener("keydown", (e) => {
 document.addEventListener("keydown", (e) => {
   if (!e.ctrlKey || e.key.toLowerCase() != 's') return;
   e.preventDefault();
-  saveLocalState();
+  LocalStorage.saveLocalState();
 });
 
 /**
@@ -466,8 +364,8 @@ function deleteSelectedComponent() {
   if (!found) return;
   if (found.component == null) return;
 
-  actions.saveAction(new actions.Action(found.component, found.parent, actions.ActionType.COMPONENT_DELETE));
-  found.parent.children = found.parent.children.filter((c: components.Component) => c.id !== found.component.id);
+  Actions.saveAction(new Actions.Action(found.component, found.parent, Actions.ActionType.COMPONENT_DELETE));
+  found.parent.children = found.parent.children.filter((c: Components.Component) => c.id !== found.component.id);
  
   renderPreview();
   renderEditor();
@@ -491,12 +389,12 @@ export function setupLoadButton() {
       console.log(data);
 
       //set the app/page name
-      settings.setAppName(data.name);
-      document.title = settings.getAppName();
+      Settings.setAppName(data.name);
+      document.title = Settings.getAppName();
 
       //set the event types and groups
-      matchevents.setEventTypes(data.events);
-      matchevents.setEventGroups(data.groups);
+      MatchEvents.setEventTypes(data.events);
+      MatchEvents.setEventGroups(data.groups);
 
       //loads the root component, which loads all other ones
       root = loadComponent(data.app);
@@ -504,7 +402,7 @@ export function setupLoadButton() {
       renderPreview();
 
       //save the newly loaded state
-      saveLocalState();
+      LocalStorage.saveLocalState();
     };
 
     reader.readAsText(file);
@@ -514,11 +412,15 @@ export function setupLoadButton() {
 function setupExportButton() {
   let exportButton = document.getElementById("export");
   if (!exportButton) return;
-  exportButton.onclick = matchdata.exportMatchData;
+  exportButton.onclick = MatchData.exportMatchData;
 }
 
-export function isRuntimeMode(): boolean {
-  return runtime_mode;
+export function isPreviewMode(): boolean {
+  return preview_mode;
+}
+
+export function setPreviewMode(value: boolean) {
+  preview_mode = value;
 }
 
 function openMatchesModal() {
@@ -564,7 +466,7 @@ function openMatchesModal() {
 
 
   //add all matches
-  for (const match of matchdata.getAllMatches()) {
+  for (const match of MatchData.getAllMatches()) {
     let row = document.createElement("tr");
 
     addCell(row, match.matchNumber.toString());
@@ -624,31 +526,11 @@ function setupEditorButtons() {
   const undoButton = document.getElementById("editor-button-undo")
   if (undoButton) undoButton.onclick = (e) => {
     e.stopPropagation();
-    actions.undoLastAction();
+    Actions.undoLastAction();
   }
   
   const redoButton = document.getElementById("editor-button-redo");
   //This doesn't work yet :(
-
-  const copyButton = document.getElementById("editor-button-copy");
-  if (copyButton) copyButton.onclick = (e) => {
-    e.stopPropagation();
-    cutting = false;
-    copyComponent();
-  }
-
-  const cutButton = document.getElementById("editor-button-cut");
-  if (cutButton) cutButton.onclick = (e) => {
-    e.stopPropagation();
-    cutting = true;
-    copyComponent();
-  }
-
-  const pasteButton = document.getElementById("editor-button-paste");
-  if (pasteButton) pasteButton.onclick = (e) => {
-    e.stopPropagation();
-    pasteComponent();
-  }
 
   const deleteButton = document.getElementById("editor-button-delete");
   if (deleteButton) deleteButton.onclick = (e) => {
@@ -665,7 +547,7 @@ function setupEditorButtons() {
   const saveButton = document.getElementById("editor-button-save");
   if (saveButton) saveButton.onclick = (e) => {
     e.stopPropagation();
-    saveLocalState();
+    LocalStorage.saveLocalState();
   }
 
   const uploadButton = document.getElementById("editor-button-upload");
@@ -678,17 +560,18 @@ function setupEditorButtons() {
   const settingsButton = document.getElementById("editor-button-settings");
   if (settingsButton) settingsButton.onclick = (e) => {
     e.stopPropagation();
-    settings.openSettingsModal();
+    Settings.openSettingsModal();
   }
 
+  //switch to go between edit mode (unchecked) and preview mode (checked)
   const editorModeSwitch = document.getElementById("edit-mode-toggle");
   if (editorModeSwitch && editorModeSwitch instanceof HTMLInputElement) editorModeSwitch.onchange = (e) => {
     e.stopPropagation();
 
     if (editorModeSwitch.checked) {
-      openDesigner();
+      openPreviewMode();
     } else {
-      closeDesigner();
+      openEditMode();
     }
   }
 
@@ -761,83 +644,36 @@ export function createElement(type: string, classList?: string[], parent?: HTMLE
     return element;
 }
 
-/**
- * Save the state of the app to the local storage
- */
-function saveLocalState() {
-  localStorage.setItem("runtime_mode", JSON.stringify(runtime_mode));
-  localStorage.setItem("editor_enabled", JSON.stringify(editor_enabled));
-  localStorage.setItem("event_code", JSON.stringify(matchdata.getCurrentMatch().eventCode));
-  localStorage.setItem("events", JSON.stringify(matchevents.getEventTypes()));
-  localStorage.setItem("groups", JSON.stringify(matchevents.getEventGroups()));
-  localStorage.setItem("app", JSON.stringify(root, (key, val) => {
-    return (key == "styleTypes" || key == "divElement" || key == "component") ? undefined : val;
-  }));
-  localStorage.setItem("unsaved_matches", JSON.stringify(matchdata.getUnsavedMatches()));
-  localStorage.setItem("app_name", JSON.stringify(settings.getAppName()));
-}
-
-/**
- * Load the app state
- */
-function loadLocalState() {
-  const saved_runtime_mode = localStorage.getItem("runtime_mode");
-  if (saved_runtime_mode) {
-    runtime_mode = JSON.parse(saved_runtime_mode);
-  }
-  
-  const saved_editor_enabled = localStorage.getItem("editor_enabled");
-  if (saved_editor_enabled) editor_enabled = JSON.parse(saved_editor_enabled);
-
-  const saved_event_code = localStorage.getItem("event_code");
-  if (saved_event_code) matchdata.getCurrentMatch().eventCode = JSON.parse(saved_event_code);
-
-  const saved_events = localStorage.getItem("events");
-  if (saved_events) matchevents.setEventTypes(JSON.parse(saved_events));
-
-  const saved_groups = localStorage.getItem("groups");
-  if (saved_groups) matchevents.setEventGroups(JSON.parse(saved_groups));
-
-  const saved_app = localStorage.getItem("app");
-  if (saved_app) root = loadComponent(JSON.parse(saved_app));
-
-  const saved_unsaved_matches = localStorage.getItem("unsaved_matches");
-  if (saved_unsaved_matches) matchdata.setUnsavedMatches(JSON.parse(saved_unsaved_matches));
-
-  const saved_app_name = localStorage.getItem("app_name");
-  if (saved_app_name) {
-    settings.setAppName(JSON.parse(saved_app_name));
-    document.title = JSON.parse(saved_app_name);
-  }
-}
-
 //initialize buttons
-setupEditButton();
 setupLoadButton();
 setupExportButton();
 setupMatchesButton();
 setupEditorButtons();
 
-//load all saved image files (only do this when loading the page)
-storage.loadImages();
+//setup copy, cut, and paste
+Clipboard.initClipboard();
+
+//load all saved image files and match data records from the database
+MatchDataStore.loadAllMatches();
+ImageStore.loadImages();
 
 //initialize HTML components that get reused
-editor.initEventSelection();
+Editor.initEventSelection();
 
 //Get the saved state and load either the editor or runtime mode
-loadLocalState();
+LocalStorage.loadLocalState();
 
 const editModeToggle = document.getElementById("edit-mode-toggle");
 if (editModeToggle instanceof HTMLInputElement) {
-  editModeToggle.checked = !runtime_mode;
+  editModeToggle.checked = preview_mode;
 }
 
-if (runtime_mode) {
+if (preview_mode) {
   //idk if this is the best way to force load the render preview function but it works
-  runtime_mode = false;
+  preview_mode = false;
   renderPreview();
-  runtime_mode = true;
-  closeDesigner();
+  preview_mode = true;
+  openPreviewMode();
 } else {
-  openDesigner();
+  openEditMode();
 }

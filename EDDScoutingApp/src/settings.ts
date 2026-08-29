@@ -1,6 +1,6 @@
-import * as app from "./app.js";
-import * as matchevents from "./data/matchevents.js";
-import * as matchdata from "./data/matchdata.js";
+import * as App from "./app.js";
+import * as MatchEvents from "./data/matchevents.js";
+import * as MatchData from "./data/matchdata.js";
 import { createElement } from "./app.js";
 
 let appName: string = "";
@@ -52,7 +52,7 @@ export function openSettingsModal() {
     resetButton.onclick = (e) => {
         e.stopPropagation();
 
-        matchdata.clearAllMatches();
+        MatchData.clearAllMatches();
     };
     }
 }
@@ -80,7 +80,7 @@ function addEventList(type: "group" | "type") {
     const matchEventsList = document.getElementById(type === "group" ? "settings-event-groups" : "settings-event-types");
     matchEventsList?.replaceChildren();
     if (!matchEventsList) return;
-    for (const eventType of (type === "type" ? matchevents.getEventTypes() : matchevents.getEventGroups())) {
+    for (const eventType of (type === "type" ? MatchEvents.getEventTypes() : MatchEvents.getEventGroups())) {
         let eventTypeDiv = createElement("div", ["event-selection-dropdown-button"], matchEventsList);
         let eventTypeText = createElement("div", ["event-selection-dropdown-button-text"], eventTypeDiv);
         eventTypeText.innerHTML = eventType;
@@ -91,9 +91,9 @@ function addEventList(type: "group" | "type") {
         eventTypeMenuIconDiv.onclick = (e) => {
             e.stopPropagation();
              if (type === "type") {
-                matchevents.removeEventType(eventType);
+                MatchEvents.removeEventType(eventType);
             } else {
-                matchevents.removeEventGroup(eventType);
+                MatchEvents.removeEventGroup(eventType);
             } 
             eventTypeDiv.remove();
         }
@@ -121,11 +121,11 @@ function addEventList(type: "group" | "type") {
 
         //add type/group if it doesn't exist
         if (type === "type") {
-            if (matchevents.getEventTypes().includes(eventType)) return;
-            matchevents.addEventType(eventType);
+            if (MatchEvents.getEventTypes().includes(eventType)) return;
+            MatchEvents.addEventType(eventType);
         } else {
-            if (matchevents.getEventGroups().includes(eventType)) return;
-            matchevents.addEventGroup(eventType);
+            if (MatchEvents.getEventGroups().includes(eventType)) return;
+            MatchEvents.addEventGroup(eventType);
         }
 
         //add to the dropdown (same code as above)
@@ -139,9 +139,9 @@ function addEventList(type: "group" | "type") {
         eventTypeMenuIconDiv.onclick = (e) => {
             e.stopPropagation();
             if (type === "type") {
-                matchevents.removeEventType(eventType);
+                MatchEvents.removeEventType(eventType);
             } else {
-                matchevents.removeEventGroup(eventType);
+                MatchEvents.removeEventGroup(eventType);
             } 
             eventTypeDiv.remove();
         }

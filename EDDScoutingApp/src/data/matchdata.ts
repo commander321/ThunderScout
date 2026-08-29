@@ -1,5 +1,6 @@
 import {MatchEvent} from "./matchevents.js";
-//import * as bluetooth from "./bluetooth.js";
+import { v4 as uuid } from 'uuid';
+import * as MatchDataStore from "../storage/matchdatastore.js";
 
 export enum MatchType {
     Practice = "Practice",
@@ -18,7 +19,7 @@ export enum AllianceStation {
 }
 
 export class MatchData {
-
+    id: string; //id is only used by IndexedDB storage as a key
     teamNumber: number;
     matchNumber: number;
     eventCode: string;
@@ -31,6 +32,7 @@ export class MatchData {
    // eventcountsJSON: string = "";
 
     constructor() {
+        this.id = uuid();
         this.teamNumber = 0;
         this.matchNumber = 0;
         this.eventCode = "";
@@ -137,7 +139,7 @@ export class MatchData {
 
 let currentMatchData: MatchData = new MatchData();
 let savedMatches: MatchData[] = [];
-let unsavedMatches: MatchData[] = [];
+//let unsavedMatches: MatchData[] = [];
 
 export function getCurrentMatch(): MatchData {
     return currentMatchData;
@@ -168,6 +170,7 @@ export function saveCurrentMatch() {
     console.log(currentMatchData.eventcounts);
 
     savedMatches.push(currentMatchData);
+    MatchDataStore.saveMatch(currentMatchData);
 
     let nextMatch: number = currentMatchData.matchNumber + 1; 
     let matchType: MatchType = currentMatchData.matchType;
@@ -242,9 +245,10 @@ export function removeDuplicates(matchNum: number, teamNum: number, allianceStat
 
 export function clearAllMatches() {
     savedMatches = [];
-    unsavedMatches = [];
+    //unsavedMatches = [];
 }
 
+/*
 export function addUnsavedMatch(match: MatchData) {
     unsavedMatches.push(match);
 }
@@ -296,4 +300,4 @@ export function setUnsavedMatches(matches: MatchData[]) {
         //Add to the list of matches to be added (since it doesn't include duplicates)
         addUnsavedMatch(newMatch);
     }
-}
+}*/

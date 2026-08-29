@@ -1,9 +1,9 @@
-import * as components from "./components.js";
-import * as matchdata from "./data/matchdata.js"
-import * as matchevents from "./data/matchevents.js";
-import * as app from "./app.js";
-import * as editor from"./editor.js";
-import * as style from "./style.js";
+import * as Components from "./components.js";
+import * as MatchData from "./data/matchdata.js"
+import * as MatchEvents from "./data/matchevents.js";
+import * as App from "./app.js";
+import * as Editor from"./editor.js";
+import * as Style from "./style.js";
 import {createElement} from "./app.js";
 
 export class Event {
@@ -21,7 +21,7 @@ export class Event {
      * Runs the event when it is triggered
      */
     run(): void {
-        if (!app.isRuntimeMode()) return;
+        if (!App.isPreviewMode()) return;
         for (const action of this.actions) {
             action.onTrigger();
         }
@@ -69,8 +69,8 @@ export type EventTrigger = typeof EventTrigger[keyof typeof EventTrigger];
  * Records a match event of a specific type/group
  */
 export class ActionRecordMatchEvent extends EventAction {
-    matchEventType: matchevents.EventPointer;
-    matchEventGroup: matchevents.EventPointer;
+    matchEventType: MatchEvents.EventPointer;
+    matchEventGroup: MatchEvents.EventPointer;
 
     constructor() {
         super("matchEvent");
@@ -79,19 +79,19 @@ export class ActionRecordMatchEvent extends EventAction {
     }
 
     onTrigger(): void {
-        matchdata.getCurrentMatch().addEvent(new matchevents.MatchEvent(this.matchEventType.value, this.matchEventGroup.value));
-        console.log(matchdata.getCurrentMatch().matchEvents);
-        components.updateCounters(this.matchEventType.value);
+        MatchData.getCurrentMatch().addEvent(new MatchEvents.MatchEvent(this.matchEventType.value, this.matchEventGroup.value));
+        console.log(MatchData.getCurrentMatch().matchEvents);
+        Components.updateCounters(this.matchEventType.value);
     }
 
     addProperties(div: HTMLDivElement): void {
         let typeDiv = createElement("div", ["editor-event-action-properties-div"], div);
         typeDiv.innerHTML = "Event Type:";
-        editor.addMatchEventSelection(this.matchEventType, typeDiv);
+        Editor.addMatchEventSelection(this.matchEventType, typeDiv);
 
         let groupDiv = createElement("div", ["editor-event-action-properties-div"], div);
         groupDiv.innerHTML = "Event Group:";
-        editor.addMatchEventSelection(this.matchEventGroup, groupDiv);
+        Editor.addMatchEventSelection(this.matchEventGroup, groupDiv);
 
     }
 }
@@ -132,8 +132,8 @@ export class ActionStyleChange extends EventAction {
 
     onTrigger(): void {
         if (!this.componentID || this.componentID.length == 0) return;
-        const component = app.findComponent(this.componentID).component;
-        if (!component || !(component instanceof components.Component)) return;
+        const component = App.findComponent(this.componentID).component;
+        if (!component || !(component instanceof Components.Component)) return;
 
         component.applyStyles(this.styles);
     }
@@ -159,7 +159,7 @@ export class ActionStyleChange extends EventAction {
             overlay.classList.add("hidden");
 
             //have the user select a component
-            app.userSelectComponent(this.componentID, (newID: any) => {
+            App.userSelectComponent(this.componentID, (newID: any) => {
                 eventsModal.classList.remove("hidden");
                 overlay.classList.remove("hidden");
 
@@ -179,11 +179,11 @@ export class ActionStyleChange extends EventAction {
 
         //add all styles
         if (!this.componentID || this.componentID.length == 0) return;
-        const component = app.findComponent(this.componentID).component;
-        if (!component || !(component instanceof components.Component)) return;
+        const component = App.findComponent(this.componentID).component;
+        if (!component || !(component instanceof Components.Component)) return;
     
         for (const styleType of component.styleTypes) {
-            if (style.actionPropertiesExclude.includes(styleType)) continue;
+            if (Style.actionPropertiesExclude.includes(styleType)) continue;
 
             let styleDiv = document.createElement("div");
             styleDiv.innerHTML = styleType.displayName;
@@ -205,7 +205,7 @@ export class ActionStyleChange extends EventAction {
                 }
 
                 styleDiv.appendChild(select);
-            } else if (style.pixelPercentTypes.includes(styleType)) {
+            } else if (Style.pixelPercentTypes.includes(styleType)) {
                 //pixel and percent inputs like width and height
                 let div = document.createElement("div");
                 div.classList.add("editor-width-height", "editor-event-action-style-input");
@@ -278,15 +278,15 @@ export class ActionSaveMatchData extends EventAction {
     onTrigger(): void {
         document.documentElement.scrollTop = 0;
 
-        matchdata.saveCurrentMatch();
-        console.log(matchdata.getCurrentMatch());
+        MatchData.saveCurrentMatch();
+        console.log(MatchData.getCurrentMatch());
 
-        const editorEnabled: boolean = app.getEditorEnabled();
-        app.setEditorEnabled(true);
-        app.openDesigner();
-        app.renderPreview();
-        app.closeDesigner();
-        app.setEditorEnabled(editorEnabled);
+        const editorEnabled: boolean = App.getEditorEnabled();
+        App.setEditorEnabled(true);
+        App.openEditMode();
+        App.renderPreview();
+        App.openPreviewMode();
+        App.setEditorEnabled(editorEnabled);
         if (editorEnabled) {
             document.getElementById("edit")?.classList.remove("hidden")
         } else {
@@ -308,7 +308,7 @@ export class ActionDownloadMatchData extends EventAction {
     }
 
     onTrigger(): void {
-        matchdata.exportMatchData();
+        MatchData.exportMatchData();
     }
 
     addProperties(div: HTMLDivElement): void {
@@ -318,7 +318,7 @@ export class ActionDownloadMatchData extends EventAction {
 
 //add this later
 export class ActionTextChange extends EventAction {
-    component: components.Component | undefined;
+    component: Components.Component | undefined;
     styles: Record<string, any>;
     text: string;
 
@@ -373,7 +373,7 @@ export const EVENT_ACTION_TYPES: string[][] = [
 /**
  * Add events from a component to its rendered HTML Element
  */
-export function applyComponentEvents(component: components.Component, element: HTMLElement) {
+export function applyComponentEvents(component: Components.Component, element: HTMLElement) {
     for (const event of component.componentEvents) {
         switch (event.trigger) {
             case EventTrigger.COMPONENT_CLICK:

@@ -1,16 +1,16 @@
-import * as app from "./app.js";
-import * as components from "./components.js";
-import * as matchevents from "./data/matchevents.js";
-import * as actions from "./action.js"
-import * as storage from "./data/storage.js";
-import * as events from "./events.js";
-import * as style from "./style.js";
+import * as App from "./app.js";
+import * as Components from "./components.js";
+import * as MatchEvents from "./data/matchevents.js";
+import * as Actions from "./action.js"
+import * as ImageStore from "./storage/imagestore.js";
+import * as Events from "./events.js";
+import * as Style from "./style.js";
 import { createElement } from "./app.js";
 
 /**
  * Adds an input for a specific style property
  */
-export function addInput(component: components.Component, parent: HTMLElement, labelText: string, style: style.Style, inputElement?: HTMLInputElement, onChange?: (val: any) => void) {
+export function addInput(component: Components.Component, parent: HTMLElement, labelText: string, style: Style.Style, inputElement?: HTMLInputElement, onChange?: (val: any) => void) {
   if (!style.inputType) return;
   
   //add an optional text label on the input
@@ -33,7 +33,7 @@ export function addInput(component: components.Component, parent: HTMLElement, l
   //color inputs save the actions when you close the menu, not every time the color is changed
   if (style.inputType == "color") {
     input.onfocus = () => {
-      actions.saveAction(new actions.Action(app.loadComponent(component), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
+      Actions.saveAction(new Actions.Action(App.loadComponent(component), null, Actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
     }
   }
 
@@ -41,7 +41,7 @@ export function addInput(component: components.Component, parent: HTMLElement, l
     //checkboxes used onchange and are slightly different
     input.checked = component.style[style.style] || style.defaultValue;
     input.onchange = () => {
-      actions.saveAction(new actions.Action(app.loadComponent(component), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
+      Actions.saveAction(new Actions.Action(App.loadComponent(component), null, Actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
       component.style[style.style] = input.checked;
       //app.renderPreview();
       component.applyStyles();
@@ -50,7 +50,7 @@ export function addInput(component: components.Component, parent: HTMLElement, l
   } else {
     //normal inputs are updated oninput
     input.oninput = () => {
-      if (style.inputType != "color") actions.saveAction(new actions.Action(app.loadComponent(component), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
+      if (style.inputType != "color") Actions.saveAction(new Actions.Action(App.loadComponent(component), null, Actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
       component.style[style.style] = input.value;
       //app.renderPreview();
       component.applyStyles();
@@ -65,7 +65,7 @@ export function addInput(component: components.Component, parent: HTMLElement, l
 /**
  * Adds a select dropdown for a specific style property
  */
-export function addSelect(component: components.Component, parent: HTMLElement, labelText: string, style: style.Style, selectElement?: HTMLSelectElement, onChange?: (val: any) => void) {
+export function addSelect(component: Components.Component, parent: HTMLElement, labelText: string, style: Style.Style, selectElement?: HTMLSelectElement, onChange?: (val: any) => void) {
   if (!style.options) return;
 
   //add an optional text label to the dropdown
@@ -87,7 +87,7 @@ export function addSelect(component: components.Component, parent: HTMLElement, 
   //set the value when changed
   select.value = component.style[style.style] || style.defaultValue;
   select.onchange = () => {
-    actions.saveAction(new actions.Action(app.loadComponent(component), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
+    Actions.saveAction(new Actions.Action(App.loadComponent(component), null, Actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
     component.style[style.style] = select.value;
     if (onChange) onChange(select);
     //app.renderPreview();
@@ -100,7 +100,7 @@ export function addSelect(component: components.Component, parent: HTMLElement, 
 /**
  * Add the match event type selection dropdown
  */
-export function addMatchEventSelection(matchEvent: matchevents.EventPointer, parent: HTMLElement) {
+export function addMatchEventSelection(matchEvent: MatchEvents.EventPointer, parent: HTMLElement) {
   let content = createElement("div", ["event-selection-container"], parent);
 
   let mainInput = createElement("div", ["event-selection-input"], content); //button you click on to open dropdown
@@ -112,7 +112,7 @@ export function addMatchEventSelection(matchEvent: matchevents.EventPointer, par
   let dropdown = createElement("div", ["hidden"], content); //dropdown with all event types and an add button
   let dropdownContent = createElement("div", ["event-selection-dropdown-scrollable"], dropdown);
 
-  for (const eventType of (matchEvent.type === "type" ? matchevents.getEventTypes() : matchevents.getEventGroups())) {
+  for (const eventType of (matchEvent.type === "type" ? MatchEvents.getEventTypes() : MatchEvents.getEventGroups())) {
       let eventTypeDiv = createElement("div", ["event-selection-dropdown-button"], dropdownContent);
       let eventTypeText = createElement("div", ["event-selection-dropdown-button-text"], eventTypeDiv);
       eventTypeText.innerHTML = eventType;
@@ -128,16 +128,16 @@ export function addMatchEventSelection(matchEvent: matchevents.EventPointer, par
         dropdown.classList.remove("event-selection-dropdown");
         mainInputIcon.classList.add("fa-chevron-down");
         mainInputIcon.classList.remove("fa-chevron-up");
-        app.renderPreview();
+        App.renderPreview();
       }
 
       //delete button
       eventTypeMenuIconDiv.onclick = (e) => {
         e.stopPropagation();
         if (matchEvent.type === "type") {
-          matchevents.removeEventType(eventType);
+          MatchEvents.removeEventType(eventType);
         } else {
-          matchevents.removeEventGroup(eventType);
+          MatchEvents.removeEventGroup(eventType);
         } 
         eventTypeDiv.remove();
       }
@@ -165,11 +165,11 @@ export function addMatchEventSelection(matchEvent: matchevents.EventPointer, par
 
     //add type/group if it doesn't exist
     if (matchEvent.type === "type") {
-      if (matchevents.getEventTypes().includes(eventType)) return;
-      matchevents.addEventType(eventType);
+      if (MatchEvents.getEventTypes().includes(eventType)) return;
+      MatchEvents.addEventType(eventType);
     } else {
-      if (matchevents.getEventGroups().includes(eventType)) return;
-      matchevents.addEventGroup(eventType);
+      if (MatchEvents.getEventGroups().includes(eventType)) return;
+      MatchEvents.addEventGroup(eventType);
     }
 
     //add to the dropdown (same code as above)
@@ -186,15 +186,15 @@ export function addMatchEventSelection(matchEvent: matchevents.EventPointer, par
       dropdown.classList.remove("event-selection-dropdown");
       mainInputIcon.classList.add("fa-chevron-down");
       mainInputIcon.classList.remove("fa-chevron-up");
-      app.renderPreview();
+      App.renderPreview();
     }
     //delete button
     eventTypeMenuIconDiv.onclick = (e) => {
       e.stopPropagation();
       if (matchEvent.type === "type") {
-          matchevents.removeEventType(eventType);
+          MatchEvents.removeEventType(eventType);
         } else {
-          matchevents.removeEventGroup(eventType);
+          MatchEvents.removeEventGroup(eventType);
         } 
       eventTypeDiv.remove();
     }
@@ -274,7 +274,7 @@ export function addMatchEventSelection(matchEvent: matchevents.EventPointer, par
 
 }
 
-export function addMatchEventSection(component: components.Component) {
+export function addMatchEventSection(component: Components.Component) {
   const editorDiv = document.getElementById("editor");
   if (!editorDiv) return;
   if (!(editorDiv instanceof HTMLDivElement)) return;
@@ -298,7 +298,7 @@ export function addMatchEventSection(component: components.Component) {
 /**
  * Add a new section for styling the layout
  */
-export function addLayoutStyleSection(component: components.Component) {
+export function addLayoutStyleSection(component: Components.Component) {
     const editorDiv = document.getElementById("editor");
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
@@ -313,20 +313,20 @@ export function addLayoutStyleSection(component: components.Component) {
     let widthDiv = document.createElement("div");
     widthDiv.textContent = "Width:";
     widthDiv.style.width="40%";
-    addPixelPercentInput(component, style.width, style.widthType, widthDiv);
+    addPixelPercentInput(component, Style.width, Style.widthType, widthDiv);
     layoutStyleSection.appendChild(widthDiv);
 
     let heightDiv = document.createElement("div");
     heightDiv.textContent = "Height:";
     heightDiv.style.width = "40%";
-    addPixelPercentInput(component, style.height, style.heightType, heightDiv);
+    addPixelPercentInput(component, Style.height, Style.heightType, heightDiv);
     layoutStyleSection.appendChild(heightDiv);
 
     //background color
-    addInput(component, layoutStyleSection, "Background", style.background);
+    addInput(component, layoutStyleSection, "Background", Style.background);
 
     //alignment
-    addSelect(component, layoutStyleSection, style.alignment.displayName, style.alignment);
+    addSelect(component, layoutStyleSection, Style.alignment.displayName, Style.alignment);
 
     //padding
     let paddingSection = document.createElement("div");
@@ -339,13 +339,13 @@ export function addLayoutStyleSection(component: components.Component) {
     let paddingLeft = document.createElement("div");
     paddingLeft.textContent = "Left:";
     paddingLeft.style.width = "40%";
-    addPixelPercentInput(component, style.paddingLeft, style.paddingLeftType, paddingLeft);
+    addPixelPercentInput(component, Style.paddingLeft, Style.paddingLeftType, paddingLeft);
 
     let paddingRight = document.createElement("div");
     paddingRight.textContent = "Right:";
     paddingRight.style.width = "40%";
     paddingRight.style.paddingLeft = "10%";
-    addPixelPercentInput(component, style.paddingRight, style.paddingRightType, paddingRight);
+    addPixelPercentInput(component, Style.paddingRight, Style.paddingRightType, paddingRight);
 
     paddingDiv1.appendChild(paddingLeft);
     paddingDiv1.appendChild(paddingRight);
@@ -358,13 +358,13 @@ export function addLayoutStyleSection(component: components.Component) {
     let paddingTop = document.createElement("div");
     paddingTop.textContent = "Top:";
     paddingTop.style.width = "40%";
-    addPixelPercentInput(component, style.paddingTop, style.paddingTopType, paddingTop);
+    addPixelPercentInput(component, Style.paddingTop, Style.paddingTopType, paddingTop);
 
     let paddingBottom = document.createElement("div");
     paddingBottom.textContent = "Bottom:";
     paddingBottom.style.width = "40%";
     paddingBottom.style.paddingLeft = "10%";
-    addPixelPercentInput(component, style.paddingBottom, style.paddingBottomType, paddingBottom);
+    addPixelPercentInput(component, Style.paddingBottom, Style.paddingBottomType, paddingBottom);
 
     paddingDiv2.appendChild(paddingTop);
     paddingDiv2.appendChild(paddingBottom);
@@ -383,13 +383,13 @@ export function addLayoutStyleSection(component: components.Component) {
     let marginLeft = document.createElement("div");
     marginLeft.textContent = "Left:";
     marginLeft.style.width = "40%";
-    addPixelPercentInput(component, style.marginLeft, style.marginLeftType, marginLeft);
+    addPixelPercentInput(component, Style.marginLeft, Style.marginLeftType, marginLeft);
 
     let marginRight = document.createElement("div");
     marginRight.textContent = "Right:";
     marginRight.style.width = "40%";
     marginRight.style.marginLeft = "10%";
-    addPixelPercentInput(component, style.marginRight, style.marginRightType, marginRight);
+    addPixelPercentInput(component, Style.marginRight, Style.marginRightType, marginRight);
 
     marginDiv1.appendChild(marginLeft);
     marginDiv1.appendChild(marginRight);
@@ -402,13 +402,13 @@ export function addLayoutStyleSection(component: components.Component) {
     let marginTop = document.createElement("div");
     marginTop.textContent = "Top:";
     marginTop.style.width = "40%";
-    addPixelPercentInput(component, style.marginTop, style.marginTopType, marginTop);
+    addPixelPercentInput(component, Style.marginTop, Style.marginTopType, marginTop);
 
     let marginBottom = document.createElement("div");
     marginBottom.textContent = "Bottom:";
     marginBottom.style.width = "40%";
     marginBottom.style.marginLeft = "10%";
-    addPixelPercentInput(component, style.marginBottom, style.marginBottomType, marginBottom);
+    addPixelPercentInput(component, Style.marginBottom, Style.marginBottomType, marginBottom);
 
     marginDiv2.appendChild(marginTop);
     marginDiv2.appendChild(marginBottom);
@@ -420,7 +420,7 @@ export function addLayoutStyleSection(component: components.Component) {
 /**
  * Add a input that has pixel and percentage options (width and height)
  */
-export function addPixelPercentInput(component: components.Component, numberStyle: style.Style, typeStyle: style.Style, parent: HTMLElement) {
+export function addPixelPercentInput(component: Components.Component, numberStyle: Style.Style, typeStyle: Style.Style, parent: HTMLElement) {
   let div = document.createElement("div");
   div.classList.add("editor-width-height");
 
@@ -455,7 +455,7 @@ export function addPixelPercentInput(component: components.Component, numberStyl
 /**
  * New fancy text editor box
  */
-export function addTextEditor(component: components.Component, editable: boolean, textValue?: string) {
+export function addTextEditor(component: Components.Component, editable: boolean, textValue?: string) {
   const editorDiv = document.getElementById("editor");
   if (!editorDiv) return;
   if (!(editorDiv instanceof HTMLDivElement)) return;
@@ -481,27 +481,27 @@ export function addTextEditor(component: components.Component, editable: boolean
   if (!textbox || !(textbox instanceof HTMLDivElement)) return;
   if (!editable) textbox.contentEditable = "false";
   if (textValue) textbox.textContent = textValue;
-  if (component.styleTypes.includes(style.text)) {
+  if (component.styleTypes.includes(Style.text)) {
     textbox.textContent = component.style.text || "";
     textbox.oninput = (e) => {
       e.stopPropagation();
-      actions.saveAction(new actions.Action(app.loadComponent(component), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
+      Actions.saveAction(new Actions.Action(App.loadComponent(component), null, Actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
       component.style.text = textbox.textContent;
-      app.renderPreview();
+      App.renderPreview();
     }
   }
   
   //set styles (using the same method the component uses)
   for (const styleType of component.styleTypes) {
-    if (style.textStyleTypes.includes(styleType)) styleType.applyToNode(textbox, component.style);
+    if (Style.textStyleTypes.includes(styleType)) styleType.applyToNode(textbox, component.style);
   }
   //components.applyTextStyles(textbox, node.style);
 
   //font selection
   let fontSelection = document.getElementById("textbox-editor-font");
   if (fontSelection && fontSelection instanceof HTMLSelectElement) {
-    addSelect(component, textboxStyleBar, "", style.fontFamily, fontSelection, (val: any) => {
-      style.fontFamily.applyToNode(textbox, component.style);
+    addSelect(component, textboxStyleBar, "", Style.fontFamily, fontSelection, (val: any) => {
+      Style.fontFamily.applyToNode(textbox, component.style);
       //components.applyTextStyles(textbox, node.style);
     });
   }
@@ -509,8 +509,8 @@ export function addTextEditor(component: components.Component, editable: boolean
   //font size
   let fontSize = document.getElementById("textbox-editor-font-size");
   if (fontSize && fontSize instanceof HTMLInputElement) {
-    addInput(component, textboxStyleBar, "", style.fontSize, fontSize, (val: any) => {
-      style.fontSize.applyToNode(textbox, component.style);
+    addInput(component, textboxStyleBar, "", Style.fontSize, fontSize, (val: any) => {
+      Style.fontSize.applyToNode(textbox, component.style);
     });
   }
 
@@ -520,12 +520,12 @@ export function addTextEditor(component: components.Component, editable: boolean
     if (component.style.bold) boldButton.classList.add("textbox-editor-button-selected");
     boldButton.onclick = (e) => {
       e.stopPropagation();
-      actions.saveAction(new actions.Action(app.loadComponent(component), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
+      Actions.saveAction(new Actions.Action(App.loadComponent(component), null, Actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
       boldButton.classList.toggle("textbox-editor-button-selected");
       component.style.bold = !component.style.bold;
       //app.renderPreview();
       component.applyStyles();
-      style.bold.applyToNode(textbox, component.style);
+      Style.bold.applyToNode(textbox, component.style);
     }
   }
 
@@ -535,12 +535,12 @@ export function addTextEditor(component: components.Component, editable: boolean
     if (component.style.fontStyle === "italic") italicButton.classList.add("textbox-editor-button-selected");
     italicButton.onclick = (e) => {
       e.stopPropagation();
-      actions.saveAction(new actions.Action(app.loadComponent(component), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
+      Actions.saveAction(new Actions.Action(App.loadComponent(component), null, Actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
       italicButton.classList.toggle("textbox-editor-button-selected");
       component.style.fontStyle = (component.style.fontStyle === "italic") ? "" : "italic";
       //app.renderPreview();
       component.applyStyles();
-      style.italic.applyToNode(textbox, component.style);
+      Style.italic.applyToNode(textbox, component.style);
     }
   }
 
@@ -550,12 +550,12 @@ export function addTextEditor(component: components.Component, editable: boolean
     if (component.style.textDecoration === "underline") underlineButton.classList.add("textbox-editor-button-selected");
     underlineButton.onclick = (e) => {
       e.stopPropagation();
-      actions.saveAction(new actions.Action(app.loadComponent(component), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
+      Actions.saveAction(new Actions.Action(App.loadComponent(component), null, Actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
       underlineButton.classList.toggle("textbox-editor-button-selected");
       component.style.textDecoration = (component.style.textDecoration === "underline") ? "" : "underline";
       //app.renderPreview();
       component.applyStyles();
-      style.underline.applyToNode(textbox, component.style);
+      Style.underline.applyToNode(textbox, component.style);
     }
   }
 
@@ -565,7 +565,7 @@ export function addTextEditor(component: components.Component, editable: boolean
   if (colorInput && colorInput instanceof HTMLInputElement && icon && icon instanceof HTMLElement) {
     icon.style.color = component.style.color || "#000000";
 
-    addInput(component, textboxStyleBar, "", style.fontColor, colorInput);
+    addInput(component, textboxStyleBar, "", Style.fontColor, colorInput);
   }
   
   //text alignment
@@ -576,16 +576,16 @@ export function addTextEditor(component: components.Component, editable: boolean
     alignButton.onclick = (e) => {
       e.stopPropagation();
       if (component.style.textAlign == align) return;
-      actions.saveAction(new actions.Action(app.loadComponent(component), null, actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
+      Actions.saveAction(new Actions.Action(App.loadComponent(component), null, Actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
       component.style.textAlign = align;
       //app.renderPreview();
       component.applyStyles();
-      app.renderEditor(); //render editor to deselect the other buttons
+      App.renderEditor(); //render editor to deselect the other buttons
     };
   }
 }
 
-export function addImageSelection(component: components.Component, imageIDProperty: string) {
+export function addImageSelection(component: Components.Component, imageIDProperty: string) {
   const editorDiv = document.getElementById("editor");
   if (!editorDiv) return;
   if (!(editorDiv instanceof HTMLDivElement)) return;
@@ -596,7 +596,7 @@ export function addImageSelection(component: components.Component, imageIDProper
   let div = document.createElement("div");
   div.classList.add("image-selection-scrollable");
 
-  for (const image of storage.getImages()) {
+  for (const image of ImageStore.getImages()) {
     let row = document.createElement("div");
     row.classList.add("image-selection-row");
 
@@ -636,19 +636,19 @@ export function addImageSelection(component: components.Component, imageIDProper
       });
       row.classList.add("image-selection-row-selected");
 
-      app.renderPreview();
+      App.renderPreview();
     }
 
     //delete button
     deleteButton.onclick = async (e) => {
       e.stopPropagation();
 
-      await storage.deleteImage(image.id);
+      await ImageStore.deleteImage(image.id);
 
       if ((component as any)[imageIDProperty] == image.id) (component as any)[imageIDProperty] = "";
 
       row.remove();
-      app.renderPreview();
+      App.renderPreview();
     }
 
     div.appendChild(row);
@@ -664,7 +664,7 @@ export function addImageSelection(component: components.Component, imageIDProper
   editorDiv.appendChild(outerDiv);
 }
 
-export function addBorderSection(component: components.Component) {
+export function addBorderSection(component: Components.Component) {
   const editorDiv = document.getElementById("editor");
   if (!editorDiv) return;
   if (!(editorDiv instanceof HTMLDivElement)) return;
@@ -676,20 +676,20 @@ export function addBorderSection(component: components.Component) {
 
   //border width, radius, style, and color
   let borderStyleSelect = document.createElement("select");
-  addSelect(component, borderSection, "Border Style", style.borderStyle, borderStyleSelect, (val: any) => {
-    app.renderEditor();
+  addSelect(component, borderSection, "Border Style", Style.borderStyle, borderStyleSelect, (val: any) => {
+    App.renderEditor();
   });
   borderSection.appendChild(borderStyleSelect);
 
   //only add border section if there's a border
   if (component.style.borderStyle === "none" || !component.style.borderStyle) return;
 
-  addInput(component, borderSection, style.borderWidth.displayName, style.borderWidth);
-  addInput(component, borderSection, style.borderRadius.displayName, style.borderRadius);
-  addInput(component, borderSection, style.borderColor.displayName, style.borderColor);
+  addInput(component, borderSection, Style.borderWidth.displayName, Style.borderWidth);
+  addInput(component, borderSection, Style.borderRadius.displayName, Style.borderRadius);
+  addInput(component, borderSection, Style.borderColor.displayName, Style.borderColor);
 }
 
-export function addNewEventSection(component: components.Component) {
+export function addNewEventSection(component: Components.Component) {
   const editorDiv = document.getElementById("editor");
   if (!editorDiv) return;
   if (!(editorDiv instanceof HTMLDivElement)) return;
@@ -742,7 +742,7 @@ export function addNewEventSection(component: components.Component) {
       actionLabelDiv.classList.add("editor-event-action-label");
       actionLabelDiv.style.marginTop = "18px";
       let actionLabelText = document.createElement("div");
-      for (const type of events.EVENT_ACTION_TYPES) {
+      for (const type of Events.EVENT_ACTION_TYPES) {
         if (type[0] == action.type && type[1]) actionLabelText.innerHTML = type[1];
       }
       actionLabelDiv.onclick = (e) => {
@@ -806,7 +806,7 @@ export function addNewEventSection(component: components.Component) {
 /**
  * Opens a menu to view events
  */
-export function openNewEventsModal(component: components.Component) {
+export function openNewEventsModal(component: Components.Component) {
   currentComponent = component;
   closeEventsModal();
 
@@ -830,7 +830,7 @@ export function openNewEventsModal(component: components.Component) {
   title.innerHTML = "Events: ";
   title.style.fontSize = "20px";
   title.style.fontWeight = "bold";
-  for (const componentType of components.COMPONENT_TYPES) {
+  for (const componentType of Components.COMPONENT_TYPES) {
     if (component.constructor.name.toLowerCase() === componentType[0] && componentType[1]) {
       title.innerHTML += componentType[1];
       break;
@@ -858,11 +858,11 @@ export function openNewEventsModal(component: components.Component) {
     let eventLabelIconDiv = document.createElement("div");
     eventLabelIconDiv.classList.add("editor-event-action-label-icon");
     let eventLabelIcon = document.createElement("i");
-    if (event.trigger == events.EventTrigger.COMPONENT_CLICK) {
+    if (event.trigger == Events.EventTrigger.COMPONENT_CLICK) {
       eventLabelIcon.classList.add("fa", "fa-mouse-pointer");
-    } else if (event.trigger == events.EventTrigger.COMPONENT_HOVER) {
+    } else if (event.trigger == Events.EventTrigger.COMPONENT_HOVER) {
       eventLabelIcon.classList.add("fa", "fa-hand-pointer-o");
-    } else if (event.trigger == events.EventTrigger.OTHER_EVENT) {
+    } else if (event.trigger == Events.EventTrigger.OTHER_EVENT) {
       eventLabelIcon.classList.add("fa", "fa-bolt");
     }
     eventLabelIconDiv.appendChild(eventLabelIcon);
@@ -896,7 +896,7 @@ export function openNewEventsModal(component: components.Component) {
     
     //add a li for each action
     for (const action of event.actions) {
-      if (action instanceof events.ActionStyleChange && action.componentID.length == 0) action.componentID = component.id;
+      if (action instanceof Events.ActionStyleChange && action.componentID.length == 0) action.componentID = component.id;
       let li = document.createElement("li");
 
       //div that contains the action content
@@ -913,7 +913,7 @@ export function openNewEventsModal(component: components.Component) {
       actionLabelIconDiv.appendChild(actionLabelIcon);
 
       let actionLabelText = document.createElement("div");
-      for (const type of events.EVENT_ACTION_TYPES) {
+      for (const type of Events.EVENT_ACTION_TYPES) {
         if (type[0] != action.type) continue;
         if (type[1]) actionLabelText.innerHTML = type[1];
         if (type[3]) actionLabelIcon.classList.add("fa", type[3]);
@@ -1025,8 +1025,8 @@ export function createSection(title: string, parent: HTMLElement): HTMLDivElemen
 let addEventTriggerButton: HTMLDivElement;
 //let addEventActionButton: HTMLDivElement;
 let addEventActionDropdown: HTMLElement;
-let currentComponent: components.Component;
-let currentEvent: events.Event;
+let currentComponent: Components.Component;
+let currentEvent: Events.Event;
 
 /**
  * Create the HTML elements for triggers and dropdowns when the app is loaded
@@ -1049,7 +1049,7 @@ export function initEventSelection() {
   let addEventDropdown = document.createElement("div");
   addEventDropdown.classList.add("hidden");
   //add each trigger type
-  Object.values(events.EventTrigger).forEach((trigger) => {
+  Object.values(Events.EventTrigger).forEach((trigger) => {
     let addTriggerButton = document.createElement("button");
     addTriggerButton.innerHTML = trigger;
     addTriggerButton.classList.add("event-trigger-dropdown-button");
@@ -1057,7 +1057,7 @@ export function initEventSelection() {
       e.stopPropagation();
       if (!currentComponent) return;
       //add the new event and refresh the modal 
-      currentComponent.componentEvents.push(new events.Event(trigger));
+      currentComponent.componentEvents.push(new Events.Event(trigger));
       addEventDropdown.classList.add("hidden");
       addEventDropdown.classList.remove("event-trigger-dropdown");
       openNewEventsModal(currentComponent);
@@ -1083,7 +1083,7 @@ export function initEventSelection() {
   let addActionDropdown = document.createElement("div");
   addActionDropdown.classList.add("hidden");
   //add each action type
-  for (const action of events.EVENT_ACTION_TYPES) {
+  for (const action of Events.EVENT_ACTION_TYPES) {
     if (!action[0]) continue;
     let addButton = document.createElement("button");
     addButton.innerHTML = action[1] || "Action";
@@ -1091,7 +1091,7 @@ export function initEventSelection() {
     addButton.onclick = (e) => {
       e.stopPropagation();
       if (!currentComponent || !currentEvent) return;
-      currentEvent.actions.push(new events.eventActionTypeRegistry[action[0] as events.EventActionType]());
+      currentEvent.actions.push(new Events.eventActionTypeRegistry[action[0] as Events.EventActionType]());
       
       addActionDropdown.classList.add("hidden");
       addActionDropdown.classList.remove("event-trigger-dropdown");

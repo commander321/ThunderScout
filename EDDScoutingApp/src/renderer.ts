@@ -1,11 +1,12 @@
 import * as App from "./app.js";
 import * as Components from "./components.js"
+import * as DragDrop from "./dragdrop.js"
 
 /**
  * Renders the preview of the app for edit mode
  */
 export function renderAppPreview() {
-  if (App.isRuntimeMode()) return;
+  if (App.isPreviewMode()) return;
   const appContent = document.getElementById("app-preview-content");
   if (!appContent) return;
   if (!(appContent instanceof HTMLDivElement)) return;
@@ -18,7 +19,7 @@ export function renderAppPreview() {
     renderEditor();
   }
 
-  renderComponent(root, appContent);
+  renderComponent(App.getRoot(), appContent);
 }
 
 
@@ -40,31 +41,15 @@ function renderComponent(component: Components.Component, container: HTMLDivElem
   }
 
   div.onclick = e => {
-    if (App.isRuntimeMode()) return;
+    if (App.isPreviewMode()) return;
     e.stopPropagation();
     App.setSelectedID(component.id);
     renderAppPreview();
     renderEditor();
   };
 
-  div.draggable = true;
-
-  div.ondragstart = e => {
-    if (App.isRuntimeMode()) return;
-    e.stopPropagation();
-    draggedId = component.id;
-  };
-
-  div.ondragover = e => {
-    if (App.isRuntimeMode()) return;
-    e.preventDefault();
-  };
-
-  div.ondrop = e => {
-    if (App.isRuntimeMode()) return;
-    e.stopPropagation();
-    handleDrop(component.id);
-  };
+  //add drag and drop events to the element
+  DragDrop.applyToNode(div, component.id);
 
   component.render(div);
   component.applyStyles();
@@ -100,40 +85,7 @@ function renderInsertBar(container: HTMLDivElement, parentId: string, index: num
   bar.onclick = () => App.openAddComponentModal(parentId, index);
 
   //drag and drop things
-  bar.ondrop = (e) => {
-    if (runtime_mode || !draggedId) return;
-    e.preventDefault();
-    bar.style.background = "#ffffff00";
-
-    //move the dragged component to where it would go if it were added with the insert bar
-    let drag = App.findComponent(draggedId);
-    let draggedComponent = drag.component;
-    let draggedParent = drag.parent;
-    let parent = App.findComponent(parentId).parent;
-    if (!(draggedComponent instanceof Components.Component) || !(parent instanceof Components.Component) || !(draggedParent instanceof Components.Component)) return;
-    draggedParent.children = draggedParent.children.filter((c: Components.Component) => c.id !== draggedComponent.id);
-    parent.children.splice(index, 0, draggedComponent);
-
-    renderAppPreview();
-  }
-
-  bar.ondragover = (e) => {
-    if (App.isRuntimeMode()) return;
-    e.preventDefault();
-    bar.style.background = "#eef6ff";
-  }
-
-  bar.ondragleave = (e) => {
-    if (App.isRuntimeMode()) return;
-    e.preventDefault();
-    bar.style.background = "#ffffff00";
-  }
-
-  bar.ondragend = (e) => {
-    if (App.isRuntimeMode()) return;
-    e.preventDefault();
-    bar.style.background = "#ffffff00";
-  }
+  DragDrop.applyToInsertBar(bar, parentId, index);
 
   container.appendChild(bar);
 }
@@ -158,7 +110,7 @@ export function renderEditor() {
   editorContent.style.maxHeight = appPreview.clientHeight.toString();
 
 
-  let result = App.findComponent(selectedId);
+  let result = App.findComponent(App.getSelectedID());
   if (!result) {
     editorTitle.innerHTML = "Select a Component";
     return;

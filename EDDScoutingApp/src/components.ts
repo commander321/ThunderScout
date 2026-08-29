@@ -1,10 +1,10 @@
-import * as editor from "./editor.js";
-import * as app from "./app.js";
-import * as matchdata from "./data/matchdata.js";
-import * as matchevents from "./data/matchevents.js";
-import * as storage from "./data/storage.js";
-import * as events from "./events.js"
-import * as style from "./style.js";
+import * as Editor from "./editor.js";
+import * as App from "./app.js";
+import * as MatchData from "./data/matchdata.js";
+import * as MatchEvents from "./data/matchevents.js";
+import * as ImageStore from "./storage/imagestore.js";
+import * as Events from "./events.js"
+import * as Style from "./style.js";
 import { v4 as uuid } from 'uuid';
 import { createElement } from "./app.js";
 
@@ -13,11 +13,11 @@ export abstract class Component {
   type: string;
   style: Record<string, any>;
   children: Component[];
-  eventType: matchevents.EventPointer;
-  eventGroup: matchevents.EventPointer; 
-  componentEvents: events.Event[];
+  eventType: MatchEvents.EventPointer;
+  eventGroup: MatchEvents.EventPointer; 
+  componentEvents: Events.Event[];
   divElement: HTMLDivElement | undefined;
-  abstract readonly styleTypes: style.Style[];
+  abstract readonly styleTypes: Style.Style[];
 
   constructor(type: string) {
     this.id = uuid();
@@ -46,7 +46,7 @@ export abstract class Component {
 }
 
 export class Root extends Component {
-  readonly styleTypes: style.Style[] = [];
+  readonly styleTypes: Style.Style[] = [];
 
   constructor() {
     super("root");
@@ -66,7 +66,7 @@ export class Root extends Component {
 }
 
 export class Label extends Component {
-  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
+  readonly styleTypes: Style.Style[] = [...Style.layoutStyleTypes, ...Style.textStyleTypes, ...Style.borderStyleTypes];
 
   constructor() {
     super("label");
@@ -74,10 +74,10 @@ export class Label extends Component {
   }
 
   addEditorFeatures() {
-    editor.addTextEditor(this, true);
+    Editor.addTextEditor(this, true);
     //editor.addTextLabel(this);
-    editor.addLayoutStyleSection(this);
-    editor.addBorderSection(this);
+    Editor.addLayoutStyleSection(this);
+    Editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement) {
@@ -85,7 +85,7 @@ export class Label extends Component {
 
     div.textContent = this.style.text || "";
 
-    events.applyComponentEvents(this, div);
+    Events.applyComponentEvents(this, div);
   }
 
   applyStyles(overridenStyles?: Record<string, any>): void {
@@ -98,7 +98,7 @@ export class Label extends Component {
 }
 
 export class Counter extends Component {
-  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
+  readonly styleTypes: Style.Style[] = [...Style.layoutStyleTypes, ...Style.textStyleTypes, ...Style.borderStyleTypes];
 
   //list of counters so that they can be updated
   static counters: Counter[] = [];
@@ -110,10 +110,10 @@ export class Counter extends Component {
 
   addEditorFeatures() {
     
-    editor.addMatchEventSection(this);
-    editor.addTextEditor(this, false, matchdata.getCurrentMatch().getEventCount(this.eventType.value, this.eventGroup.value).toString());
-    editor.addLayoutStyleSection(this);
-    editor.addBorderSection(this);
+    Editor.addMatchEventSection(this);
+    Editor.addTextEditor(this, false, MatchData.getCurrentMatch().getEventCount(this.eventType.value, this.eventGroup.value).toString());
+    Editor.addLayoutStyleSection(this);
+    Editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement) {
@@ -121,30 +121,30 @@ export class Counter extends Component {
 
     let label: HTMLDivElement = document.createElement("div");
     label.id = this.id;
-    label.textContent = matchdata.getCurrentMatch().getEventCount(this.eventType.value, this.eventGroup.value).toString();
+    label.textContent = MatchData.getCurrentMatch().getEventCount(this.eventType.value, this.eventGroup.value).toString();
 
     div.appendChild(label);
 
-    events.applyComponentEvents(this, label);
+    Events.applyComponentEvents(this, label);
   }
 
   applyStyles(overridenStyles?: Record<string, any>): void {
       if (!this.divElement) return;
 
       for (const styleType of this.styleTypes) {
-        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+        styleType.applyToNode(getCorrectStyleDiv(styleType, Style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
       }
   }
 
   update() {
     let label = document.getElementById(this.id);
     if (!label) return;
-    label.textContent = matchdata.getCurrentMatch().getEventCount(this.eventType.value, this.eventGroup.value).toString();
+    label.textContent = MatchData.getCurrentMatch().getEventCount(this.eventType.value, this.eventGroup.value).toString();
   }
 }
 
 export class Button extends Component {
-  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes, style.buttonColor, style.buttonHoverColor];
+  readonly styleTypes: Style.Style[] = [...Style.layoutStyleTypes, ...Style.textStyleTypes, ...Style.borderStyleTypes, Style.buttonColor, Style.buttonHoverColor];
 
   constructor() {
     super("button");
@@ -156,9 +156,9 @@ export class Button extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    editor.addNewEventSection(this);
+    Editor.addNewEventSection(this);
 
-    editor.addTextEditor(this, true);
+    Editor.addTextEditor(this, true);
 
     //add a button styles section (for background colors, hover colors, etc)
     editorDiv.appendChild(document.createElement("hr"));
@@ -167,11 +167,11 @@ export class Button extends Component {
     editorDiv.appendChild(label);
     editorDiv.appendChild(document.createElement("br"));
 
-    editor.addInput(this, editorDiv, style.buttonColor.displayName, style.buttonColor);
-    editor.addInput(this, editorDiv, style.buttonHoverColor.displayName, style.buttonHoverColor);
+    Editor.addInput(this, editorDiv, Style.buttonColor.displayName, Style.buttonColor);
+    Editor.addInput(this, editorDiv, Style.buttonHoverColor.displayName, Style.buttonHoverColor);
 
-    editor.addLayoutStyleSection(this);
-    editor.addBorderSection(this);
+    Editor.addLayoutStyleSection(this);
+    Editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement) {
@@ -197,7 +197,7 @@ export class Button extends Component {
     button.onmouseover = (e) => {
       e.stopPropagation();
       button.style.backgroundColor = this.style.buttonHoverColor || "#E0E0E0";
-      if (app.isRuntimeMode()) {
+      if (App.isPreviewMode()) {
         button.style.cursor = "pointer";
       }
     }
@@ -212,7 +212,7 @@ export class Button extends Component {
 
     button.style.backgroundColor = this.style.buttonColor || "#F0F0F0";
 
-    events.applyComponentEvents(this, button);
+    Events.applyComponentEvents(this, button);
   }
 
   applyStyles(overridenStyles?: Record<string, any>): void {
@@ -222,7 +222,7 @@ export class Button extends Component {
       if (!(button instanceof HTMLElement)) return;
 
       for (const styleType of this.styleTypes) {
-        if (style.layoutStyleTypes.includes(styleType)) {
+        if (Style.layoutStyleTypes.includes(styleType)) {
           styleType.applyToNode(this.divElement, getCorrectStyles(styleType, this.style, overridenStyles));
         }
         styleType.applyToNode(button, getCorrectStyles(styleType, this.style, overridenStyles));
@@ -232,7 +232,7 @@ export class Button extends Component {
 }
 
 export class Section extends Component {
-  readonly styleTypes: style.Style[] = [style.sectionWidth, style.widthType, style.height, style.heightType, style.sectionColor];
+  readonly styleTypes: Style.Style[] = [Style.sectionWidth, Style.widthType, Style.height, Style.heightType, Style.sectionColor];
 
   constructor() {
     super("section");
@@ -244,10 +244,10 @@ export class Section extends Component {
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
     //editor.addInput(this, editorDiv, style.width.displayName, style.width);
-    editor.addPixelPercentInput(this, style.sectionWidth, style.widthType, editorDiv);
-    editor.addPixelPercentInput(this, style.height, style.heightType, editorDiv);
+    Editor.addPixelPercentInput(this, Style.sectionWidth, Style.widthType, editorDiv);
+    Editor.addPixelPercentInput(this, Style.height, Style.heightType, editorDiv);
     //editor.addInput(this, editorDiv, style.thickness.displayName, style.thickness);
-    editor.addInput(this, editorDiv, style.sectionColor.displayName, style.sectionColor);
+    Editor.addInput(this, editorDiv, Style.sectionColor.displayName, Style.sectionColor);
   }
 
   render(div: HTMLDivElement) {
@@ -256,7 +256,7 @@ export class Section extends Component {
     let hr: HTMLHRElement = document.createElement("hr");
 
     hr.style.border = "none";
-    style.sectionColor.applyToNode(hr, this.style);
+    Style.sectionColor.applyToNode(hr, this.style);
 
     div.appendChild(hr);
 
@@ -271,7 +271,7 @@ export class Section extends Component {
     div.style.height = (this.style.height && this.style.height != 0) ? (this.style.height + (this.style.heightType || "px")) : "2px";
     hr.style.height = (this.style.height && this.style.height != 0) ? (this.style.height + (this.style.heightType || "px")) : "2px";
 
-    events.applyComponentEvents(this, hr);
+    Events.applyComponentEvents(this, hr);
   }
 
   applyStyles(overridenStyles?: Record<string, any>): void {
@@ -284,7 +284,7 @@ export class Section extends Component {
 }
 
 export class Dropdown extends Component {
-  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
+  readonly styleTypes: Style.Style[] = [...Style.layoutStyleTypes, ...Style.textStyleTypes, ...Style.borderStyleTypes];
   //text: string;
   options: string[];
   required: boolean;
@@ -320,10 +320,10 @@ export class Dropdown extends Component {
       this.required = val.checked;
     }, "checkbox");*/
 
-    editor.addTextEditor(this, false, this.options.toString());
-    editor.addLayoutStyleSection(this);
+    Editor.addTextEditor(this, false, this.options.toString());
+    Editor.addLayoutStyleSection(this);
     //editor.addTextSection(this);
-    editor.addBorderSection(this);
+    Editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement) {
@@ -348,12 +348,12 @@ export class Dropdown extends Component {
       //e.stopPropagation();
 
       //Handle events, remove all of the other options and add the selected one
-      if (app.isRuntimeMode()) {
+      if (App.isPreviewMode()) {
         this.options.forEach(t => {
-          matchdata.getCurrentMatch().removeType(t, this.eventGroup.value);
+          MatchData.getCurrentMatch().removeType(t, this.eventGroup.value);
         });
 
-        matchdata.getCurrentMatch().addEvent(new matchevents.MatchEvent(this.options[select.selectedIndex] || "null", this.eventGroup.value));
+        MatchData.getCurrentMatch().addEvent(new MatchEvents.MatchEvent(this.options[select.selectedIndex] || "null", this.eventGroup.value));
         updateCounters();
       }
 
@@ -366,20 +366,20 @@ export class Dropdown extends Component {
 
     div.appendChild(select);
 
-    events.applyComponentEvents(this, select);
+    Events.applyComponentEvents(this, select);
   }
 
   applyStyles(overridenStyles?: Record<string, any>): void {
       if (!this.divElement) return;
       for (const styleType of this.styleTypes) {
-        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+        styleType.applyToNode(getCorrectStyleDiv(styleType, Style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
       }
   }
 
 }
 
 export class Checkbox extends Component {
-  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.borderStyleTypes, style.scale, style.checkboxColor, style.checkboxCheckedColor];
+  readonly styleTypes: Style.Style[] = [...Style.layoutStyleTypes, ...Style.borderStyleTypes, Style.scale, Style.checkboxColor, Style.checkboxCheckedColor];
 
   constructor() {
     super ("checkbox");
@@ -390,7 +390,7 @@ export class Checkbox extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    editor.addMatchEventSection(this);
+    Editor.addMatchEventSection(this);
 
     //checkbox features
     editorDiv.appendChild(document.createElement("hr"));
@@ -399,31 +399,31 @@ export class Checkbox extends Component {
     editorDiv.appendChild(label);
     editorDiv.appendChild(document.createElement("br"));
 
-    editor.addInput(this, editorDiv, style.scale.displayName, style.scale);
-    editor.addInput(this, editorDiv, style.checkboxColor.displayName, style.checkboxColor);
-    editor.addInput(this, editorDiv, style.checkboxCheckedColor.displayName, style.checkboxCheckedColor);
+    Editor.addInput(this, editorDiv, Style.scale.displayName, Style.scale);
+    Editor.addInput(this, editorDiv, Style.checkboxColor.displayName, Style.checkboxColor);
+    Editor.addInput(this, editorDiv, Style.checkboxCheckedColor.displayName, Style.checkboxCheckedColor);
 
-    editor.addLayoutStyleSection(this);
-    editor.addBorderSection(this);
+    Editor.addLayoutStyleSection(this);
+    Editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement) {
     this.divElement = div;
 
     let checkbox: HTMLInputElement = document.createElement("input");
-    checkbox.checked = matchdata.getCurrentMatch().getEventCount(this.eventType.value) > 0;
+    checkbox.checked = MatchData.getCurrentMatch().getEventCount(this.eventType.value) > 0;
     checkbox.type = "checkbox";
 
     checkbox.onchange = (e) => {
       e.stopPropagation();
 
-      if (!app.isRuntimeMode()) return;
+      if (!App.isPreviewMode()) return;
 
       //Handle changing the event
       if (checkbox.checked) {
-        matchdata.getCurrentMatch().addEvent(new matchevents.MatchEvent(this.eventType.value, this.eventGroup.value));
+        MatchData.getCurrentMatch().addEvent(new MatchEvents.MatchEvent(this.eventType.value, this.eventGroup.value));
       } else {
-        matchdata.getCurrentMatch().removeType(this.eventType.value, this.eventGroup.value);
+        MatchData.getCurrentMatch().removeType(this.eventType.value, this.eventGroup.value);
       }
 
       updateCounters(this.eventType.value);
@@ -432,21 +432,21 @@ export class Checkbox extends Component {
 
     div.appendChild(checkbox);
 
-    events.applyComponentEvents(this, checkbox);
+    Events.applyComponentEvents(this, checkbox);
   }
 
   applyStyles(overridenStyles?: Record<string, any>): void {
       if (!this.divElement) return;
 
       for (const styleType of this.styleTypes) {
-        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+        styleType.applyToNode(getCorrectStyleDiv(styleType, Style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
       }
   }
 
 }
 
 export class Layout extends Component {
-  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.borderStyleTypes];
+  readonly styleTypes: Style.Style[] = [...Style.layoutStyleTypes, ...Style.borderStyleTypes];
 
   constructor() {
     super("layout");
@@ -457,10 +457,10 @@ export class Layout extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    editor.addSelect(this, editorDiv, style.direction.displayName, style.direction);
+    Editor.addSelect(this, editorDiv, Style.direction.displayName, Style.direction);
 
-    editor.addLayoutStyleSection(this);
-    editor.addBorderSection(this);
+    Editor.addLayoutStyleSection(this);
+    Editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement) {
@@ -472,7 +472,7 @@ export class Layout extends Component {
       div.classList.add("horizontal");
     }
 
-    events.applyComponentEvents(this, div);
+    Events.applyComponentEvents(this, div);
   }
 
   applyStyles(overridenStyles?: Record<string, any>): void {
@@ -486,16 +486,16 @@ export class Layout extends Component {
 }
 
 export class TeamNum extends Component {
-  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
+  readonly styleTypes: Style.Style[] = [...Style.layoutStyleTypes, ...Style.textStyleTypes, ...Style.borderStyleTypes];
 
   constructor() {
     super("teamnum");
   }
 
   addEditorFeatures(): void {
-    editor.addLayoutStyleSection(this);
-    editor.addTextEditor(this, false, matchdata.getCurrentMatch().teamNumber.toString());
-    editor.addBorderSection(this);
+    Editor.addLayoutStyleSection(this);
+    Editor.addTextEditor(this, false, MatchData.getCurrentMatch().teamNumber.toString());
+    Editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement): void {
@@ -505,10 +505,10 @@ export class TeamNum extends Component {
     team.type = "number";
 
     team.onchange = (e) => {
-      matchdata.getCurrentMatch().teamNumber = parseInt(team.value);
+      MatchData.getCurrentMatch().teamNumber = parseInt(team.value);
     }
 
-    team.valueAsNumber = matchdata.getCurrentMatch().teamNumber;
+    team.valueAsNumber = MatchData.getCurrentMatch().teamNumber;
 
     div.appendChild(team);
 
@@ -518,14 +518,14 @@ export class TeamNum extends Component {
     team.style.height = this.style.height ? (this.style.height == 0 ? "auto" : this.style.height + "px") : "auto";
     team.style.marginBottom = "0px";
 
-    events.applyComponentEvents(this, team);
+    Events.applyComponentEvents(this, team);
   }
 
   applyStyles(overridenStyles?: Record<string, any>): void {
       if (!this.divElement) return;
 
       for (const styleType of this.styleTypes) {
-        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+        styleType.applyToNode(getCorrectStyleDiv(styleType, Style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
       }
 
       forceMatchInputStyles(this.divElement, this.style, overridenStyles);
@@ -534,7 +534,7 @@ export class TeamNum extends Component {
 }
 
 export class TextBox extends Component {
-  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes, style.textboxID];
+  readonly styleTypes: Style.Style[] = [...Style.layoutStyleTypes, ...Style.textStyleTypes, ...Style.borderStyleTypes, Style.textboxID];
 
   constructor() {
     super("textbox");
@@ -545,10 +545,10 @@ export class TextBox extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
       
-    editor.addInput(this, editorDiv, style.textboxID.displayName, style.textboxID);
-    editor.addLayoutStyleSection(this);
-    editor.addTextEditor(this, false, matchdata.getCurrentMatch().getTextData(this.style.textboxID || ""));
-    editor.addBorderSection(this);
+    Editor.addInput(this, editorDiv, Style.textboxID.displayName, Style.textboxID);
+    Editor.addLayoutStyleSection(this);
+    Editor.addTextEditor(this, false, MatchData.getCurrentMatch().getTextData(this.style.textboxID || ""));
+    Editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement): void {
@@ -557,28 +557,28 @@ export class TextBox extends Component {
       let textbox = document.createElement("input");
       textbox.type = "text";
 
-      textbox.value = matchdata.getCurrentMatch().getTextData(this.style.textboxID || "");
+      textbox.value = MatchData.getCurrentMatch().getTextData(this.style.textboxID || "");
 
       textbox.onchange = (e) => {
         e.stopPropagation();
 
-        if (!app.isRuntimeMode()) return;
+        if (!App.isPreviewMode()) return;
 
         //handle setting the text data value
         if (!this.style.textboxID) return;
-        matchdata.getCurrentMatch().setTextData(this.style.textboxID, textbox.value);
+        MatchData.getCurrentMatch().setTextData(this.style.textboxID, textbox.value);
       }
 
       div.appendChild(textbox);
 
-      events.applyComponentEvents(this, textbox);
+      Events.applyComponentEvents(this, textbox);
   }
 
   applyStyles(overridenStyles?: Record<string, any>): void {
       if (!this.divElement) return;
   
       for (const styleType of this.styleTypes) {
-        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+        styleType.applyToNode(getCorrectStyleDiv(styleType, Style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
       }
 
       forceMatchInputStyles(this.divElement, this.style, overridenStyles);
@@ -587,7 +587,7 @@ export class TextBox extends Component {
 }
 
 export class Image extends Component {
-  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.borderStyleTypes];
+  readonly styleTypes: Style.Style[] = [...Style.layoutStyleTypes, ...Style.borderStyleTypes];
 
   imageId: string;
 
@@ -602,7 +602,7 @@ export class Image extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    editor.addImageSelection(this, "imageId");
+    Editor.addImageSelection(this, "imageId");
 
     let imageInput = document.createElement("input");
     imageInput.type = "file";
@@ -614,14 +614,14 @@ export class Image extends Component {
       if (!file) return;
 
       this.imageId = uuid();
-      storage.uploadImage(this.imageId, file);
+      ImageStore.uploadImage(this.imageId, file);
 
-      app.renderPreview();
+      App.renderPreview();
     }
 
     editorDiv.appendChild(imageInput);
 
-    editor.addLayoutStyleSection(this);
+    Editor.addLayoutStyleSection(this);
   }
 
   render(div: HTMLDivElement) {
@@ -629,13 +629,13 @@ export class Image extends Component {
 
     let image = document.createElement("img");
 
-    image.src = storage.getImageURL(this.imageId);
+    image.src = ImageStore.getImageURL(this.imageId);
     image.style.width = "100%";
     image.style.height = "100%";
     
     div.appendChild(image);
 
-    events.applyComponentEvents(this, image);
+    Events.applyComponentEvents(this, image);
   }
 
   applyStyles(overridenStyles?: Record<string, any>): void {
@@ -649,16 +649,16 @@ export class Image extends Component {
 }
 
 export class MatchNum extends Component {
-  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
+  readonly styleTypes: Style.Style[] = [...Style.layoutStyleTypes, ...Style.textStyleTypes, ...Style.borderStyleTypes];
 
   constructor() {
     super("matchnum");
   }
 
   addEditorFeatures(): void {
-    editor.addLayoutStyleSection(this);
-    editor.addTextEditor(this, false, matchdata.getCurrentMatch().matchNumber.toString());
-    editor.addBorderSection(this);
+    Editor.addLayoutStyleSection(this);
+    Editor.addTextEditor(this, false, MatchData.getCurrentMatch().matchNumber.toString());
+    Editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement): void {
@@ -668,21 +668,21 @@ export class MatchNum extends Component {
     match.type = "number";
 
     match.onchange = (e) => {
-      matchdata.getCurrentMatch().matchNumber = parseInt(match.value);
+      MatchData.getCurrentMatch().matchNumber = parseInt(match.value);
     }
 
-    match.valueAsNumber = matchdata.getCurrentMatch().matchNumber;
+    match.valueAsNumber = MatchData.getCurrentMatch().matchNumber;
 
     div.appendChild(match);
 
-    events.applyComponentEvents(this, match);
+    Events.applyComponentEvents(this, match);
   }
 
   applyStyles(overridenStyles?: Record<string, any>): void {
       if (!this.divElement) return;
 
       for (const styleType of this.styleTypes) {
-        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+        styleType.applyToNode(getCorrectStyleDiv(styleType, Style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
       }
 
       forceMatchInputStyles(this.divElement, this.style, overridenStyles);
@@ -691,16 +691,16 @@ export class MatchNum extends Component {
 }
 
 export class MatchType extends Component {
-  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
+  readonly styleTypes: Style.Style[] = [...Style.layoutStyleTypes, ...Style.textStyleTypes, ...Style.borderStyleTypes];
 
   constructor() {
     super("matchtype");
   }
 
   addEditorFeatures(): void {
-    editor.addLayoutStyleSection(this);
-    editor.addTextEditor(this, false, matchdata.getCurrentMatch().matchType.toString());
-    editor.addBorderSection(this);
+    Editor.addLayoutStyleSection(this);
+    Editor.addTextEditor(this, false, MatchData.getCurrentMatch().matchType.toString());
+    Editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement): void {
@@ -723,21 +723,21 @@ export class MatchType extends Component {
     select.add(other);
 
     select.onchange = (e) => {
-      matchdata.getCurrentMatch().matchType = matchdata.MatchType[select.value as keyof typeof matchdata.MatchType];
+      MatchData.getCurrentMatch().matchType = MatchData.MatchType[select.value as keyof typeof MatchData.MatchType];
     }
 
-    select.value = matchdata.getCurrentMatch().matchType;
+    select.value = MatchData.getCurrentMatch().matchType;
 
     div.appendChild(select);
 
-    events.applyComponentEvents(this, select);
+    Events.applyComponentEvents(this, select);
   }
 
   applyStyles(overridenStyles?: Record<string, any>): void {
       if (!this.divElement) return;
 
       for (const styleType of this.styleTypes) {
-        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+        styleType.applyToNode(getCorrectStyleDiv(styleType, Style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
       }
 
       forceMatchInputStyles(this.divElement, this.style, overridenStyles);
@@ -746,16 +746,16 @@ export class MatchType extends Component {
 }
 
 export class AllianceStation extends Component {
-  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
+  readonly styleTypes: Style.Style[] = [...Style.layoutStyleTypes, ...Style.textStyleTypes, ...Style.borderStyleTypes];
 
   constructor() {
     super("alliancestation");
   }
 
   addEditorFeatures(): void {
-    editor.addLayoutStyleSection(this);
-    editor.addTextEditor(this, false, matchdata.getCurrentMatch().allianceStation.toString());
-    editor.addBorderSection(this);
+    Editor.addLayoutStyleSection(this);
+    Editor.addTextEditor(this, false, MatchData.getCurrentMatch().allianceStation.toString());
+    Editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement): void {
@@ -784,21 +784,21 @@ export class AllianceStation extends Component {
     select.add(b3);
 
     select.onchange = (e) => {
-      matchdata.getCurrentMatch().allianceStation = matchdata.AllianceStation[select.value as keyof typeof matchdata.AllianceStation];
+      MatchData.getCurrentMatch().allianceStation = MatchData.AllianceStation[select.value as keyof typeof MatchData.AllianceStation];
     }
 
-    select.value = matchdata.getCurrentMatch().allianceStation;
+    select.value = MatchData.getCurrentMatch().allianceStation;
 
     div.appendChild(select);
 
-    events.applyComponentEvents(this, select);
+    Events.applyComponentEvents(this, select);
   }
 
   applyStyles(overridenStyles?: Record<string, any>): void {
       if (!this.divElement) return;
 
       for (const styleType of this.styleTypes) {
-        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+        styleType.applyToNode(getCorrectStyleDiv(styleType, Style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
       }
 
       forceMatchInputStyles(this.divElement, this.style, overridenStyles);
@@ -807,7 +807,7 @@ export class AllianceStation extends Component {
 }
 
 export class ResetButton extends Component {
-  readonly styleTypes: style.Style[] = [...style.layoutStyleTypes, ...style.textStyleTypes, ...style.borderStyleTypes];
+  readonly styleTypes: Style.Style[] = [...Style.layoutStyleTypes, ...Style.textStyleTypes, ...Style.borderStyleTypes];
 
   constructor() {
     super("resetbutton");
@@ -816,9 +816,9 @@ export class ResetButton extends Component {
   }
 
   addEditorFeatures(): void {
-    editor.addTextEditor(this, true);
-    editor.addLayoutStyleSection(this);
-    editor.addBorderSection(this);
+    Editor.addTextEditor(this, true);
+    Editor.addLayoutStyleSection(this);
+    Editor.addBorderSection(this);
   }
 
   render(div: HTMLDivElement): void {
@@ -829,7 +829,7 @@ export class ResetButton extends Component {
 
     button.onclick = (e) => {
       //e.stopPropagation();
-      if (!app.isRuntimeMode()) return;
+      if (!App.isPreviewMode()) return;
       e.stopPropagation();
 
       //Check for required components (THIS IS 1511 SPECIFIC FOR CHAMPS!!!!)
@@ -849,14 +849,14 @@ export class ResetButton extends Component {
 
       document.documentElement.scrollTop = 0;
 
-      matchdata.saveCurrentMatch();
+      MatchData.saveCurrentMatch();
       
-      const editorEnabled: boolean = app.getEditorEnabled();
-      app.setEditorEnabled(true);
-      app.openDesigner();
-      app.renderPreview();
-      app.closeDesigner();
-      app.setEditorEnabled(editorEnabled);
+      const editorEnabled: boolean = App.getEditorEnabled();
+      App.setEditorEnabled(true);
+      App.openEditMode();
+      App.renderPreview();
+      App.openPreviewMode();
+      App.setEditorEnabled(editorEnabled);
       if (editorEnabled) {
         document.getElementById("edit")?.classList.remove("hidden")
       } else {
@@ -866,21 +866,21 @@ export class ResetButton extends Component {
 
     div.appendChild(button);
 
-    events.applyComponentEvents(this, div);
+    Events.applyComponentEvents(this, div);
   }
 
   applyStyles(overridenStyles?: Record<string, any>): void {
       if (!this.divElement) return;
 
       for (const styleType of this.styleTypes) {
-        styleType.applyToNode(getCorrectStyleDiv(styleType, style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
+        styleType.applyToNode(getCorrectStyleDiv(styleType, Style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
       }
   }
 
 }
 
 export class AnalyticsMatchesTable extends Component {
-  readonly styleTypes: style.Style[] = [];
+  readonly styleTypes: Style.Style[] = [];
 
 
 /*
@@ -936,7 +936,7 @@ Different types:
       app.renderPreview();
     }, "number");*/
 
-    editor.addLayoutStyleSection(this);
+    Editor.addLayoutStyleSection(this);
   }
 
   render(div: HTMLDivElement): void {
@@ -965,7 +965,7 @@ Different types:
     table.appendChild(header);
 
     //get all matches for the current selected team
-    for (const match of matchdata.getAllMatches().filter((m: matchdata.MatchData) => m.teamNumber == matchdata.getCurrentMatch().teamNumber)) {
+    for (const match of MatchData.getAllMatches().filter((m: MatchData.MatchData) => m.teamNumber == MatchData.getCurrentMatch().teamNumber)) {
       let row = document.createElement("tr");
       
       for (const column of this.children) {
@@ -987,7 +987,7 @@ Different types:
     }
 
     //if editing, add a button to add a column
-    if (!app.isRuntimeMode()) {
+    if (!App.isPreviewMode()) {
       let addButton: HTMLButtonElement = document.createElement("button");
       addButton.innerHTML = "Add Column";
       addButton.onclick = (e) => {
@@ -995,7 +995,7 @@ Different types:
         let newColumn = new AnalyticsMatchesTableColumn();
         //this.columns.push(newColumn);
         this.children.push(newColumn);
-        app.renderPreview();
+        App.renderPreview();
       }
       table.appendChild(addButton);
     }
@@ -1013,7 +1013,7 @@ Different types:
 }
 
 export class AnalyticsMatchesTableColumn extends Component {
-  readonly styleTypes: style.Style[] = [];
+  readonly styleTypes: Style.Style[] = [];
 
   value: any;
 
@@ -1063,7 +1063,7 @@ export class AnalyticsMatchesTableColumn extends Component {
         }, "text");*/
     }
 
-    editor.addTextEditor(this, false);
+    Editor.addTextEditor(this, false);
   }
 
   render(div: HTMLDivElement): void {
@@ -1075,12 +1075,12 @@ export class AnalyticsMatchesTableColumn extends Component {
   //stolen from the render node method in app.ts
   applySelectionEvents(element: HTMLElement) {
     element.onclick = e => {
-      if (app.isRuntimeMode()) return;
+      if (App.isPreviewMode()) return;
       e.stopPropagation();
-      app.setSelectedID(this.id);
+      App.setSelectedID(this.id);
 
-      app.renderPreview();
-      app.renderEditor();
+      App.renderPreview();
+      App.renderEditor();
     };
 
     //hover styles
@@ -1111,7 +1111,7 @@ export class AnalyticsMatchesTableColumn extends Component {
     if (!this.divElement) return;
     //default borders
     
-    if (app.getSelectedID() == this.id) {
+    if (App.getSelectedID() == this.id) {
       element.style.backgroundColor = "#eef6ff;"
       element.style.borderLeft = "2px solid #007bff";
       element.style.borderRight = "2px solid #007bff";
@@ -1169,7 +1169,7 @@ export class AnalyticsMatchesTableColumn extends Component {
   /**
    * Add this column to a row
    */
-  addToRow(row: HTMLTableRowElement, match: matchdata.MatchData) {
+  addToRow(row: HTMLTableRowElement, match: MatchData.MatchData) {
     let cell: HTMLTableCellElement = document.createElement("td");
 
     this.applyStyles(cell);
@@ -1214,7 +1214,7 @@ export function updateCounters(type?: string) {
 /**
  * Gets the element that styles should be applied to (the parent or first child)
  */
-function getCorrectStyleDiv(styleType: style.Style, applyToParent: style.Style[], div: HTMLElement): HTMLElement {
+function getCorrectStyleDiv(styleType: Style.Style, applyToParent: Style.Style[], div: HTMLElement): HTMLElement {
   if (div.firstChild instanceof HTMLElement && !applyToParent.includes(styleType)) return div.firstChild; 
   return div;
 }
@@ -1222,7 +1222,7 @@ function getCorrectStyleDiv(styleType: style.Style, applyToParent: style.Style[]
 /**
  * Gets which styles list, normal or overriden, should be used to apply styles to an element
  */
-function getCorrectStyles(styleType: style.Style, styles: Record<string, any>, overridenStyles: Record<string, any> | undefined): Record<string, any> {
+function getCorrectStyles(styleType: Style.Style, styles: Record<string, any>, overridenStyles: Record<string, any> | undefined): Record<string, any> {
   if (overridenStyles && styleType.style in overridenStyles) return overridenStyles;
   return styles;
 }
@@ -1234,8 +1234,8 @@ function forceMatchInputStyles(div: HTMLElement, styles: Record<string, any>, ov
   div.style.width = "fit-content";
   div.style.height = "auto";
   if (!(div.firstChild instanceof HTMLElement)) return;
-  style.width.applyToNode(div.firstChild, getCorrectStyles(style.width, styles, overridenStyles));
-  style.height.applyToNode(div.firstChild, getCorrectStyles(style.height, styles, overridenStyles));
+  Style.width.applyToNode(div.firstChild, getCorrectStyles(Style.width, styles, overridenStyles));
+  Style.height.applyToNode(div.firstChild, getCorrectStyles(Style.height, styles, overridenStyles));
   div.firstChild.style.marginBottom = "0px";
 }
 

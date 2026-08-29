@@ -1,16 +1,17 @@
-import * as components from "./components.js";
-import * as app from "./app.js";
+import * as Components from "./components.js";
+import * as App from "./app.js";
+import * as Clipboard from "./clipboard.js";
 
 let savedActions: Action[] = [];
 
 export class Action {
-    component: components.Component;
-    parent: components.Component | null;
+    component: Components.Component;
+    parent: Components.Component | null;
     type: ActionType;
     style: Record<string, any>;
     insertIndex: number; //for delete actions, to be pasted back in
 
-    constructor(component: components.Component, parent: components.Component | null, type: ActionType, style?: Record<string, any>) {
+    constructor(component: Components.Component, parent: Components.Component | null, type: ActionType, style?: Record<string, any>) {
         this.component = component;
         this.parent = parent;
         this.type = type;
@@ -18,7 +19,7 @@ export class Action {
         
         //if it was deleted (cut or delete), save the insert index in case its undone
         if ((type == ActionType.COMPONENT_DELETE || type == ActionType.COMPONENT_CUT) && parent) {
-            this.insertIndex = parent.children.findIndex((c: components.Component) => c.id === component.id);
+            this.insertIndex = parent.children.findIndex((c: Components.Component) => c.id === component.id);
         } else {
             this.insertIndex = -1;
         }
@@ -48,7 +49,7 @@ if (savedActions.length == 0) return;
 
   //get the existing version of that component
   let actionComponent = lastAction.component;
-  let existingComponent = app.findComponent(actionComponent.id);
+  let existingComponent = App.findComponent(actionComponent.id);
 
   switch (lastAction.type) {
     //If undoing a component delete, recreate the component
@@ -65,7 +66,7 @@ if (savedActions.length == 0) return;
 
     //If undoing a component place, delete the existing component
     case ActionType.COMPONENT_PLACE:
-        existingComponent.parent.children = existingComponent.parent.children.filter((c: components.Component) => c.id !== existingComponent.component.id);
+        existingComponent.parent.children = existingComponent.parent.children.filter((c: Components.Component) => c.id !== existingComponent.component.id);
         break;
 
     //If undoing a component style change, revert the existing components style to the saved one
@@ -85,16 +86,16 @@ if (savedActions.length == 0) return;
                 lastAction.parent.children.splice(lastAction.insertIndex, 0, lastAction.component);
             }
         }
-        app.clearClipboard();
+        Clipboard.clearClipboard();
         break;
     
     //If undoing a paste, delete the component (but don't clear the clipboard)
     case ActionType.COMPONENT_PASTE:
-        existingComponent.parent.children = existingComponent.parent.children.filter((c: components.Component) => c.id !== existingComponent.component.id);
+        existingComponent.parent.children = existingComponent.parent.children.filter((c: Components.Component) => c.id !== existingComponent.component.id);
         break;
   }
 
   //render the updated app
-  app.renderPreview();
-  app.renderEditor();
+  App.renderPreview();
+  App.renderEditor();
 }

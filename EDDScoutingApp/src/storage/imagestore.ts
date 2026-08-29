@@ -1,6 +1,5 @@
-import * as app from "../app.js";
-//For managing local files storage (images, etc)
-//it's just images now, but I'll probably move the app from local storage to here
+import * as App from "../app.js";
+import * as Storage from "./storage.js"
 
 interface Image {
   id: string;
@@ -11,36 +10,10 @@ interface Image {
 let images: Map<string, Image> = new Map<string, Image>();
 
 /**
- * Gets the database for images
- */
-const openImageDatabase = (): Promise<IDBDatabase> => {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open("ImageDB", 3);
-
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      
-      //images store
-      if (!db.objectStoreNames.contains("images")) {
-        db.createObjectStore("images", { keyPath: "id" });
-      }
-    };
-
-    request.onsuccess = (event) => {
-      resolve((event.target as IDBOpenDBRequest).result);
-    };
-
-    request.onerror = (event) => {
-      reject((event.target as IDBOpenDBRequest).error);
-    };
-  });
-};
-
-/**
  * Add an image to the images database
  */
 export const uploadImage = async (id: string, file: File): Promise<void> => {
-  const db = await openImageDatabase();
+  const db = await Storage.openDatabase();
   const reader = new FileReader();
 
   reader.readAsArrayBuffer(file);
@@ -53,13 +26,13 @@ export const uploadImage = async (id: string, file: File): Promise<void> => {
       tempURL: URL.createObjectURL(blob),
     };
 
-    const transaction = db.transaction(["images"], "readwrite");
-    const store = transaction.objectStore("images");
+    const transaction = db.transaction([Storage.IMAGES_STORE_NAME], "readwrite");
+    const store = transaction.objectStore(Storage.IMAGES_STORE_NAME);
     store.put(imageRecord);
 
     images.set(id, imageRecord);
-    app.renderPreview();
-    app.renderEditor();
+    App.renderPreview();
+    App.renderEditor();
   };
 };
 
@@ -67,9 +40,9 @@ export const uploadImage = async (id: string, file: File): Promise<void> => {
  * Delete an image from the database based on its id
  */
 export const deleteImage = async (id: string): Promise<void> => {
-  const db = await openImageDatabase();
-  const transaction = db.transaction(["images"], "readwrite");
-  const store = transaction.objectStore("images");
+  const db = await Storage.openDatabase();
+  const transaction = db.transaction([Storage.IMAGES_STORE_NAME], "readwrite");
+  const store = transaction.objectStore(Storage.IMAGES_STORE_NAME);
 
   const request = store.delete(id);
 
@@ -94,9 +67,9 @@ export function getImageURL(id: string): string {
  * Loads all saved images and creates url's for them. 
  */
 export const loadImages = async (): Promise<void> => {
-  const db = await openImageDatabase();
-  const transaction = db.transaction(["images"], "readonly");
-  const store = transaction.objectStore("images");
+  const db = await Storage.openDatabase();
+  const transaction = db.transaction([Storage.IMAGES_STORE_NAME], "readonly");
+  const store = transaction.objectStore(Storage.IMAGES_STORE_NAME);
   const request = store.getAll();
 
   request.onsuccess = (event) => {
@@ -108,7 +81,7 @@ export const loadImages = async (): Promise<void> => {
       images.set(image.id, image);
     }
 
-    app.renderPreview();
+    App.renderPreview();
   }
 
   request.onerror = (event) => {

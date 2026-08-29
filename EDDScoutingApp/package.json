@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.5.2",
+    "node": "^26.8.1",
     "typescript": "~5.9.3",
     "vite": "^8.0.10"
   },
@@ -18,7 +19,6 @@
     "chart.js": "^4.5.1",
     "install": "^0.13.0",
     "localtunnel": "^2.0.2",
-    "node": "^24.15.0",
     "npm": "^11.13.0",
     "uuid": "^14.0.0",
     "vite-plugin-html": "^3.2.2",
