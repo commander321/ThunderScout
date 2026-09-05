@@ -326,22 +326,45 @@ export class Dropdown extends Component {
     if (!editorDiv) return;
     if (!(editorDiv instanceof HTMLDivElement)) return;
 
-    //editor.addTextLabel(this);
-    /*
-    editor.addInput(this, editorDiv, 
-        "Options (comma separated)",
-        this.options.join(","),
-        (val: any) => {
-          this.options = val.split(",");
-          app.renderPreview();
-        }
-    );*/
-    //editor.addGroupSection(this);
+    let dropdownSection = Editor.createSection("Dropdown", editorDiv);
+  
+    let dropdown = createElement("div", ["event-selection-dropdown"], dropdownSection);
+    dropdown.style.position = "relative"
+    let dropdownContent = createElement("div", ["event-selection-dropdown-scrollable"], dropdown);
 
-    /*
-    editor.addInput(this, editorDiv, "Required?", this.required, (val: any) => {
-      this.required = val.checked;
-    }, "checkbox");*/
+    for (const option of this.options) {
+      let dropdownOption = createElement("div", ["event-selection-dropdown-button"], dropdownContent);
+      let dropdownOptionText = createElement("div", ["event-selection-dropdown-button-text"], dropdownOption);
+      let dropdownOptionIconDiv = createElement("div", ["event-selection-dropdown-button-delete"], dropdownOption);
+      let dropdownOptionIcon = createElement("div", ["fa", "fa-times"], dropdownOptionIconDiv);
+
+      dropdownOptionText.innerHTML = option;
+
+      //delete the option
+      dropdownOptionIconDiv.onclick = (e) => {
+        e.stopPropagation();
+        this.options.splice(this.options.findIndex(e => e == option), 1);
+
+        dropdownOption.remove();
+
+        App.renderEditor();
+      }
+
+    }
+
+    //button to add new option
+    let addButtonDiv = createElement("div", ["event-selection-dropdown-button"], dropdownContent);
+    let addButtonIconDiv = createElement("div", ["event-selection-dropdown-button-text"], addButtonDiv);
+    let addButtonIcon = createElement("i", ["fa", "fa-plus"], addButtonIconDiv);
+    //let addButtonText = createElement("div", [], addButtonDiv);
+
+    //just add a new entry when you click add
+    addButtonDiv.onclick = (e) => {
+      e.stopPropagation();
+      this.options.push("New Option");
+
+      App.renderEditor();
+    }
 
     Editor.addTextEditor(this, false, this.options.toString());
     Editor.addLayoutStyleSection(this);
@@ -359,13 +382,12 @@ export class Dropdown extends Component {
 
     let select: HTMLSelectElement = document.createElement("select");
 
-    this.options.forEach(o => {
+    for (const option of this.options) {
       let opt: HTMLOptionElement = document.createElement("option");
-      opt.value = o;
-      opt.textContent = o;
-      //if (o === node.selected) opt.selected = true;
+      opt.value = option;
+      opt.textContent = option;
       select.appendChild(opt);
-    });
+    }
 
     select.onclick = e => {
       //e.stopPropagation();
@@ -395,6 +417,7 @@ export class Dropdown extends Component {
   applyStyles(overridenStyles?: Record<string, any>): void {
       if (!this.divElement) return;
       for (const styleType of this.styleTypes) {
+        if (styleType == Style.text) continue; //setting text would reset the inner html and break the dropdown
         styleType.applyToNode(getCorrectStyleDiv(styleType, Style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
       }
   }

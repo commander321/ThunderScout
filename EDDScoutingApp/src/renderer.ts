@@ -22,7 +22,6 @@ export function renderAppPreview() {
   renderComponent(App.getRoot(), appContent);
 }
 
-
 /**
  * Renders a component and all of it's children
  */
@@ -62,7 +61,6 @@ function renderComponent(component: Components.Component, container: HTMLDivElem
   }
 }
 
-
 /**
  * Renders all children of a component
  */
@@ -89,7 +87,6 @@ function renderInsertBar(container: HTMLDivElement, parentId: string, index: num
 
   container.appendChild(bar);
 }
-
 
 /**
  * Renders the editor for the selected component
