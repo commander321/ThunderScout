@@ -578,9 +578,14 @@ export function addTextEditor(component: Components.Component, editable: boolean
       if (component.style.textAlign == align) return;
       Actions.saveAction(new Actions.Action(App.loadComponent(component), null, Actions.ActionType.COMPONENT_STYLE_CHANGE, structuredClone(component.style)));
       component.style.textAlign = align;
-      //app.renderPreview();
       component.applyStyles();
-      App.renderEditor(); //render editor to deselect the other buttons
+
+      //rest the other buttons in the editor
+      alignButton.classList.add("textbox-editor-button-selected");
+      if (align != "left") document.getElementById("textbox-editor-align-left")?.classList.remove("textbox-editor-button-selected");
+      if (align != "right") document.getElementById("textbox-editor-align-right")?.classList.remove("textbox-editor-button-selected");
+      if (align != "center") document.getElementById("textbox-editor-align-center")?.classList.remove("textbox-editor-button-selected");
+      Style.textAlign.applyToNode(textbox, component.style);
     };
   }
 }

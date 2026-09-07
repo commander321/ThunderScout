@@ -329,25 +329,35 @@ export class Dropdown extends Component {
     let dropdownSection = Editor.createSection("Dropdown", editorDiv);
   
     let dropdown = createElement("div", ["event-selection-dropdown"], dropdownSection);
-    dropdown.style.position = "relative"
+    dropdown.style.position = "relative";
+    dropdown.style.width = "auto";
     let dropdownContent = createElement("div", ["event-selection-dropdown-scrollable"], dropdown);
 
-    for (const option of this.options) {
-      let dropdownOption = createElement("div", ["event-selection-dropdown-button"], dropdownContent);
-      let dropdownOptionText = createElement("div", ["event-selection-dropdown-button-text"], dropdownOption);
+    for (let i=0;i<this.options.length;i++) {
+      const option = this.options[i];
+      if (!option) continue;
+      let dropdownOption = createElement("div", ["dropdown-selection-item"], dropdownContent);
+      let dropdownOptionText = createElement("input", ["dropdown-selection-text"], dropdownOption)
+      //let dropdownOptionText = createElement("div", ["event-selection-dropdown-button-text"], dropdownOption);
       let dropdownOptionIconDiv = createElement("div", ["event-selection-dropdown-button-delete"], dropdownOption);
       let dropdownOptionIcon = createElement("div", ["fa", "fa-times"], dropdownOptionIconDiv);
 
-      dropdownOptionText.innerHTML = option;
+      (dropdownOptionText as HTMLInputElement).value = option;
 
       //delete the option
       dropdownOptionIconDiv.onclick = (e) => {
         e.stopPropagation();
         this.options.splice(this.options.findIndex(e => e == option), 1);
-
         dropdownOption.remove();
-
         App.renderEditor();
+      }
+
+      //change option when text changes
+      dropdownOptionText.onchange = (e) => {
+        e.stopPropagation();
+        console.log("a");
+        this.options[i] = (dropdownOptionText as HTMLInputElement).value;
+        App.renderPreview();
       }
 
     }

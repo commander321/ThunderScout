@@ -1,0 +1,243 @@
+.editor-event-div {
+    padding-bottom: 0;
+}
+
+.editor-event-trigger-label {
+    background-color: #d9d9d9;
+    border-color: #aeaeae;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 4px;
+    color: #111111;
+    font-size: 16px;
+    cursor: pointer;
+    padding:8px;
+    user-select: none;
+    align-items: center;
+    display: flex;
+}
+
+.editor-event-trigger-label:hover {
+    background-color: #c0c0c0;
+}
+
+.editor-event-trigger-add {
+    background-color: #d9d9d9;
+    border-color: #aeaeae;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 8px;
+    color: #111111;
+    font-size: 16px;
+    cursor: pointer;
+    padding:8px;
+    width: 15%;
+    margin-top: 5%;
+    display: flex;
+    align-items: center;
+}
+
+.editor-event-trigger-add:hover {
+    background-color: #c0c0c0;
+}
+
+.editor-event-content {
+    width:90%;
+    display: flex;
+    justify-self: center;
+    padding-top: 20px;
+    flex-direction: column;
+}
+
+.event-trigger-dropdown {
+    display: block;
+    background-color: #ffffff;
+    width: 30%;
+    z-index: 10;
+    margin-top: 4px;
+    overflow: hidden;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+}
+
+.event-trigger-dropdown-button {
+    color: #111111;
+    padding: 12px;
+    display: block;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background-color: #ffffff;
+}
+
+.event-trigger-dropdown-button:hover {
+    background-color: #e0e0e0;
+}
+
+.editor-event-action-add {
+    background-color: #d9d9d9;
+    border-color: #aeaeae;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    color: #111111;
+    font-size: 24px;
+    cursor: pointer;
+    padding:5px;
+    margin-top: 25px;
+    text-align: center;
+    align-content: center;
+}
+
+.editor-event-action-add:hover {
+    background-color: #c0c0c0;
+}
+
+.editor-event-action-div {
+    width: 50%;
+}
+
+.editor-event-action-label {
+    background-color: #d9d9d9;
+    border-color: #aeaeae;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 4px;
+    color: #111111;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 6px;
+    margin-top: 25px;
+    user-select: none;
+    display: flex;
+    align-items: center;
+}
+
+.editor-event-action-label:hover {
+    background-color: #c0c0c0;
+}
+
+.editor-event-action-label-collapse {
+    margin-left: auto;
+    color: #222222;
+    width: 25px;
+    height: 25px;
+    align-content: center;
+}
+
+.editor-event-action-properties {
+    background: #f0f0f0;
+    border: 2px solid #d9d9d9;
+    border-radius: 4px;
+    max-height: 200px;
+    padding:8px;
+}
+
+.editor-event-action-properties-div {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.editor-event-action-properties-input {
+    border: 2px solid #bbbbbb;
+    border-radius: 4px;
+    padding: 6px;
+    padding-left: 8px;
+    background: #f9f9f9;
+    font-size: 14px;
+    width: 30%;
+    margin-left: auto;
+    margin-right: 5%;
+    margin-bottom: 0px;
+}
+
+.editor-event-action-component-select {
+    border: 2px solid #bbbbbb;
+    border-radius: 4px;
+    padding: 6px;
+    padding-left: 8px;
+    background: #ffffff;
+    font-size: 14px;
+    width: 50%;
+    margin-left: auto;
+    margin-right: 5%;
+    margin-bottom: 0px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+.editor-event-action-component-select:hover {
+    background: #eeeeee;
+}
+
+.editor-event-tree {
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    padding: 10px;
+}
+
+.editor-event-tree ul {
+    list-style: none;
+    padding-left: 20px;
+    margin: 0;
+    position: relative;
+}
+
+.editor-event-tree > ul { 
+    padding-left: 5px; 
+}
+
+.editor-event-tree li {
+    position: relative;
+    padding-left: 20px;
+    margin-left: 20px;
+}
+
+.editor-event-tree ul li::before {
+    content: "";
+    position: absolute;
+    left: -18px;
+    bottom:0;
+    /*height: var(--editor-tree-before-height, 100%);*/
+    height: calc(100% + 25px);
+    border-left: 2px solid #999999;
+}
+
+.editor-event-tree ul li::after {
+    content: "";
+    position: absolute;
+    left: -18px;
+    top: 16px;
+    width: 30px;
+    border-top: 2px solid #999999;
+}
+
+.editor-event-tree ul li:last-child::before {
+    bottom: calc(50% + 2px);
+}
+
+.modal-events-content {
+    overflow-y: auto;
+    height: 100%;
+    scrollbar-gutter: stable;
+}
+
+.editor-event-action-style-input {
+    width: 30%;
+    margin-left: auto;
+    margin-right: 5%;
+    border: 2px solid #bbbbbb;
+    border-radius: 4px;
+    margin-bottom: 0px;
+}
