@@ -116,12 +116,13 @@ export function renderEditor() {
   let component = result.component;
 
   let title = "Component"
-  for (const component of Components.COMPONENT_TYPES) {
-    if (component.constructor.name.toLowerCase() === component[0] && component[1]) {
-      title = component[1];
+  for (const c of Components.COMPONENT_TYPES) {
+    if (component.constructor.name.toLowerCase() === c[0] && c[1]) {
+      title = c[1];
       break;
     }
   }
+  console.log(title);
   editorTitle.innerHTML = title;
 
   //Editor features specific to the type of component

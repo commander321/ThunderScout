@@ -105,6 +105,7 @@ export function addMatchEventSelection(matchEvent: MatchEvents.EventPointer, par
 
   let mainInput = createElement("div", ["event-selection-input"], content); //button you click on to open dropdown
   mainInput.style.display = "flex";
+  mainInput.style.background = "#ffffff"
   let mainInputText = createElement("div", [],  mainInput)
   mainInputText.innerHTML = matchEvent.value;
   let mainInputIconDiv = createElement("div", ["editor-event-action-label-collapse"], mainInput);

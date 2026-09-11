@@ -132,6 +132,7 @@ export class Counter extends Component {
       if (!this.divElement) return;
 
       for (const styleType of this.styleTypes) {
+        if (styleType == Style.text) continue;
         styleType.applyToNode(getCorrectStyleDiv(styleType, Style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));
       }
   }
@@ -198,13 +199,10 @@ export class Button extends Component {
 
     //add a button styles section (for background colors, hover colors, etc)
     editorDiv.appendChild(document.createElement("hr"));
-    let label = document.createElement("div");
-    label.textContent = "Button Style";
-    editorDiv.appendChild(label);
-    editorDiv.appendChild(document.createElement("br"));
+    let buttonSection = Editor.createSection("Button Style", editorDiv);
 
-    Editor.addInput(this, editorDiv, Style.buttonColor.displayName, Style.buttonColor);
-    Editor.addInput(this, editorDiv, Style.buttonHoverColor.displayName, Style.buttonHoverColor);
+    Editor.addInput(this, buttonSection, Style.buttonColor.displayName, Style.buttonColor);
+    Editor.addInput(this, buttonSection, Style.buttonHoverColor.displayName, Style.buttonHoverColor);
 
     Editor.addLayoutStyleSection(this);
     Editor.addBorderSection(this);
@@ -328,9 +326,10 @@ export class Dropdown extends Component {
 
     let dropdownSection = Editor.createSection("Dropdown", editorDiv);
   
-    let dropdown = createElement("div", ["event-selection-dropdown"], dropdownSection);
+    let dropdown = createElement("div", ["dropdown-selection"], dropdownSection);
     dropdown.style.position = "relative";
     dropdown.style.width = "auto";
+    dropdown.style.zIndex = "0";
     let dropdownContent = createElement("div", ["event-selection-dropdown-scrollable"], dropdown);
 
     for (let i=0;i<this.options.length;i++) {
@@ -426,6 +425,7 @@ export class Dropdown extends Component {
 
   applyStyles(overridenStyles?: Record<string, any>): void {
       if (!this.divElement) return;
+      (this.divElement.firstChild as HTMLElement).style.marginBottom = "0"; //fixes the layout looking weird, should probably add a better fix later
       for (const styleType of this.styleTypes) {
         if (styleType == Style.text) continue; //setting text would reset the inner html and break the dropdown
         styleType.applyToNode(getCorrectStyleDiv(styleType, Style.layoutStyleTypes, this.divElement), getCorrectStyles(styleType, this.style, overridenStyles));

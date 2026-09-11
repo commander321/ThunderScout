@@ -278,6 +278,17 @@
     cursor: pointer;
 }
 
+.dropdown-selection {
+    position: relative;
+    display: block;
+    background: #ffffff;
+    width: auto;
+    margin-top: 4px;
+    overflow: hidden;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+}
+
 .dropdown-selection-item {
     padding: 10px;
     display: flex;

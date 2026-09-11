@@ -26,7 +26,7 @@
         <div class="toolbar-left">
 
             <!--Toggle between edit and preview mode-->
-            <div class="toolbar-item" style="user-select:none">
+            <div class="toolbar-item" style="user-select:none" id="edit-mode-switch">
                 <label class="switch">
                     <input type="checkbox" id="edit-mode-toggle" checked="false">
                     <span class="slider"></span>
@@ -159,7 +159,7 @@
 
     <div id="overlay-settings" class="hidden"></div>
     <div id="modal-settings" class="hidden">
-        <div id="settings-header">
+        <div id="settings-header" class="modal-header">
             <h3>Settings</h3>
         </div>
 

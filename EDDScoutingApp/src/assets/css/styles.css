@@ -248,19 +248,6 @@ input, select {
   pointer-events: none;
 }
 
-/* Add component menu */
-
-#modal {
-  position: fixed;
-  top: 10%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: white;
-  padding: 20px;
-  border: 1px solid #cccccc;
-  overflow-y: auto;
-}
-
 /* Events modal */
 
 .modal-events {
@@ -300,20 +287,6 @@ input, select {
   border-radius: 6px;
   width: 40%;
   height: 70%;
-}
-
-#settings-header {
-  height: 50px;
-  background: #df4646;
-  border-bottom: 1px solid #d9d9d9;
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-  gap: 8px;
-  flex: none;
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
-  color: #e5e5e5;
 }
 
 #settings-content {

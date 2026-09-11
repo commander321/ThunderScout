@@ -70,13 +70,21 @@ export function openAddComponentModal(parentId: string, index: number) {
   if (!modal) return;
   modal.classList.remove("hidden");
   modal.classList.add("component-modal");
-  modal.innerHTML = "<h2>Select a component to add</h2>";
+  modal.replaceChildren();
+
+  let modalHeader = createElement("div", ["modal-header"], modal);
+  modalHeader.innerHTML = "Select a component to add";
+
+  let modalContent = createElement("div", ["component-modal-content"]);
 
   let grid = createElement("div", ["component-modal-grid"]);
 
   Components.COMPONENT_TYPES.forEach(type => {
     if (type[0] && type[1] && type[2] && type[0] != "root") {
       let componentDiv = createElement("div", ["component-modal-component"]);
+      let componentDivOverlay = createElement("div", ["component-modal-component-overlay"], componentDiv);
+      let icon = createElement("div", ["fa", "fa-plus"], componentDivOverlay);
+      let componentDivContent = createElement("div", ["component-modal-component-content"], componentDiv);
 
       let componentName = createElement("strong", ["component-modal-name"]);
       componentName.textContent = type[1];
@@ -89,21 +97,26 @@ export function openAddComponentModal(parentId: string, index: number) {
       picture.src = "/src/assets/components/" + type[0] + ".png";
       pictureDiv.appendChild(picture);
 
+      componentDiv.onclick = (e) => {
+        addComponent(type[0] || "null");
+      }
+      /*
       let buttonDiv = createElement("div", ["component-modal-add-button"])
       let addButton = document.createElement("button");
       addButton.textContent = "+";
       addButton.onclick = () => addComponent(type[0] || "null");
-      buttonDiv.appendChild(addButton);
+      buttonDiv.appendChild(addButton);*/
 
-      componentDiv.appendChild(componentName);
-      componentDiv.appendChild(description);
-      componentDiv.appendChild(pictureDiv);
-      componentDiv.appendChild(buttonDiv);
+      componentDivContent.appendChild(componentName);
+      componentDivContent.appendChild(description);
+      componentDivContent.appendChild(pictureDiv);
+      //componentDivContent.appendChild(buttonDiv);
       grid.appendChild(componentDiv);
     }
   });
 
-  modal.appendChild(grid);
+  modalContent.appendChild(grid);
+  modal.appendChild(modalContent);
 }
 
 function addComponent(type: string) {
@@ -526,7 +539,8 @@ function setupEditorButtons() {
 
   //switch to go between edit mode (unchecked) and preview mode (checked)
   const editorModeSwitch = document.getElementById("edit-mode-toggle");
-  if (editorModeSwitch && editorModeSwitch instanceof HTMLInputElement) editorModeSwitch.onchange = (e) => {
+  if (!editorModeSwitch || !(editorModeSwitch instanceof HTMLInputElement)) return;
+  editorModeSwitch.onchange = (e) => {
     e.stopPropagation();
 
     if (editorModeSwitch.checked) {
@@ -534,6 +548,10 @@ function setupEditorButtons() {
     } else {
       openEditMode();
     }
+  }
+  const editorModeLabel = document.getElementsByClassName("edit-mode-switch-label")[0];
+  if (editorModeLabel instanceof HTMLElement) editorModeLabel.onclick = (e) => {
+    editorModeSwitch.click();
   }
 
 }
